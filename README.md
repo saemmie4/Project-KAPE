@@ -1,2 +1,2 @@
-# Project-K.A.P.E.
+# Project-KAPE
 Knowing Ants Pattern Evolution
