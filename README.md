@@ -2,8 +2,11 @@
 Knowing Ants Pattern Evolution
 
 to compile, from the directory "Project-KAPE":  
+```shell
   cmake -S ./sources/ -B build -DCMAKE_BUILD_TYPE=Debug  
   cmake --build build  
-
+```
 to execute:  
+```shell
   ./build/project-kape
+```
