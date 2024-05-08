@@ -32,8 +32,8 @@ target_link_libraries(project-kape PRIVATE sfml-graphics)
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile all.t
-  # add_executable(all.t all.t.cpp complex.t.cpp)
+  add_executable(all.t geometry.t.cpp)
   # aggiungi l'eseguibile all.t alla lista dei test
-  # add_test(NAME all.t COMMAND all.t)
+  add_test(NAME all.t COMMAND all.t)
 
 endif()

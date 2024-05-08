@@ -11,3 +11,7 @@ to execute:
 ```shell
   ./build/project-kape
 ```
+to run the tests:
+```shell
+  cmake --build build --target test
+```
