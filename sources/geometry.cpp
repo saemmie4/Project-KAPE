@@ -73,6 +73,9 @@ double norm(Vector2d const& vec)
 
 // rotate the vector by "angle" radians
 Vector2d rotate(Vector2d const& vec, double angle)
-{}
+{
+  return Vector2d{vec.x * std::cos(angle) - vec.y * std::sin(angle),
+                  vec.x * std::sin(angle) + vec.y * std::cos(angle)};
+}
 
 } // namespace kape
