@@ -1,6 +1,11 @@
 #ifndef GEOMETRY_HPP
 #define GEOMETRY_HPP
 
+// TODO:
+// operator-=
+// operator*=
+// operator/=
+
 namespace kape {
 struct Vector2d
 {
