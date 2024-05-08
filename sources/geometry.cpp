@@ -5,22 +5,22 @@ namespace kape {
 
 Vector2d& Vector2d::operator+=(Vector2d const& rhs)
 {
-  x_ += rhs.x_;
-  y_ += rhs.y_;
+  x += rhs.x;
+  y += rhs.y;
   return *this;
 }
 
 // dot product
 double operator*(Vector2d const& lhs, Vector2d const& rhs)
 {
-  return lhs.x_ * rhs.x_ + lhs.y_ + rhs.y_;
+  return lhs.x * rhs.x + lhs.y + rhs.y;
 }
 // scalar*vector
 Vector2d operator*(double const& lhs, Vector2d const& rhs)
 {
   Vector2d res{rhs};
-  res.x_ *= lhs;
-  res.y_ *= lhs;
+  res.x *= lhs;
+  res.y *= lhs;
   return res;
 }
 // vector*scalar
@@ -48,7 +48,7 @@ Vector2d operator-(Vector2d const& lhs, Vector2d const& rhs)
 // returns the norm squared of a vector
 double norm2(Vector2d const& vec)
 {
-  return vec.x_ * vec.x_ + vec.y_ * vec.y_;
+  return vec.x * vec.x + vec.y * vec.y;
 }
 // returns the norm of a vector
 double norm(Vector2d const& vec)
