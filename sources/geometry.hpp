@@ -21,7 +21,8 @@ double operator*(Vector2d const& lhs, Vector2d const& rhs);
 Vector2d operator*(double const& lhs, Vector2d const& rhs);
 // vector*scalar
 Vector2d operator*(Vector2d const& lhs, double const& rhs);
-// vector/scalar EXCEPTION IF rhs==0
+// vector/scalar.
+// may throw a std::domain_error if rhs==0 (division by 0)
 Vector2d operator/(Vector2d const& lhs, double const& rhs);
 // sum between two vectors
 Vector2d operator+(Vector2d const& lhs, Vector2d const& rhs);

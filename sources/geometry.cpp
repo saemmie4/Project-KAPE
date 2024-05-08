@@ -1,5 +1,7 @@
 #include "geometry.hpp"
-#include <cmath>
+#include <cassert>   //per assert
+#include <cmath>     //for std::sqrt
+#include <stdexcept> //for std::domain_error
 
 namespace kape {
 
@@ -18,21 +20,24 @@ double operator*(Vector2d const& lhs, Vector2d const& rhs)
 // scalar*vector
 Vector2d operator*(double const& lhs, Vector2d const& rhs)
 {
-  Vector2d res{rhs};
-  res.x *= lhs;
-  res.y *= lhs;
-  return res;
+  return Vector2d{lhs * rhs.x, lhs * rhs.y};
 }
+
 // vector*scalar
 Vector2d operator*(Vector2d const& lhs, double const& rhs)
 {
-  return operator*(rhs, lhs);
+  return rhs * lhs;
 }
-// vector/scalar EXCEPTION IF rhs==0
+
+// vector/scalar
+// may throw a std::domain_error if rhs==0 (division by 0)
 Vector2d operator/(Vector2d const& lhs, double const& rhs)
 {
-  // da aggiungere l'EXCEPTION, ora non ho sbatti di cercare come si faceva
-  return operator*(1 / rhs, lhs);
+  assert(rhs != 0.);
+  if (rhs == 0.) {
+    throw std::domain_error{"the denominator can't be 0"};
+  }
+  return (1. / rhs) * lhs;
 }
 
 // sum between two vectors
@@ -59,6 +64,7 @@ double norm2(Vector2d const& vec)
 {
   return vec.x * vec.x + vec.y * vec.y;
 }
+
 // returns the norm of a vector
 double norm(Vector2d const& vec)
 {
