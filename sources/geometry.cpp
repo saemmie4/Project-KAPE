@@ -13,7 +13,7 @@ Vector2d& Vector2d::operator+=(Vector2d const& rhs)
 // dot product
 double operator*(Vector2d const& lhs, Vector2d const& rhs)
 {
-  return lhs.x * rhs.x + lhs.y + rhs.y;
+  return lhs.x * rhs.x + lhs.y * rhs.y;
 }
 // scalar*vector
 Vector2d operator*(double const& lhs, Vector2d const& rhs)
@@ -41,9 +41,18 @@ Vector2d operator+(Vector2d const& lhs, Vector2d const& rhs)
   Vector2d sum{lhs};
   return sum += rhs;
 }
+
+// opposite of a vector
+Vector2d operator-(Vector2d const& rhs)
+{
+  return (-1.) * rhs;
+}
+
 // difference between two vectors
 Vector2d operator-(Vector2d const& lhs, Vector2d const& rhs)
-{}
+{
+  return lhs + (-rhs);
+}
 
 // returns the norm squared of a vector
 double norm2(Vector2d const& vec)
