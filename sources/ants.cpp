@@ -8,6 +8,6 @@ explicit Ant::Ant(Vector2d const& position, Vector2d velocity, bool has_food = f
 
 
 Vector2d Ant::getPosition() const{return position_;}
-bool Ant::hasFood() const{return has_food_ -1;}
+bool Ant::hasFood() const{return has_food_;}
 
 } // namespace kape
