@@ -38,7 +38,7 @@ double Colony::getRadius() const
 }
 int Colony::getFoodCounter() const
 {
-  return food_counter_;
+  return food_counter_; 
 }
 
 } // namespace kape
