@@ -4,14 +4,14 @@
 namespace kape {
 struct Vector2d
 {
-  double x_;
-  double y_;
+  double x;
+  double y;
 
   Vector2d& operator+=(Vector2d const& rhs);
 };
 
 // dot product
-Vector2d operator*(Vector2d const& lhs, Vector2d const& rhs);
+double operator*(Vector2d const& lhs, Vector2d const& rhs);
 // scalar*vector
 Vector2d operator*(double const& lhs, Vector2d const& rhs);
 // vector*scalar
@@ -22,6 +22,8 @@ Vector2d operator/(Vector2d const& lhs, double const& rhs);
 Vector2d operator+(Vector2d const& lhs, Vector2d const& rhs);
 // difference between two vectors
 Vector2d operator-(Vector2d const& lhs, Vector2d const& rhs);
+// opposite of a vector
+Vector2d operator-(Vector2d const& rhs);
 
 // returns the norm squared of a vector
 double norm2(Vector2d const& vec);
