@@ -1,6 +1,6 @@
 #include "ants.hpp"
 namespace kape {
-explicit Ant::Ant(Vector2d const& position, Vector2d velocity, bool has_food = false)
+Ant::Ant(Vector2d const& position, Vector2d const& velocity, bool has_food)
     : position_{position}
     , velocity_{velocity}
     , has_food_{has_food}

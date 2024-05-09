@@ -13,7 +13,7 @@ class Ant
 
 public:
 //may throw 
-explicit Ant(Vector2d const& position, Vector2d velocity, bool has_food = false);
+explicit Ant(Vector2d const& position, Vector2d const& velocity, bool has_food = false);
 
 Vector2d getPosition() const;
 bool hasFood() const;
