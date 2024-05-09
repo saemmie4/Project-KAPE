@@ -1,6 +1,7 @@
 #ifndef ENVIRONMENT_HPP
 #define ENVIRONMENT_HPP
 #include "geometry.hpp" //for Vector2d
+#include <stdexcept>
 #include <vector>
 // TODO:
 //  everything
@@ -14,6 +15,7 @@ class FoodParticle
  public:
   FoodParticle(Vector2d const& position);
 };
+
 class PheromoneParticle
 {
  private:
@@ -21,35 +23,42 @@ class PheromoneParticle
   int intensity_;
 
  public:
-  PheromoneParticle(Vector2d const& position, int intensity_ = 100);
+   // may throw std::invalid_argument if intensity isn't in [0,100]
+  PheromoneParticle(Vector2d const& position, int intensity = 100);
   Vector2d getPosition() const;
-  //returns the intensity as a number in the interval [0, 100]
+  // returns the intensity as a number in the interval [0, 100]
   int getIntensity() const;
-  
 
+  // may throw std::invalid_argument if amount < 0
   void decreaseIntensity(int amount = 5);
-  //returns true if the Pheromone's intensity is 0
+  // returns true if the Pheromone's intensity is 0
   bool hasEvaporated() const;
 };
 
-class Pheromones{
-  public:
-    enum class PheromoneType {TO_FOOD, TO_COLONY};
-  
-  private:
+class Pheromones
+{
+ public:
+  enum class PheromoneType
+  {
+    TO_FOOD,
+    TO_COLONY
+  };
+
+ private:
   std::vector<PheromoneParticle> pheromones_vec_;
   const PheromoneType type_;
 
-  public: 
+ public:
   explicit Pheromones(PheromoneType type);
+  // may throw std::invalid_argument if intensity isn't in [0,100]
   void addPheromoneParticle(Vector2d const& position, int intensity = 100);
   void addPheromoneParticle(PheromoneParticle const& particle);
-  void updateParticlesIntensity(int amount = 5);
+  // may throw std::invalid_argument if amount < 0
+  void updateParticlesEvaporation(int amount = 5);
+  std::vector<PheromoneParticle> const& getPheromones() const;
 };
 //  Pheromones redPheromones(Pheromones::PheromoneType::RED);
 
-class Environment
-{};
 } // namespace kape
 
 #endif
