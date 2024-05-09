@@ -1,9 +1,9 @@
-#include "colony.hpp"
+#include "anthill.hpp"
 #include <cassert>
 #include <stdexcept> //invalid argument
 
 namespace kape {
-explicit Colony::Colony(Vector2d position, double radius, int food_counter)
+explicit Anthill::Anthill(Vector2d position, double radius, int food_counter)
     : position_{position}
     , radius_{radius}
     , food_counter_{food_counter}
@@ -18,7 +18,7 @@ explicit Colony::Colony(Vector2d position, double radius, int food_counter)
   }
 }
 
-void Colony::addFood(int amount)
+void Anthill::addFood(int amount)
 {
   assert(amount >= 0);
   if (amount < 0) {
@@ -28,15 +28,15 @@ void Colony::addFood(int amount)
   food_counter_ += amount;
 }
 
-Vector2d Colony::getPosition() const
+Vector2d Anthill::getPosition() const
 {
   return position_;
 }
-double Colony::getRadius() const
+double Anthill::getRadius() const
 {
   return radius_;
 }
-int Colony::getFoodCounter() const
+int Anthill::getFoodCounter() const
 {
   return food_counter_; 
 }
