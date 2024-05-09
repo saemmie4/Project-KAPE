@@ -2,6 +2,14 @@
 #include "geometry.hpp"
 #include "doctest.h"
 
+// TODO:
+//  -tests for rotate
+//  -tests for -=
+//  -tests for *=
+//  -tests for /=
+//  -solve that operator/ makes tests fail because it (correctly) crashes the
+//  program with the assert to check if the denominator is 0
+
 TEST_CASE("Testing the Vector2d class")
 {
   kape::Vector2d v1{1., 5.};
@@ -69,15 +77,15 @@ TEST_CASE("Testing the Vector2d class")
     CHECK((v1 * 7.).y == doctest::Approx(35.));
   }
 
-  // SUBCASE("testing operator v/n")
-  // {
-  //   CHECK((v1 / 2.).x == doctest::Approx(0.5));
-  //   CHECK((v1 / 2.).y == doctest::Approx(2.5));
-  //   CHECK((v2 / (-3.)).x == doctest::Approx(0.));
-  //   CHECK((v2 / (-3.)).y == doctest::Approx(1.6666667));
-  //   CHECK_THROWS(v1 / 0.);
-  //   CHECK_THROWS(v2 / 0.);
-  // }
+  SUBCASE("testing operator v/n")
+  {
+    CHECK((v1 / 2.).x == doctest::Approx(0.5));
+    CHECK((v1 / 2.).y == doctest::Approx(2.5));
+    CHECK((v2 / (-3.)).x == doctest::Approx(0.));
+    CHECK((v2 / (-3.)).y == doctest::Approx(1.6666667));
+    CHECK_THROWS(v1 / 0.);
+    CHECK_THROWS(v2 / 0.);
+  }
 
   SUBCASE("testing operator v+=v")
   {
