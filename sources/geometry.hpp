@@ -46,18 +46,18 @@ class Circle
   double radius_;
 
  public:
-  Circle(Vector2d& position, double radius);
+  Circle(Vector2d const& position, double radius);
   Vector2d getCirclePosition() const;
 };
 
 class Rectangle
 {
+  Vector2d position_;
   double widht_;
   double heigth_;
-  Vector2d position_;
 
  public:
-  Rectangle(double width, double height, Vector2d position);
+  Rectangle(Vector2d const& position, double width, double height);
   Vector2d getRectanglePosition() const;
 };
 
