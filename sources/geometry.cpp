@@ -33,10 +33,10 @@ Vector2d operator*(Vector2d const& lhs, double const& rhs)
 // may throw a std::domain_error if rhs==0 (division by 0)
 Vector2d operator/(Vector2d const& lhs, double const& rhs)
 {
-  assert(rhs != 0.);
   if (rhs == 0.) {
     throw std::domain_error{"the denominator can't be 0"};
   }
+
   return (1. / rhs) * lhs;
 }
 
