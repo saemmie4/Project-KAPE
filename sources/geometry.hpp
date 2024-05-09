@@ -40,6 +40,16 @@ double norm(Vector2d const& vec);
 // rotate the vector by "angle" radians
 Vector2d rotate(Vector2d const& vec, double angle);
 
+
+
+class Circle{
+
+};
+
+class Rectangle{
+
+};
+
 } // namespace kape
 
 #endif

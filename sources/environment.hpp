@@ -41,7 +41,7 @@ class Pheromones
   enum class PheromoneType
   {
     TO_FOOD,
-    TO_COLONY
+    TO_ANTHILL
   };
 
  private:
@@ -55,7 +55,7 @@ class Pheromones
   void addPheromoneParticle(PheromoneParticle const& particle);
   // may throw std::invalid_argument if amount < 0
   void updateParticlesEvaporation(int amount = 5);
-  std::vector<PheromoneParticle> const& getPheromones() const;
+  int getPheromonesIntensityInCircle(Circle const& circle);
 };
 //  Pheromones redPheromones(Pheromones::PheromoneType::RED);
 
