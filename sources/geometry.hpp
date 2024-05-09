@@ -40,14 +40,25 @@ double norm(Vector2d const& vec);
 // rotate the vector by "angle" radians
 Vector2d rotate(Vector2d const& vec, double angle);
 
+class Circle
+{
+  Vector2d position_;
+  double radius_;
 
-
-class Circle{
-
+ public:
+  Circle(Vector2d& position, double radius);
+  Vector2d getCirclePosition() const;
 };
 
-class Rectangle{
+class Rectangle
+{
+  double widht_;
+  double heigth_;
+  Vector2d position_;
 
+ public:
+  Rectangle(double width, double height, Vector2d position);
+  Vector2d getRectanglePosition() const;
 };
 
 } // namespace kape
