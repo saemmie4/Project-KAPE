@@ -42,24 +42,25 @@ Vector2d rotate(Vector2d const& vec, double angle);
 
 class Circle
 {
-  Vector2d position_;
+  Vector2d center_;
   double radius_;
 
  public:
-  Circle(Vector2d const& position, double radius);
-  Vector2d getCirclePosition() const;
+  Circle(Vector2d const& center, double radius);
+  Vector2d getCircleCenter() const;
   double getCircleRadius() const;
+  bool isInside(Vector2d const& position);
 };
 
 class Rectangle
 {
-  Vector2d position_;
+  Vector2d top_left_corner_;
   double widht_;
   double heigth_;
 
  public:
-  Rectangle(Vector2d const& position, double width, double height);
-  Vector2d getRectanglePosition() const;
+  Rectangle(Vector2d const& top_left_corner, double width, double height);
+  Vector2d getRectangleTopLeftCorner() const;
   double getRectangleWidth() const;
   double getRectangleHeight() const;
 };

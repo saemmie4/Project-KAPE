@@ -2,7 +2,8 @@
 #include <cassert>   //per assert
 #include <cmath>     //for std::sqrt
 #include <stdexcept> //for std::domain_error
-
+// TODO:
+// - rectangle implementation
 namespace kape {
 
 Vector2d& Vector2d::operator+=(Vector2d const& rhs)
@@ -78,18 +79,32 @@ Vector2d rotate(Vector2d const& vec, double angle)
                   vec.x * std::sin(angle) + vec.y * std::cos(angle)};
 }
 
-Circle::Circle(Vector2d const& position, double radius) : position_{position}, radius_{radius} {
-  if (radius < 0) {
-    throw std::invalid_argument{"The radius must be a positive number"};
+// Circle implementation----------------------------------
+
+Circle::Circle(Vector2d const& center, double radius)
+    : center_{center}
+    , radius_{radius}
+{
+  if (radius <= 0) {
+    throw std::invalid_argument{"The radius can't be negative or null"};
   }
 }
 
-Vector2d Circle::getCirclePosition() const {
-  return position_;
+Vector2d Circle::getCircleCenter() const
+{
+  return center_;
 }
 
-double Circle::getCircleRadius() const {
+double Circle::getCircleRadius() const
+{
   return radius_;
 }
+
+bool Circle::isInside(Vector2d const& position)
+{
+  return norm2(center_ - position) <= radius_ * radius_;
+}
+
+// Rectangle Implementation-----------------------------------
 
 } // namespace kape
