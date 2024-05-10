@@ -1,4 +1,6 @@
 #include "environment.hpp"
+#include <algorithm>
+#include <cmath>
 #include <stdexcept>
 
 namespace kape {
@@ -30,7 +32,7 @@ void PheromoneParticle::decreaseIntensity(int amount)
 {
   if (amount < 0)
     throw std::invalid_argument{"The amount must be a positive number"};
-    intensity_ += -(amount);
+  intensity_ += -(amount);
 }
 
 bool PheromoneParticle::hasEvaporated() const
@@ -45,15 +47,29 @@ Pheromones::Pheromones(PheromoneType type)
 
 void Pheromones::addPheromoneParticle(Vector2d const& position, int intensity)
 {
-    PheromoneParticle particle(position, intensity);
-    pheromones_vec_.push_back(particle);
+  PheromoneParticle particle(position, intensity);
+  pheromones_vec_.push_back(particle);
 }
 
-void Pheromones::addPheromoneParticle(PheromoneParticle const& particle) {
-    pheromones_vec_.push_back(particle);
+void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
+{
+  pheromones_vec_.push_back(particle);
 }
 
-void Pheromones::updateParticlesEvaporation(int amount) {
-    
+void Pheromones::updateParticlesEvaporation(int amount)
+{
+  std::transform(
+      pheromones_vec_.begin(), pheromones_vec_.end(), pheromones_vec_.begin(),
+      [=](PheromoneParticle part) { return part.getIntensity() - amount; });
 }
-} // namespace kape
+
+// add function which returns the difference of two Vector2d to use in lambda
+// int Pheromones::getPheromonesIntensityInCircle(Circle const& circle)
+// {
+//   std::vector<PheromoneParticle> particles_in_circle;
+//   std::copy_if(
+//       pheromones_vec_.begin(), pheromones_vec_.end(),
+//       std::back_inserter(particles_in_circle),
+//       [&](PheromoneParticle part) {});
+// }
+// } // namespace kape

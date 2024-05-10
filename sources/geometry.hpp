@@ -48,6 +48,7 @@ class Circle
  public:
   Circle(Vector2d const& position, double radius);
   Vector2d getCirclePosition() const;
+  double getCircleRadius() const;
 };
 
 class Rectangle
@@ -59,6 +60,8 @@ class Rectangle
  public:
   Rectangle(Vector2d const& position, double width, double height);
   Vector2d getRectanglePosition() const;
+  double getRectangleWidth() const;
+  double getRectangleHeight() const;
 };
 
 } // namespace kape

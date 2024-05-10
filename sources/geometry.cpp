@@ -78,4 +78,18 @@ Vector2d rotate(Vector2d const& vec, double angle)
                   vec.x * std::sin(angle) + vec.y * std::cos(angle)};
 }
 
+Circle::Circle(Vector2d const& position, double radius) : position_{position}, radius_{radius} {
+  if (radius < 0) {
+    throw std::invalid_argument{"The radius must be a positive number"};
+  }
+}
+
+Vector2d Circle::getCirclePosition() const {
+  return position_;
+}
+
+double Circle::getCircleRadius() const {
+  return radius_;
+}
+
 } // namespace kape
