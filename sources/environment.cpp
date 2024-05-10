@@ -1,6 +1,6 @@
 #include "environment.hpp"
-#include <algorithm>
 #include <cmath>
+#include <numeric> //for accumulate
 #include <stdexcept>
 
 namespace kape {
@@ -30,15 +30,19 @@ int PheromoneParticle::getIntensity() const
 
 void PheromoneParticle::decreaseIntensity(int amount)
 {
-  if (amount < 0)
+  if (amount < 0) {
     throw std::invalid_argument{"The amount must be a positive number"};
-  intensity_ += -(amount);
+  }
+
+  intensity_ -= amount;
+  if (intensity_ < 0) {
+    intensity_ = 0;
+  }
 }
 
 bool PheromoneParticle::hasEvaporated() const
 {
-  if (intensity_ == 0)
-    return true;
+  return intensity_ == 0;
 }
 
 Pheromones::Pheromones(PheromoneType type)
@@ -47,7 +51,7 @@ Pheromones::Pheromones(PheromoneType type)
 
 void Pheromones::addPheromoneParticle(Vector2d const& position, int intensity)
 {
-  PheromoneParticle particle(position, intensity);
+  PheromoneParticle particle{position, intensity};
   pheromones_vec_.push_back(particle);
 }
 
@@ -58,18 +62,21 @@ void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
 
 void Pheromones::updateParticlesEvaporation(int amount)
 {
-  std::transform(
-      pheromones_vec_.begin(), pheromones_vec_.end(), pheromones_vec_.begin(),
-      [=](PheromoneParticle part) { return part.getIntensity() - amount; });
+  for (auto& pheromone : pheromones_vec_) {
+    pheromone.decreaseIntensity(amount);
+  }
 }
 
 // add function which returns the difference of two Vector2d to use in lambda
-// int Pheromones::getPheromonesIntensityInCircle(Circle const& circle)
-// {
-//   std::vector<PheromoneParticle> particles_in_circle;
-//   std::copy_if(
-//       pheromones_vec_.begin(), pheromones_vec_.end(),
-//       std::back_inserter(particles_in_circle),
-//       [&](PheromoneParticle part) {});
-// }
-// } // namespace kape
+int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
+{
+  return std::accumulate(
+      pheromones_vec_.begin(), pheromones_vec_.end(), 0,
+      [&circle](int sum, PheromoneParticle const& pheromone) {
+        return sum
+             + (circle.isInside(pheromone.getPosition())
+                    ? pheromone.getIntensity()
+                    : 0);
+      });
+}
+} // namespace kape

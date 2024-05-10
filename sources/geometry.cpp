@@ -100,7 +100,7 @@ double Circle::getCircleRadius() const
   return radius_;
 }
 
-bool Circle::isInside(Vector2d const& position)
+bool Circle::isInside(Vector2d const& position) const
 {
   return norm2(center_ - position) <= radius_ * radius_;
 }

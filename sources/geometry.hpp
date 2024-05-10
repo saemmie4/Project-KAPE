@@ -49,7 +49,7 @@ class Circle
   Circle(Vector2d const& center, double radius);
   Vector2d getCircleCenter() const;
   double getCircleRadius() const;
-  bool isInside(Vector2d const& position);
+  bool isInside(Vector2d const& position) const;
 };
 
 class Rectangle
