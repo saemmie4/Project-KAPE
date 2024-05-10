@@ -55,7 +55,7 @@ class Pheromones
   void addPheromoneParticle(PheromoneParticle const& particle);
   // may throw std::invalid_argument if amount < 0
   void updateParticlesEvaporation(int amount = 5);
-  int getPheromonesIntensityInCircle(Circle const& circle);
+  int getPheromonesIntensityInCircle(Circle const& circle) const;
 };
 //  Pheromones redPheromones(Pheromones::PheromoneType::RED);
 
