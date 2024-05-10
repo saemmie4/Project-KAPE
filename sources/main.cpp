@@ -1,18 +1,20 @@
-#include <SFML/Graphics.hpp>
 #include "ants.hpp"
 #include "drawing.hpp"
+#include <SFML/Graphics.hpp>
+
+#include <iostream>
+
 int main()
 {
+  kape::Ant ant{{0., 0.}, {0., 0.}};
+  kape::Window window{700u, 600u};
 
-  kape::Ant ant{{0.5,0.}, {0.,0.}};
-  kape::Renderer rend{700, 200};
-  while(rend.isOpen()){
-    rend.clear(sf::Color::Black);
-    rend.draw(ant);
-    rend.display();
-    rend.pullAllEvents();
+  while (window.isOpen()) {
+    window.clear(sf::Color::Red);
+    window.draw(ant);
+    window.display();
+    window.pullAllEvents();
   }
-
 
   return 0;
 }

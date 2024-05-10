@@ -4,13 +4,12 @@
 #include <stdexcept> //for std::invalid_argument, std::runtime_error
 
 // TODO
-//  - the implementation of the Renderer constructor is bad
-//  - find a solution for worldToScreen having to make a static_cast
-//  double->float
+//  - the implementation of the Window constructor is a bit bad
+//  - find a solution for worldToScreen having to use static_cast
 //  - remove pullAllEvents()
 
 namespace kape {
-CoordinateConverter::CoordinateConverter(double meter_to_pixels)
+CoordinateConverter::CoordinateConverter(float meter_to_pixels)
     : meter_to_pixels_{meter_to_pixels}
 {
   if (meter_to_pixels_ <= 0) {
@@ -19,12 +18,12 @@ CoordinateConverter::CoordinateConverter(double meter_to_pixels)
   }
 }
 
-double CoordinateConverter::getMeterToPixels() const
+float CoordinateConverter::getMeterToPixels() const
 {
   return meter_to_pixels_;
 }
 
-void CoordinateConverter::setMeterToPixels(double meter_to_pixels)
+void CoordinateConverter::setMeterToPixels(float meter_to_pixels)
 {
   if (meter_to_pixels <= 0) {
     throw std::invalid_argument{
@@ -34,34 +33,24 @@ void CoordinateConverter::setMeterToPixels(double meter_to_pixels)
   meter_to_pixels_ = meter_to_pixels;
 }
 
-double CoordinateConverter::pixelsToMeters(double distance_in_pixels) const
+float CoordinateConverter::pixelsToMeters(float distance_in_pixels) const
 {
   return distance_in_pixels / meter_to_pixels_;
 }
 
-double CoordinateConverter::metersToPixels(double distance_in_meters) const
+float CoordinateConverter::metersToPixels(float distance_in_meters) const
 {
   return distance_in_meters * meter_to_pixels_;
 }
 
 sf::Vector2f CoordinateConverter::worldToScreen(Vector2d const& world_position,
-                                                int window_width,
-                                                int window_height)
+                                                unsigned int window_width,
+                                                unsigned int window_height)
 {
-  if (window_width <= 0) {
-    throw std::invalid_argument{"The window's width can't be negative or null"};
-  }
-  if (window_height <= 0) {
-    throw std::invalid_argument{
-        "The window's height can't be negative or null"};
-  }
-
-  // this stuff is bad
-
   sf::Vector2f res{static_cast<float>(world_position.x),
                    static_cast<float>(world_position.y)};
-  res *= static_cast<float>(meter_to_pixels_); // scale to pixels
-  res.y *= -1.0f;                              // invert y axis
+  res *= meter_to_pixels_; // scale to pixels
+  res.y *= -1.0f;          // invert y axis
   res.x += static_cast<float>(window_width)
          / 2.f; // translate origin to the left edge of the screen
   res.y += static_cast<float>(window_height)
@@ -70,26 +59,26 @@ sf::Vector2f CoordinateConverter::worldToScreen(Vector2d const& world_position,
   return res;
 }
 
-// Renderer implementation---------------------------------------
+// Window implementation---------------------------------------
 
-//BADBADBAD
-Renderer::Renderer(int window_width, int window_height, double meter_to_pixel)
-    : window_{sf::RenderWindow(sf::VideoMode(window_width, window_height),
-                               "Project-KAPE",
-                               sf::Style::Resize | sf::Style::Close)}
-    , coord_conv_{CoordinateConverter(meter_to_pixel)}
+Window::Window(unsigned int window_width, unsigned int window_height,
+               float meter_to_pixel)
 {
+  window_.create(sf::VideoMode(window_width, window_height), "Project-KAPE",
+                 sf::Style::Resize | sf::Style::Close);
+  coord_conv_.setMeterToPixels(meter_to_pixel);
+
   if (!window_.isOpen()) {
     throw std::runtime_error{"failed to open the window"};
   }
 }
 
-bool Renderer::isOpen() const
+bool Window::isOpen() const
 {
   return window_.isOpen();
 }
 
-void Renderer::pullAllEvents() // BAD
+void Window::pullAllEvents() // BAD
 {
   if (!isOpen()) {
     return;
@@ -100,42 +89,51 @@ void Renderer::pullAllEvents() // BAD
     if (event.type == sf::Event::Closed) {
       close();
     }
+    // catch the resize events
+    else if (event.type == sf::Event::Resized) {
+      // update the view to the new size of the window
+      sf::FloatRect visible_area{0.f, 0.f, static_cast<float>(event.size.width),
+                                 static_cast<float>(event.size.height)};
+      window_.setView(sf::View(visible_area));
+    } else if (event.type == sf::Event::MouseWheelScrolled) {
+      float multiplier{event.mouseWheelScroll.delta < 0.f ? 0.8f : 1.2f};
+      coord_conv_.setMeterToPixels(coord_conv_.getMeterToPixels() * multiplier);
+    }
   }
 }
-
-void Renderer::clear(sf::Color const& color)
+void Window::clear(sf::Color const& color)
 {
   if (isOpen()) {
     window_.clear(color);
   }
 }
 // to be perfected, it's just to see something on the screen right now
-void Renderer::draw(Ant const& ant)
+void Window::draw(Ant const& ant)
 {
   if (!isOpen()) {
     return;
   }
 
-  sf::CircleShape ant_drawing{5.f};
+  sf::CircleShape ant_drawing{coord_conv_.metersToPixels(0.01f)};
   ant_drawing.setOrigin({ant_drawing.getRadius(), ant_drawing.getRadius()});
   ant_drawing.setPosition(coord_conv_.worldToScreen(
       ant.getPosition(), window_.getSize().x, window_.getSize().y));
   window_.draw(ant_drawing);
 }
-void Renderer::display()
+void Window::display()
 {
   if (isOpen()) {
     window_.display();
   }
 }
-void Renderer::close()
+void Window::close()
 {
   if (isOpen()) {
     window_.close();
   }
 }
 
-Renderer::~Renderer()
+Window::~Window()
 {
   close();
 }

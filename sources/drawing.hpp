@@ -15,34 +15,34 @@ namespace kape {
 class CoordinateConverter
 {
  private:
-  double meter_to_pixels_;
+  float meter_to_pixels_;
 
  public:
   // may throw std::invalid_argument if meter_to_pixels <= 0
-  CoordinateConverter(double meter_to_pixels);
-  double getMeterToPixels() const;
+  CoordinateConverter(float meter_to_pixels = 1000.f);
+  float getMeterToPixels() const;
   // may throw std::invalid_argument if pixel_to_meter <= 0
-  void setMeterToPixels(double meter_to_pixels);
-  double pixelsToMeters(double distance_in_pixels) const;
-  double metersToPixels(double distance_in_meters) const;
+  void setMeterToPixels(float meter_to_pixels);
+  float pixelsToMeters(float distance_in_pixels) const;
+  float metersToPixels(float distance_in_meters) const;
 
-  // may throw std::invalid_argument if window_width or window_height are <= 0
-  sf::Vector2f worldToScreen(Vector2d const& world_position, int window_width,
-                             int window_height);
+  sf::Vector2f worldToScreen(Vector2d const& world_position,
+                             unsigned int window_width,
+                             unsigned int window_height);
 };
 
 // name to be changed
-class Renderer
+class Window
 {
  private:
-  sf::RenderWindow window_;
-  CoordinateConverter coord_conv_;
 
  public:
-  // may throw std::invalid_argument if any if the parameters are <= 0
+  sf::RenderWindow window_;
+  CoordinateConverter coord_conv_;
+  // may throw std::invalid_argument if meter_to_pixel <= 0
   // may throw std::runtime_error if it fails to open a new window
-  explicit Renderer(int window_width, int window_height,
-                    double meter_to_pixel = 1000);
+  explicit Window(unsigned int window_width, unsigned int window_height,
+                  float meter_to_pixel = 1000.f);
   bool isOpen() const;
   void pullAllEvents(); // BAD
   void clear(sf::Color const& color);
@@ -50,7 +50,7 @@ class Renderer
   void display();
   void close();
 
-  ~Renderer();
+  ~Window();
 };
 } // namespace kape
 
