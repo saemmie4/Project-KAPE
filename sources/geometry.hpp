@@ -13,17 +13,21 @@ struct Vector2d
   double y;
 
   Vector2d& operator+=(Vector2d const& rhs);
+  Vector2d& operator-=(Vector2d const& rhs);
+  Vector2d& operator*=(double rhs);
+  // may throw a std::domain_error if rhs==0 (division by 0)
+  Vector2d& operator/=(double rhs);
 };
 
 // dot product
 double operator*(Vector2d const& lhs, Vector2d const& rhs);
 // scalar*vector
-Vector2d operator*(double const& lhs, Vector2d const& rhs);
+Vector2d operator*(double lhs, Vector2d const& rhs);
 // vector*scalar
-Vector2d operator*(Vector2d const& lhs, double const& rhs);
+Vector2d operator*(Vector2d const& lhs, double rhs);
 // vector/scalar.
 // may throw a std::domain_error if rhs==0 (division by 0)
-Vector2d operator/(Vector2d const& lhs, double const& rhs);
+Vector2d operator/(Vector2d const& lhs, double rhs);
 // sum between two vectors
 Vector2d operator+(Vector2d const& lhs, Vector2d const& rhs);
 // opposite of a vector

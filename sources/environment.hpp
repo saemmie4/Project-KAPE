@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 // TODO:
-//  - Add Obstacles
+//  - Add Obstacles class
 //  - Food class
 //  - check if adding things to a vector can cause exceptions
 

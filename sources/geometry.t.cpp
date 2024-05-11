@@ -94,4 +94,39 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(v.x == doctest::Approx(1.));
     CHECK(v.y == doctest::Approx(0.));
   }
+  SUBCASE("testing operator v-=v")
+  {
+    kape::Vector2d v{v1};
+    CHECK((v -= v2).y == doctest::Approx(10.));
+    CHECK(v.x == doctest::Approx(1.));
+    CHECK(v.y == doctest::Approx(10.));
+  }
+  SUBCASE("testing operator v*=n")
+  {
+    kape::Vector2d v{v1};
+    CHECK((v *= 10.).y == doctest::Approx(50.));
+    CHECK(v.x == doctest::Approx(10.));
+    CHECK(v.y == doctest::Approx(50.));
+    CHECK((v *= 0.).y == doctest::Approx(0.));
+    CHECK(v.x == doctest::Approx(0.));
+    CHECK(v.y == doctest::Approx(0.));
+    CHECK((v *= -100000.).y == doctest::Approx(0.));
+    CHECK(v.x == doctest::Approx(0.));
+    CHECK(v.y == doctest::Approx(0.));
+  }
+  SUBCASE("testing operator v/=n")
+  {
+    // kape::Vector2d v1{1., 5.};
+    // kape::Vector2d v2{0., -5.};
+    kape::Vector2d v{v1};
+    CHECK((v /= 10.).y == doctest::Approx(0.5));
+    CHECK(v.x == doctest::Approx(0.1));
+    CHECK(v.y == doctest::Approx(0.5));
+    CHECK_THROWS(v /= 0.);
+    CHECK(v.x == doctest::Approx(0.1));
+    CHECK(v.y == doctest::Approx(0.5));
+    CHECK((v /= -0.1).y == doctest::Approx(-5.));
+    CHECK(v.x == doctest::Approx(-1.));
+    CHECK(v.y == doctest::Approx(-5.));
+  }
 }

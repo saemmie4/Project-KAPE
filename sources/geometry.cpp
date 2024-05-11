@@ -8,8 +8,24 @@ namespace kape {
 
 Vector2d& Vector2d::operator+=(Vector2d const& rhs)
 {
-  x += rhs.x;
-  y += rhs.y;
+  *this = *this + rhs;
+  return *this;
+}
+
+Vector2d& Vector2d::operator-=(Vector2d const& rhs)
+{
+  *this = *this - rhs;
+  return *this;
+}
+Vector2d& Vector2d::operator*=(double rhs)
+{
+  *this = *this * rhs;
+  return *this;
+}
+// may throw a std::domain_error if rhs==0 (division by 0)
+Vector2d& Vector2d::operator/=(double rhs)
+{
+  *this = *this / rhs;
   return *this;
 }
 
@@ -19,20 +35,20 @@ double operator*(Vector2d const& lhs, Vector2d const& rhs)
   return lhs.x * rhs.x + lhs.y * rhs.y;
 }
 // scalar*vector
-Vector2d operator*(double const& lhs, Vector2d const& rhs)
+Vector2d operator*(double lhs, Vector2d const& rhs)
 {
   return Vector2d{lhs * rhs.x, lhs * rhs.y};
 }
 
 // vector*scalar
-Vector2d operator*(Vector2d const& lhs, double const& rhs)
+Vector2d operator*(Vector2d const& lhs, double rhs)
 {
   return rhs * lhs;
 }
 
 // vector/scalar
 // may throw a std::domain_error if rhs==0 (division by 0)
-Vector2d operator/(Vector2d const& lhs, double const& rhs)
+Vector2d operator/(Vector2d const& lhs, double rhs)
 {
   if (rhs == 0.) {
     throw std::domain_error{"the denominator can't be 0"};
@@ -44,8 +60,7 @@ Vector2d operator/(Vector2d const& lhs, double const& rhs)
 // sum between two vectors
 Vector2d operator+(Vector2d const& lhs, Vector2d const& rhs)
 {
-  Vector2d sum{lhs};
-  return sum += rhs;
+  return Vector2d{lhs.x + rhs.x, lhs.y + rhs.y};
 }
 
 // opposite of a vector
