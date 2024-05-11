@@ -14,8 +14,11 @@ namespace kape {
 class Simulation
 {
  private:
-  Environment env;
-  std::vector<Ant> ants;
+  Pheromones to_anthill_;
+  Pheromones to_food_;
+  Food food_;
+  Obstacles obstacles_
+  std::vector<Ant> ants_;
 
  public:
   explicit Simulation();

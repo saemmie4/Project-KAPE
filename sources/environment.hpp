@@ -4,7 +4,9 @@
 #include <stdexcept>
 #include <vector>
 // TODO:
-//  everything
+//  - Add Obstacles
+//  - Food class
+//  - check if adding things to a vector can cause exceptions
 
 namespace kape {
 class FoodParticle
@@ -33,6 +35,19 @@ class PheromoneParticle
   void decreaseIntensity(int amount = 5);
   // returns true if the Pheromone's intensity is 0
   bool hasEvaporated() const;
+};
+
+class Food{
+  private:
+  std::vector<FoodParticle> food_vec_;
+  public:
+  Food();
+  void addFoodParticle(Vector2d const& position);
+  void addFoodParticle(FoodParticle const& food_particle);
+  bool isThereFoodLeft();
+  //returns true if there was food in the circle (therefore if has also been removed)
+  //returns false if there wasn't any food in the circle (therefore nothing has been removed)
+  bool removeOneFoodParticleInCircle(Circle const& circle);
 };
 
 class Pheromones
