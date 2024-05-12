@@ -25,7 +25,7 @@ class PheromoneParticle
   int intensity_;
 
  public:
-   // may throw std::invalid_argument if intensity isn't in [0,100]
+  // may throw std::invalid_argument if intensity isn't in [0,100]
   PheromoneParticle(Vector2d const& position, int intensity = 100);
   Vector2d getPosition() const;
   // returns the intensity as a number in the interval [0, 100]
@@ -37,16 +37,19 @@ class PheromoneParticle
   bool hasEvaporated() const;
 };
 
-class Food{
-  private:
+class Food
+{
+ private:
   std::vector<FoodParticle> food_vec_;
-  public:
+
+ public:
   Food();
   void addFoodParticle(Vector2d const& position);
   void addFoodParticle(FoodParticle const& food_particle);
   bool isThereFoodLeft();
-  //returns true if there was food in the circle (therefore if has also been removed)
-  //returns false if there wasn't any food in the circle (therefore nothing has been removed)
+  // returns true if there was food in the circle (therefore if has also been
+  // removed) returns false if there wasn't any food in the circle (therefore
+  // nothing has been removed)
   bool removeOneFoodParticleInCircle(Circle const& circle);
 };
 
@@ -74,6 +77,15 @@ class Pheromones
 };
 //  Pheromones redPheromones(Pheromones::PheromoneType::RED);
 
+class Obstacles
+{
+  std::vector<Rectangle> obstacles_vec_;
+
+ public:
+  Obstacles();
+  void addObstacle(Vector2d const& position, double width, double height);
+  void addObstacle(Rectangle obstacle);
+};
 } // namespace kape
 
 #endif

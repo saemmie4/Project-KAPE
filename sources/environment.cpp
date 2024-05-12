@@ -9,12 +9,14 @@ FoodParticle::FoodParticle(Vector2d const& position)
     : position_{position}
 {}
 
-void Food::addFoodParticle(Vector2d const& position) {
+void Food::addFoodParticle(Vector2d const& position)
+{
   FoodParticle particle{position};
   food_vec_.push_back(particle);
 }
 
-void Food::addFoodParticle(FoodParticle const& food_particle) {
+void Food::addFoodParticle(FoodParticle const& food_particle)
+{
   food_vec_.push_back(food_particle);
 }
 
@@ -88,4 +90,17 @@ int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
                     : 0);
       });
 }
+
+void Obstacles::addObstacle(Vector2d const& position, double width,
+                            double height)
+{
+  Rectangle obstacle(position, width, height);
+  obstacles_vec_.push_back(obstacle);
+}
+
+void Obstacles::addObstacle(Rectangle obstacle)
+{
+  obstacles_vec_.push_back(obstacle);
+}
+
 } // namespace kape
