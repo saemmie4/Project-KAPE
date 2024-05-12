@@ -59,8 +59,8 @@ class Circle
 class Rectangle
 {
   Vector2d top_left_corner_;
-  double widht_;
-  double heigth_;
+  double width_;
+  double height_;
 
  public:
   Rectangle(Vector2d const& top_left_corner, double width, double height);

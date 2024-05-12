@@ -122,4 +122,30 @@ bool Circle::isInside(Vector2d const& position) const
 
 // Rectangle Implementation-----------------------------------
 
+Rectangle::Rectangle(Vector2d const& top_left_corner, double width,
+                     double height)
+    : top_left_corner_{top_left_corner}
+    , width_{width}
+    , height_{height}
+{
+  if (width <= 0)
+    throw std::invalid_argument{"The width can't be negative or null"};
+  if (height <= 0)
+    throw std::invalid_argument{"The height can't be negative or null"};
+};
+
+Vector2d Rectangle::getRectangleTopLeftCorner() const
+{
+  return top_left_corner_;
+}
+double Rectangle::getRectangleWidth() const
+{
+  return width_;
+}
+double Rectangle::getRectangleHeight() const
+{
+  return height_;
+}
+
+
 } // namespace kape
