@@ -9,6 +9,15 @@ FoodParticle::FoodParticle(Vector2d const& position)
     : position_{position}
 {}
 
+void Food::addFoodParticle(Vector2d const& position) {
+  FoodParticle particle{position};
+  food_vec_.push_back(particle);
+}
+
+void Food::addFoodParticle(FoodParticle const& food_particle) {
+  food_vec_.push_back(food_particle);
+}
+
 PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
     : position_{position}
     , intensity_{intensity}
