@@ -115,11 +115,42 @@ void Window::draw(Ant const& ant)
   }
 
   sf::CircleShape ant_drawing{coord_conv_.metersToPixels(0.01f)};
-  ant_drawing.setOrigin({ant_drawing.getRadius(), ant_drawing.getRadius()});
+  ant_drawing.setOrigin(
+      sf::Vector2f(ant_drawing.getRadius(), ant_drawing.getRadius()));
   ant_drawing.setPosition(coord_conv_.worldToScreen(
       ant.getPosition(), window_.getSize().x, window_.getSize().y));
   window_.draw(ant_drawing);
 }
+
+void Window::draw(Circle const& circle, sf::Color const& color)
+{
+  if (!isOpen()) {
+    return;
+  }
+
+  sf::CircleShape circle_drawing{
+      coord_conv_.metersToPixels(static_cast<float>(circle.getCircleRadius()))};
+  circle_drawing.setOrigin(
+      sf::Vector2f(circle_drawing.getRadius(), circle_drawing.getRadius()));
+  circle_drawing.setPosition(coord_conv_.worldToScreen(
+      circle.getCircleCenter(), window_.getSize().x, window_.getSize().y));
+
+  circle_drawing.setFillColor(color);
+  window_.draw(circle_drawing);
+}
+void Window::draw(Rectangle const& rectangle, sf::Color const& color)
+{
+  sf::RectangleShape rectangle_drawing{
+      sf::Vector2f(coord_conv_.metersToPixels(rectangle.getRectangleWidth()),
+                   coord_conv_.metersToPixels(rectangle.getRectangleHeight()))};
+  rectangle_drawing.setPosition(
+      coord_conv_.worldToScreen(rectangle.getRectangleTopLeftCorner(),
+                                window_.getSize().x, window_.getSize().y));
+
+  rectangle_drawing.setFillColor(color);
+  window_.draw(rectangle_drawing);
+}
+
 void Window::display()
 {
   if (isOpen()) {

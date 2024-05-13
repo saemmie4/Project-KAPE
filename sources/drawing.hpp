@@ -47,6 +47,8 @@ class Window
   void pullAllEvents(); // BAD
   void clear(sf::Color const& color);
   void draw(Ant const& ant);
+  void draw(Circle const& circle, sf::Color const& color);
+  void draw(Rectangle const& rectangle, sf::Color const& color);
   void display();
   void close();
 
