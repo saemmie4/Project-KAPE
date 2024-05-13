@@ -75,7 +75,7 @@ class Pheromones
   void updateParticlesEvaporation(int amount = 5);
   int getPheromonesIntensityInCircle(Circle const& circle) const;
 };
-//  Pheromones redPheromones(Pheromones::PheromoneType::RED);
+
 
 class Obstacles
 {
@@ -83,8 +83,9 @@ class Obstacles
 
  public:
   Obstacles();
-  void addObstacle(Vector2d const& position, double width, double height);
-  void addObstacle(Rectangle obstacle);
+  void addObstacle(Vector2d const& top_left_corner, double width, double height);
+  void addObstacle(Rectangle const& obstacle);
+  bool anyObstaclesInCircle(Circle const& circle) const;
 };
 } // namespace kape
 

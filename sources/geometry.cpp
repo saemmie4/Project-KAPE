@@ -2,6 +2,7 @@
 #include <cassert>   //per assert
 #include <cmath>     //for std::sqrt
 #include <stdexcept> //for std::domain_error
+
 // TODO:
 // - rectangle implementation
 namespace kape {
@@ -169,9 +170,8 @@ bool IsPointBetweenLeftAndRightEdge(Rectangle const& rectangle,
 {
   Vector2d const tlc = rectangle.getRectangleTopLeftCorner();
   double const w     = rectangle.getRectangleWidth();
-  double const h     = rectangle.getRectangleHeight();
 
-  return (std::abs(+point.x - tlc.x - w / 2.) <= w / 2.);
+  return (std::abs(point.x - tlc.x - w / 2.) <= w / 2.);
 }
 
 // true: point y is between top and bottom edge
@@ -180,10 +180,9 @@ bool IsPointBetweenTopAndBottomEdge(Rectangle const& rectangle,
                                     Vector2d const& point)
 {
   Vector2d const tlc = rectangle.getRectangleTopLeftCorner();
-  double const w     = rectangle.getRectangleWidth();
   double const h     = rectangle.getRectangleHeight();
 
-  return (std::abs(-point.y + tlc.x - h / 2.) <= h / 2.);
+  return (std::abs(-point.y + tlc.y - h / 2.) <= h / 2.);
 }
 
 bool DoShapesIntersect(Rectangle const& rectangle, Vector2d const& point)
@@ -191,6 +190,7 @@ bool DoShapesIntersect(Rectangle const& rectangle, Vector2d const& point)
   return IsPointBetweenLeftAndRightEdge(rectangle, point)
       && IsPointBetweenTopAndBottomEdge(rectangle, point);
 }
+
 bool DoShapesIntersect(Circle const& circle, Rectangle const& rectangle)
 {
   Vector2d const c   = circle.getCircleCenter();
@@ -202,30 +202,64 @@ bool DoShapesIntersect(Circle const& circle, Rectangle const& rectangle)
   Vector2d const brc = trc + Vector2d{0., -h};
   Vector2d const blc = brc + Vector2d{-w, 0.};
 
+  bool intersect{false};
+
   // left side
   if (IsPointBetweenTopAndBottomEdge(rectangle, circle.getCircleCenter())) {
-    return std::abs(c.x - tlc.x) <= r;
+    intersect = intersect || (std::abs(c.x - tlc.x) <= r);
   } else {
-    return DoShapesIntersect(circle, tlc) || DoShapesIntersect(circle, blc);
+    intersect =
+        intersect
+        || (DoShapesIntersect(circle, tlc) || DoShapesIntersect(circle, blc));
   }
+
+  // skip other checks if they already intersect
+  if (intersect) {
+    return true;
+  }
+
   // right side
   if (IsPointBetweenTopAndBottomEdge(rectangle, circle.getCircleCenter())) {
-    return std::abs(c.x - trc.x) <= r;
+    intersect = intersect || (std::abs(c.x - trc.x) <= r);
   } else {
-    return DoShapesIntersect(circle, trc) || DoShapesIntersect(circle, brc);
+    intersect =
+        intersect
+        || (DoShapesIntersect(circle, trc) || DoShapesIntersect(circle, brc));
   }
+
+  // skip other checks if they already intersect
+  if (intersect) {
+    return true;
+  }
+
   // top side
   if (IsPointBetweenLeftAndRightEdge(rectangle, circle.getCircleCenter())) {
-    return std::abs(c.y - tlc.y) <= r;
+    intersect = intersect || (std::abs(c.y - tlc.y) <= r);
   } else {
-    return DoShapesIntersect(circle, tlc) || DoShapesIntersect(circle, trc);
+    intersect =
+        intersect
+        || (DoShapesIntersect(circle, tlc) || DoShapesIntersect(circle, trc));
   }
+
+  // skip other checks if they already intersect
+  if (intersect) {
+    return true;
+  }
+
   // bottom side
   if (IsPointBetweenLeftAndRightEdge(rectangle, circle.getCircleCenter())) {
-    return std::abs(c.y - blc.y) <= r;
+    intersect = intersect || (std::abs(c.y - blc.y) <= r);
   } else {
-    return DoShapesIntersect(circle, blc) || DoShapesIntersect(circle, brc);
+    intersect =
+        intersect
+        || (DoShapesIntersect(circle, blc) || DoShapesIntersect(circle, brc));
   }
+
+  // skip other checks if they already intersect
+  if (intersect) {
+    return true;
+  }
+
   // edge case: circle all inside rectangle
   // check if circle's center is inside the rectangle;
   // if it isn't (and, because we are here, the function didn't return early)

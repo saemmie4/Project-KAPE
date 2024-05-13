@@ -1,4 +1,5 @@
 #include "environment.hpp"
+#include <algorithm> //for find_if
 #include <cmath>
 #include <numeric> //for accumulate
 #include <stdexcept>
@@ -62,8 +63,7 @@ Pheromones::Pheromones(PheromoneType type)
 
 void Pheromones::addPheromoneParticle(Vector2d const& position, int intensity)
 {
-  PheromoneParticle particle{position, intensity};
-  pheromones_vec_.push_back(particle);
+  pheromones_vec_.push_back(PheromoneParticle{position, intensity});
 }
 
 void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
@@ -91,16 +91,23 @@ int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
       });
 }
 
-void Obstacles::addObstacle(Vector2d const& position, double width,
+void Obstacles::addObstacle(Vector2d const& top_left_corner, double width,
                             double height)
 {
-  Rectangle obstacle(position, width, height);
-  obstacles_vec_.push_back(obstacle);
+  obstacles_vec_.push_back(Rectangle{top_left_corner, width, height});
 }
 
-void Obstacles::addObstacle(Rectangle obstacle)
+void Obstacles::addObstacle(Rectangle const& obstacle)
 {
   obstacles_vec_.push_back(obstacle);
 }
 
-} // namespace kape
+bool Obstacles::anyObstaclesInCircle(Circle const& circle) const
+{
+  auto obstacle_it{std::find_if(obstacles_vec_.begin(), obstacles_vec_.end(),
+                                [&circle](Rectangle const& obstacle) {
+                                  return DoShapesIntersect(circle, obstacle);
+                                })};
+
+  return obstacle_it != obstacles_vec_.end();
+}
