@@ -69,6 +69,12 @@ class Rectangle
   double getRectangleHeight() const;
 };
 
+//true: they intersect
+//false: they don't
+bool DoShapesIntersect(Circle const& circle, Vector2d const& point);
+bool DoShapesIntersect(Rectangle const& rectangle, Vector2d const& point);
+bool DoShapesIntersect(Circle const& circle, Rectangle const& rectangle);
+
 } // namespace kape
 
 #endif

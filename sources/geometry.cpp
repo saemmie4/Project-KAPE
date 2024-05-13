@@ -117,7 +117,7 @@ double Circle::getCircleRadius() const
 
 bool Circle::isInside(Vector2d const& position) const
 {
-  return norm2(center_ - position) <= radius_ * radius_;
+  return DoShapesIntersect(*this, position);
 }
 
 // Rectangle Implementation-----------------------------------
@@ -147,5 +147,81 @@ double Rectangle::getRectangleHeight() const
   return height_;
 }
 
+bool DoShapesIntersect(Circle const& circle, Vector2d const& point)
+{
+  norm2(circle.getCircleCenter() - point)
+      <= circle.getCircleRadius() * circle.getCircleRadius();
+}
+
+// true: point x is between left and right edge
+// false: else
+bool IsPointBetweenLeftAndRightEdge(Rectangle const& rectangle,
+                                    Vector2d const& point)
+{
+  Vector2d const tlc = rectangle.getRectangleTopLeftCorner();
+  double const w     = rectangle.getRectangleWidth();
+  double const h     = rectangle.getRectangleHeight();
+
+  return (std::abs(+point.x - tlc.x - w / 2.) <= w / 2.);
+}
+
+// true: point y is between top and bottom edge
+// false: else
+bool IsPointBetweenTopAndBottomEdge(Rectangle const& rectangle,
+                                    Vector2d const& point)
+{
+  Vector2d const tlc = rectangle.getRectangleTopLeftCorner();
+  double const w     = rectangle.getRectangleWidth();
+  double const h     = rectangle.getRectangleHeight();
+
+  (std::abs(-point.y + tlc.x - h / 2.) <= h / 2.);
+}
+
+bool DoShapesIntersect(Rectangle const& rectangle, Vector2d const& point)
+{
+  return IsPointBetweenLeftAndRightEdge(rectangle, point)
+      && IsPointBetweenTopAndBottomEdge(rectangle, point);
+}
+bool DoShapesIntersect(Circle const& circle, Rectangle const& rectangle)
+{
+  Vector2d const c   = circle.getCircleCenter();
+  double const r     = circle.getCircleRadius();
+  double const w     = rectangle.getRectangleWidth();
+  double const h     = rectangle.getRectangleHeight();
+  Vector2d const tlc = rectangle.getRectangleTopLeftCorner();
+  Vector2d const trc = tlc + Vector2d{w, 0.};
+  Vector2d const brc = trc + Vector2d{0., -h};
+  Vector2d const blc = brc + Vector2d{-w, 0.};
+
+  // left side
+  if (IsPointBetweenTopAndBottomEdge(rectangle, circle.getCircleCenter())) {
+    return std::abs(c.x - tlc.x) <= r;
+  } else {
+    return DoShapesIntersect(circle, tlc) || DoShapesIntersect(circle, blc);
+  }
+  // right side
+  if (IsPointBetweenTopAndBottomEdge(rectangle, circle.getCircleCenter())) {
+    return std::abs(c.x - trc.x) <= r;
+  } else {
+    return DoShapesIntersect(circle, trc) || DoShapesIntersect(circle, brc);
+  }
+  // top side
+  if (IsPointBetweenLeftAndRightEdge(rectangle, circle.getCircleCenter())) {
+    return std::abs(c.y - tlc.y) <= r;
+  } else {
+    return DoShapesIntersect(circle, tlc) || DoShapesIntersect(circle, trc);
+  }
+  // bottom side
+  if (IsPointBetweenLeftAndRightEdge(rectangle, circle.getCircleCenter())) {
+    return std::abs(c.y - blc.y) <= r;
+  } else {
+    return DoShapesIntersect(circle, blc) || DoShapesIntersect(circle, brc);
+  }
+  // edge case: circle all inside rectangle
+  // check if circle's center is inside the rectangle;
+  // if it isn't (and, because we are here, the function didn't return early)
+  // they must not intersect
+  return DoShapesIntersect(rectangle, c);
+}
 
 } // namespace kape

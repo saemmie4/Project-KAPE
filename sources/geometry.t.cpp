@@ -4,9 +4,6 @@
 
 // TODO:
 //  -tests for rotate
-//  -tests for -=
-//  -tests for *=
-//  -tests for /=
 //  -solve that operator/ makes tests fail because it (correctly) crashes the
 //  program with the assert to check if the denominator is 0
 
@@ -27,7 +24,9 @@ TEST_CASE("Testing the Vector2d class")
   }
 
   SUBCASE("testing rotate function")
-  {}
+  {
+    
+  }
 
   SUBCASE("testing operator +")
   {
@@ -36,6 +35,7 @@ TEST_CASE("Testing the Vector2d class")
     CHECK((v1 + v1 + v2 + v1).x == doctest::Approx(3.));
     CHECK((v1 + v1 + v2 + v1).y == doctest::Approx(10.));
   }
+
   SUBCASE("testing operator v-v")
   {
     CHECK((v1 - v2).x == doctest::Approx(1.));
@@ -43,6 +43,7 @@ TEST_CASE("Testing the Vector2d class")
     CHECK((v1 - v1 - v2 - v1).x == doctest::Approx(-1.));
     CHECK((v1 - v1 - v2 - v1).y == doctest::Approx(0.));
   }
+
   SUBCASE("testing operator -v")
   {
     CHECK((-v1).x == doctest::Approx(-1.));
@@ -50,6 +51,7 @@ TEST_CASE("Testing the Vector2d class")
     CHECK((-v2).x == doctest::Approx(0.));
     CHECK((-v2).y == doctest::Approx(5.));
   }
+
   SUBCASE("testing operator v*v")
   {
     kape::Vector2d v1perp{-v1.y, v1.x};
@@ -58,6 +60,7 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(v2 * v2 == doctest::Approx(25.));
     CHECK(v1 * v2 == doctest::Approx(-25.));
   }
+  
   SUBCASE("testing operator n*v")
   {
     CHECK((0. * v1).x == doctest::Approx(0.));
@@ -67,6 +70,7 @@ TEST_CASE("Testing the Vector2d class")
     CHECK((7. * v1).x == doctest::Approx(7.));
     CHECK((7. * v1).y == doctest::Approx(35.));
   }
+
   SUBCASE("testing operator v*n")
   {
     CHECK((v1 * 0.).x == doctest::Approx(0.));
@@ -129,4 +133,6 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(v.x == doctest::Approx(-1.));
     CHECK(v.y == doctest::Approx(-5.));
   }
+
+
 }
