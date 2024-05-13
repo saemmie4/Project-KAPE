@@ -72,9 +72,13 @@ bool Food::removeOneFoodParticleInCircle(Circle const& circle)
                                        return circle.isInside(
                                            particle.getPosition());
                                      })};
+  
   if (food_particle_it == food_vec_.end()) {
     return false;
   }
+
+  food_vec_.erase(food_particle_it);
+  return true;
 }
 
 // Pheromones class implementation ------------------------------
