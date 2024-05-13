@@ -5,7 +5,6 @@
 #include <vector>
 // TODO:
 //  - Add Obstacles class
-//  - FoodParticle class
 //  - Food class
 //  - check if adding things to a vector can cause exceptions
 
@@ -16,8 +15,8 @@ class FoodParticle
   Vector2d position_;
 
  public:
-  FoodParticle(Vector2d const& position);
-  FoodParticle(FoodParticle const& particle);
+  explicit FoodParticle(Vector2d const& position);
+  explicit FoodParticle(FoodParticle const& food_particle);
   Vector2d getPosition() const;
 };
 
@@ -30,6 +29,7 @@ class PheromoneParticle
  public:
   // may throw std::invalid_argument if intensity isn't in [0,100]
   PheromoneParticle(Vector2d const& position, int intensity = 100);
+  PheromoneParticle(PheromoneParticle const& pheromone_particle);
   Vector2d getPosition() const;
   // returns the intensity as a number in the interval [0, 100]
   int getIntensity() const;

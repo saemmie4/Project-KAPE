@@ -6,10 +6,21 @@
 
 namespace kape {
 
+// FoodParticle class Implementation--------------------------
 FoodParticle::FoodParticle(Vector2d const& position)
     : position_{position}
 {}
 
+FoodParticle::FoodParticle(FoodParticle const& food_particle)
+    : FoodParticle{food_particle.getPosition()}
+{}
+
+Vector2d FoodParticle::getPosition() const
+{
+  return position_;
+}
+
+// PheromoneParticle class Implementation--------------------------
 PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
     : position_{position}
     , intensity_{intensity}
@@ -18,6 +29,12 @@ PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
     throw std::invalid_argument{
         "The pheromones intensity must be between 0 and 100"};
 }
+
+PheromoneParticle::PheromoneParticle(
+    PheromoneParticle const& pheromone_particle)
+    : PheromoneParticle{pheromone_particle.getPosition(),
+                        pheromone_particle.getIntensity()}
+{}
 
 Vector2d PheromoneParticle::getPosition() const
 {
@@ -62,17 +79,17 @@ void Food::addFoodParticle(FoodParticle const& food_particle)
 
 bool Food::isThereFoodLeft() const
 {
-  return food_vec_.empty();
+  return !food_vec_.empty();
 }
 
 bool Food::removeOneFoodParticleInCircle(Circle const& circle)
 {
   auto food_particle_it{std::find_if(food_vec_.begin(), food_vec_.end(),
-                                     [&circle](FoodParticle const& particle) {
+                                     [&circle](FoodParticle const& food_particle) {
                                        return circle.isInside(
-                                           particle.getPosition());
+                                           food_particle.getPosition());
                                      })};
-  
+
   if (food_particle_it == food_vec_.end()) {
     return false;
   }
@@ -98,6 +115,7 @@ void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
 
 void Pheromones::updateParticlesEvaporation(int amount)
 {
+  //the check if amount < 0 is done in decreaseIntensity
   for (auto& pheromone : pheromones_vec_) {
     pheromone.decreaseIntensity(amount);
   }
@@ -125,16 +143,6 @@ void Obstacles::addObstacle(Vector2d const& top_left_corner, double width,
                             double height)
 {
   obstacles_vec_.push_back(Rectangle{top_left_corner, width, height});
-}
-void Food::addFoodParticle(Vector2d const& position)
-{
-  FoodParticle particle{position};
-  food_vec_.push_back(particle);
-}
-
-void Food::addFoodParticle(FoodParticle const& food_particle)
-{
-  food_vec_.push_back(food_particle);
 }
 void Obstacles::addObstacle(Rectangle const& obstacle)
 {

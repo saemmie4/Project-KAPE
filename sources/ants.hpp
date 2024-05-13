@@ -12,7 +12,6 @@ class Ant
   bool has_food_;
 
 public:
-//may throw 
 explicit Ant(Vector2d const& position, Vector2d const& velocity, bool has_food = false);
 
 Vector2d getPosition() const;
