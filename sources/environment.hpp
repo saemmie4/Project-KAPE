@@ -5,6 +5,7 @@
 #include <vector>
 // TODO:
 //  - Add Obstacles class
+//  - FoodParticle class
 //  - Food class
 //  - check if adding things to a vector can cause exceptions
 
@@ -16,6 +17,8 @@ class FoodParticle
 
  public:
   FoodParticle(Vector2d const& position);
+  FoodParticle(FoodParticle const& particle);
+  Vector2d getPosition() const;
 };
 
 class PheromoneParticle
@@ -43,10 +46,10 @@ class Food
   std::vector<FoodParticle> food_vec_;
 
  public:
-  Food();
+  explicit Food();
   void addFoodParticle(Vector2d const& position);
   void addFoodParticle(FoodParticle const& food_particle);
-  bool isThereFoodLeft();
+  bool isThereFoodLeft() const;
   // returns true if there was food in the circle (therefore if has also been
   // removed) returns false if there wasn't any food in the circle (therefore
   // nothing has been removed)
@@ -82,7 +85,7 @@ class Obstacles
   std::vector<Rectangle> obstacles_vec_;
 
  public:
-  Obstacles();
+  explicit Obstacles();
   void addObstacle(Vector2d const& top_left_corner, double width, double height);
   void addObstacle(Rectangle const& obstacle);
   bool anyObstaclesInCircle(Circle const& circle) const;

@@ -10,17 +10,6 @@ FoodParticle::FoodParticle(Vector2d const& position)
     : position_{position}
 {}
 
-void Food::addFoodParticle(Vector2d const& position)
-{
-  FoodParticle particle{position};
-  food_vec_.push_back(particle);
-}
-
-void Food::addFoodParticle(FoodParticle const& food_particle)
-{
-  food_vec_.push_back(food_particle);
-}
-
 PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
     : position_{position}
     , intensity_{intensity}
@@ -57,6 +46,38 @@ bool PheromoneParticle::hasEvaporated() const
   return intensity_ == 0;
 }
 
+// Food Class implementation -----------------------------------
+Food::Food()
+{}
+
+void Food::addFoodParticle(Vector2d const& position)
+{
+  food_vec_.push_back(FoodParticle{position});
+}
+
+void Food::addFoodParticle(FoodParticle const& food_particle)
+{
+  food_vec_.push_back(food_particle);
+}
+
+bool Food::isThereFoodLeft() const
+{
+  return food_vec_.empty();
+}
+
+bool Food::removeOneFoodParticleInCircle(Circle const& circle)
+{
+  auto food_particle_it{std::find_if(food_vec_.begin(), food_vec_.end(),
+                                     [&circle](FoodParticle const& particle) {
+                                       return circle.isInside(
+                                           particle.getPosition());
+                                     })};
+  if (food_particle_it == food_vec_.end()) {
+    return false;
+  }
+}
+
+// Pheromones class implementation ------------------------------
 Pheromones::Pheromones(PheromoneType type)
     : type_{type}
 {}
@@ -91,12 +112,26 @@ int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
       });
 }
 
+// implementation of class Obstacles-----------------------------------
+
+Obstacles::Obstacles()
+{}
+
 void Obstacles::addObstacle(Vector2d const& top_left_corner, double width,
                             double height)
 {
   obstacles_vec_.push_back(Rectangle{top_left_corner, width, height});
 }
+void Food::addFoodParticle(Vector2d const& position)
+{
+  FoodParticle particle{position};
+  food_vec_.push_back(particle);
+}
 
+void Food::addFoodParticle(FoodParticle const& food_particle)
+{
+  food_vec_.push_back(food_particle);
+}
 void Obstacles::addObstacle(Rectangle const& obstacle)
 {
   obstacles_vec_.push_back(obstacle);
@@ -104,10 +139,10 @@ void Obstacles::addObstacle(Rectangle const& obstacle)
 
 bool Obstacles::anyObstaclesInCircle(Circle const& circle) const
 {
-  auto obstacle_it{std::find_if(obstacles_vec_.begin(), obstacles_vec_.end(),
-                                [&circle](Rectangle const& obstacle) {
-                                  return DoShapesIntersect(circle, obstacle);
-                                })};
-
-  return obstacle_it != obstacles_vec_.end();
+  return std::any_of(obstacles_vec_.begin(), obstacles_vec_.end(),
+                     [&circle](Rectangle const& obstacle) {
+                       return DoShapesIntersect(circle, obstacle);
+                     });
 }
+
+} // namespace kape
