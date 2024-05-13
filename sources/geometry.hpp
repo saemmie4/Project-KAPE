@@ -53,6 +53,7 @@ class Circle
   Circle(Vector2d const& center, double radius);
   Vector2d getCircleCenter() const;
   double getCircleRadius() const;
+  void setCircleCenter(Vector2d const& center);
   bool isInside(Vector2d const& position) const;
 };
 
@@ -67,10 +68,11 @@ class Rectangle
   Vector2d getRectangleTopLeftCorner() const;
   double getRectangleWidth() const;
   double getRectangleHeight() const;
+  void setRectangleTopLeftCorner(Vector2d const& position);
 };
 
-//true: they intersect
-//false: they don't
+// true: they intersect
+// false: they don't
 bool DoShapesIntersect(Circle const& circle, Vector2d const& point);
 bool DoShapesIntersect(Rectangle const& rectangle, Vector2d const& point);
 bool DoShapesIntersect(Circle const& circle, Rectangle const& rectangle);

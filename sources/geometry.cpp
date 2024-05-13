@@ -115,6 +115,10 @@ double Circle::getCircleRadius() const
   return radius_;
 }
 
+void Circle::setCircleCenter(Vector2d const& center)
+{
+  center_ = center;
+}
 bool Circle::isInside(Vector2d const& position) const
 {
   return DoShapesIntersect(*this, position);
@@ -147,9 +151,14 @@ double Rectangle::getRectangleHeight() const
   return height_;
 }
 
+void Rectangle::setRectangleTopLeftCorner(Vector2d const& top_left_corner)
+{
+  top_left_corner_ = top_left_corner;
+}
+
 bool DoShapesIntersect(Circle const& circle, Vector2d const& point)
 {
-  norm2(circle.getCircleCenter() - point)
+  return norm2(circle.getCircleCenter() - point)
       <= circle.getCircleRadius() * circle.getCircleRadius();
 }
 
@@ -174,7 +183,7 @@ bool IsPointBetweenTopAndBottomEdge(Rectangle const& rectangle,
   double const w     = rectangle.getRectangleWidth();
   double const h     = rectangle.getRectangleHeight();
 
-  (std::abs(-point.y + tlc.x - h / 2.) <= h / 2.);
+  return (std::abs(-point.y + tlc.x - h / 2.) <= h / 2.);
 }
 
 bool DoShapesIntersect(Rectangle const& rectangle, Vector2d const& point)
