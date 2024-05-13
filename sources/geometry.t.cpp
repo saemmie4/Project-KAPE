@@ -4,6 +4,12 @@
 
 // TODO:
 //  -tests for rotate
+//  - tests for DoShapesIntersect(Circle const& circle, Vector2d const& point);
+//  - tests for DoShapesIntersect(Rectangle const& rectangle, Vector2d const&
+//   point);
+//  - tests for DoShapesIntersect(Circle const& circle, Rectangle const&
+//   rectangle);
+//
 //  -solve that operator/ makes tests fail because it (correctly) crashes the
 //  program with the assert to check if the denominator is 0
 
@@ -24,9 +30,7 @@ TEST_CASE("Testing the Vector2d class")
   }
 
   SUBCASE("testing rotate function")
-  {
-    
-  }
+  {}
 
   SUBCASE("testing operator +")
   {
@@ -60,7 +64,7 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(v2 * v2 == doctest::Approx(25.));
     CHECK(v1 * v2 == doctest::Approx(-25.));
   }
-  
+
   SUBCASE("testing operator n*v")
   {
     CHECK((0. * v1).x == doctest::Approx(0.));
@@ -133,6 +137,4 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(v.x == doctest::Approx(-1.));
     CHECK(v.y == doctest::Approx(-5.));
   }
-
-
 }
