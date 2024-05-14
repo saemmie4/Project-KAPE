@@ -29,7 +29,7 @@ int main()
     window.clear(sf::Color::Black);
     // window.draw(ant);
     sf::Color col =
-        (kape::DoShapesIntersect(circle, rectangle) ? sf::Color::Red
+        (kape::doShapesIntersect(circle, rectangle) ? sf::Color::Red
                                                     : sf::Color::Green);
     window.draw(circle, col);
     window.draw(rectangle, col);

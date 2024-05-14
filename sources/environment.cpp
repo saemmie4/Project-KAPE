@@ -153,7 +153,7 @@ bool Obstacles::anyObstaclesInCircle(Circle const& circle) const
 {
   return std::any_of(obstacles_vec_.begin(), obstacles_vec_.end(),
                      [&circle](Rectangle const& obstacle) {
-                       return DoShapesIntersect(circle, obstacle);
+                       return doShapesIntersect(circle, obstacle);
                      });
 }
 

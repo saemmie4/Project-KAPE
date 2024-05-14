@@ -7,6 +7,9 @@
 // operator/=
 
 namespace kape {
+
+double const PI{3.1415926535897932};
+
 struct Vector2d
 {
   double x;
@@ -73,9 +76,9 @@ class Rectangle
 
 // true: they intersect
 // false: they don't
-bool DoShapesIntersect(Circle const& circle, Vector2d const& point);
-bool DoShapesIntersect(Rectangle const& rectangle, Vector2d const& point);
-bool DoShapesIntersect(Circle const& circle, Rectangle const& rectangle);
+bool doShapesIntersect(Circle const& circle, Vector2d const& point);
+bool doShapesIntersect(Rectangle const& rectangle, Vector2d const& point);
+bool doShapesIntersect(Circle const& circle, Rectangle const& rectangle);
 
 } // namespace kape
 

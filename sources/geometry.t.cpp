@@ -1,13 +1,14 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "geometry.hpp"
 #include "doctest.h"
+#include <numbers>
 
 // TODO:
 //  -tests for rotate
-//  - tests for DoShapesIntersect(Circle const& circle, Vector2d const& point);
-//  - tests for DoShapesIntersect(Rectangle const& rectangle, Vector2d const&
+//  - tests for doShapesIntersect(Circle const& circle, Vector2d const& point);
+//  - tests for doShapesIntersect(Rectangle const& rectangle, Vector2d const&
 //   point);
-//  - tests for DoShapesIntersect(Circle const& circle, Rectangle const&
+//  - tests for doShapesIntersect(Circle const& circle, Rectangle const&
 //   rectangle);
 //
 //  -solve that operator/ makes tests fail because it (correctly) crashes the
@@ -137,4 +138,37 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(v.x == doctest::Approx(-1.));
     CHECK(v.y == doctest::Approx(-5.));
   }
+  SUBCASE("Testing the rotator operator")
+  {
+    CHECK(rotate(v1, kape::PI).x == doctest::Approx(-1.));
+    CHECK(rotate(v1, kape::PI).y == doctest::Approx(-5.));
+    CHECK(rotate(v1, kape::PI / 2).x == doctest::Approx(-5.));
+    CHECK(rotate(v1, kape::PI / 2).y == doctest::Approx(1.));
+    CHECK(rotate(v1, kape::PI / 4).x == doctest::Approx(-2. * std::sqrt(2)));
+    CHECK(rotate(v1, kape::PI / 4).y == doctest::Approx(3. * std::sqrt(2)));
+    CHECK(rotate(v1, 0.).x == doctest::Approx(1.));
+    CHECK(rotate(v1, 0.).x == doctest::Approx(5.));
+    CHECK(rotate(v1, kape::PI / 3).x
+          == doctest::Approx(rotate(v1, 7 * kape::PI / 3).x));
+    CHECK(rotate(v1, -(kape::PI) / 3).x == doctest::Approx((1. - (std::sqrt(3) * 5)) / 2));
+  }
+}
+
+TEST_CASE("Testing Circle class")
+{
+  kape::Circle c1{{1., 1.}, 1.};
+  kape::Vector2d v1{-1., 0.};
+  kape::Vector2d v2{1., 1.};
+  kape::Vector2d v3{0., 1.};
+  SUBCASE("testing isInside function")
+  {
+    CHECK(c1.isInside(v1) == false);
+    CHECK(c1.isInside(v2) == true);
+    CHECK(c1.isInside(v3) == true);
+  }
+}
+
+TEST_CASE("Testing doShapesIntersect")
+{
+
 }
