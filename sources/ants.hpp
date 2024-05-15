@@ -12,11 +12,11 @@ class Ant
   bool has_food_;
 
  public:
-  static double const ANT_LENGTH{0.005}; //0.5 cm
-  static double const ANT_SPEED{0.05}; //5 cm/s
-  static double const CIRCLE_OF_VISION_RADIUS{ANT_LENGTH}; 
-  static double const CIRCLE_OF_VISION_DISTANCE{ANT_LENGTH}; 
-  static double const CIRCLE_OF_VISION_ANGLE{PI/3.}; 
+  static double constexpr ANT_LENGTH{0.005}; //0.5 cm
+  static double constexpr ANT_SPEED{0.05}; //5 cm/s
+  static double constexpr CIRCLE_OF_VISION_RADIUS{ANT_LENGTH}; 
+  static double constexpr CIRCLE_OF_VISION_DISTANCE{1.5*ANT_LENGTH}; 
+  static double constexpr CIRCLE_OF_VISION_ANGLE{PI/3.}; 
 
 
 
@@ -24,6 +24,8 @@ class Ant
                bool has_food = false);
 
   Vector2d getPosition() const;
+  //if velocity == {0.,0.} instead of the angle it returns 0.
+  double getFacingAngle() const;
   bool hasFood() const;
   void update( Pheromones& to_anthill_ph,
               Pheromones& to_food_ph, Food& food,

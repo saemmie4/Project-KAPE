@@ -17,8 +17,8 @@ class Simulation
   Pheromones to_anthill_;
   Pheromones to_food_;
   Food food_;
-  Obstacles obstacles_
-  std::vector<Ant> ants_;
+  Obstacles obstacles_;
+  Ants ants_;
 
  public:
   explicit Simulation();

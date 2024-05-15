@@ -8,7 +8,7 @@
 
 namespace kape {
 
-double const PI{3.1415926535897932};
+double constexpr PI{3.1415926535897932};
 
 struct Vector2d
 {

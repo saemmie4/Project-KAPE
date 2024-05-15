@@ -61,6 +61,14 @@ sf::Vector2f CoordinateConverter::worldToScreen(Vector2d const& world_position,
   return res;
 }
 
+// note: angle is in radians, the returned angle is in degrees
+float CoordinateConverter::worldToScreenRotation(double angle)
+{
+  // for SFML angle>0: clockwise, angle<0:anticlockwise.
+  // t0 degrees are on the screen's negative y axis (-> 90 - ...)
+  return static_cast<float>(90 - angle * 180. / PI);
+}
+
 // Window implementation---------------------------------------
 
 Window::Window(unsigned int window_width, unsigned int window_height,
@@ -124,11 +132,15 @@ void Window::draw(Ant const& ant)
     return;
   }
 
-  sf::CircleShape ant_drawing{coord_conv_.metersToPixels(0.01f)};
-  ant_drawing.setOrigin(
-      sf::Vector2f(ant_drawing.getRadius(), ant_drawing.getRadius()));
+  float length{coord_conv_.metersToPixels(Ant::ANT_LENGTH)};
+  sf::RectangleShape ant_drawing{sf::Vector2f{length / 3.f, length}};
+  ant_drawing.setOrigin(sf::Vector2f(ant_drawing.getSize().x / 2.f,
+                                     ant_drawing.getSize().y / 2.f));
+
   ant_drawing.setPosition(coord_conv_.worldToScreen(
       ant.getPosition(), window_.getSize().x, window_.getSize().y));
+
+  ant_drawing.setRotation(coord_conv_.worldToScreenRotation(ant.getFacingAngle()));
   window_.draw(ant_drawing);
 }
 
@@ -153,6 +165,7 @@ void Window::draw(Rectangle const& rectangle, sf::Color const& color)
   sf::RectangleShape rectangle_drawing{
       sf::Vector2f(coord_conv_.metersToPixels(rectangle.getRectangleWidth()),
                    coord_conv_.metersToPixels(rectangle.getRectangleHeight()))};
+
   rectangle_drawing.setPosition(
       coord_conv_.worldToScreen(rectangle.getRectangleTopLeftCorner(),
                                 window_.getSize().x, window_.getSize().y));

@@ -28,13 +28,15 @@ class CoordinateConverter
   sf::Vector2f worldToScreen(Vector2d const& world_position,
                              unsigned int window_width,
                              unsigned int window_height);
+
+  //note: angle is in radians, the returned angle is in degrees
+  float worldToScreenRotation(double angle);
 };
 
 // name to be changed
 class Window
 {
  private:
-
  public:
   sf::RenderWindow window_;
   CoordinateConverter coord_conv_;
@@ -43,7 +45,7 @@ class Window
   explicit Window(unsigned int window_width, unsigned int window_height,
                   float meter_to_pixel = 1000.f);
   bool isOpen() const;
-  void inputHandling(); 
+  void inputHandling();
   void clear(sf::Color const& color);
   void draw(Ant const& ant);
   void draw(Circle const& circle, sf::Color const& color);

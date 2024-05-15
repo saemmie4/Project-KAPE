@@ -8,7 +8,7 @@
 
 int main()
 {
-  kape::Ant ant{{0., 0.}, {0., 0.}};
+  kape::Ant ant{{0., 0.}, {-1., 1.}};
   kape::Circle circle{{0., 0.}, 0.1};
   kape::Rectangle rectangle{{0., 0.}, 0.01, 0.2};
   kape::Window window{700u, 600u};
@@ -31,6 +31,7 @@ int main()
     sf::Color col =
         (kape::doShapesIntersect(circle, rectangle) ? sf::Color::Red
                                                     : sf::Color::Green);
+    window.draw(ant);
     window.draw(circle, col);
     window.draw(rectangle, col);
     window.display();
