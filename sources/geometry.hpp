@@ -53,7 +53,7 @@ class Circle
   double radius_;
 
  public:
-  Circle(Vector2d const& center, double radius);
+  Circle(Vector2d const& center = {0., 0.}, double radius = 1.);
   Vector2d getCircleCenter() const;
   double getCircleRadius() const;
   void setCircleCenter(Vector2d const& center);
