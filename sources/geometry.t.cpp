@@ -138,19 +138,22 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(v.x == doctest::Approx(-1.));
     CHECK(v.y == doctest::Approx(-5.));
   }
-  SUBCASE("Testing the rotator operator")
+  SUBCASE("Testing the rotate function")
   {
-    CHECK(rotate(v1, kape::PI).x == doctest::Approx(-1.));
-    CHECK(rotate(v1, kape::PI).y == doctest::Approx(-5.));
-    CHECK(rotate(v1, kape::PI / 2).x == doctest::Approx(-5.));
-    CHECK(rotate(v1, kape::PI / 2).y == doctest::Approx(1.));
-    CHECK(rotate(v1, kape::PI / 4).x == doctest::Approx(-2. * std::sqrt(2)));
-    CHECK(rotate(v1, kape::PI / 4).y == doctest::Approx(3. * std::sqrt(2)));
-    CHECK(rotate(v1, 0.).x == doctest::Approx(1.));
-    CHECK(rotate(v1, 0.).x == doctest::Approx(5.));
-    CHECK(rotate(v1, kape::PI / 3).x
-          == doctest::Approx(rotate(v1, 7 * kape::PI / 3).x));
-    CHECK(rotate(v1, -(kape::PI) / 3).x == doctest::Approx((1. - (std::sqrt(3) * 5)) / 2));
+    // kape::Vector2d v1{1., 5.};
+    // kape::Vector2d v2{0., -5.};
+    CHECK(kape::rotate(v1, kape::PI).x == doctest::Approx(-1.));
+    CHECK(kape::rotate(v1, kape::PI).y == doctest::Approx(-5.));
+    CHECK(kape::rotate(v1, kape::PI / 2.).x == doctest::Approx(-5.));
+    CHECK(kape::rotate(v1, kape::PI / 2.).y == doctest::Approx(1.));
+    CHECK(kape::rotate(v1, kape::PI / 4.).x == doctest::Approx(-2. * std::sqrt(2)));
+    CHECK(kape::rotate(v1, kape::PI / 4.).y == doctest::Approx(3. * std::sqrt(2)));
+    CHECK(kape::rotate(v1, 0.).x == doctest::Approx(1.));
+    CHECK(kape::rotate(v1, 0.).y == doctest::Approx(5.));
+    CHECK(kape::rotate(v1, kape::PI / 3.).x
+          == doctest::Approx(rotate(v1, 7 * kape::PI / 3.).x));
+    CHECK(rotate(v1, -(kape::PI) / 3.).x == doctest::Approx(4.830127));
+    CHECK(rotate(v1, -(kape::PI) / 3.).y == doctest::Approx(1.633975));
   }
 }
 
@@ -169,6 +172,4 @@ TEST_CASE("Testing Circle class")
 }
 
 TEST_CASE("Testing doShapesIntersect")
-{
-
-}
+{}

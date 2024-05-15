@@ -2,8 +2,8 @@
 #include "ants.hpp"
 #include "geometry.hpp"
 #include <stdexcept> //for std::invalid_argument, std::runtime_error
-
 // TODO
+
 //  - the implementation of the Window constructor is a bit bad
 //  - find a solution for worldToScreen having to use static_cast
 //  - remove pullAllEvents()
@@ -33,14 +33,14 @@ void CoordinateConverter::setMeterToPixels(float meter_to_pixels)
   meter_to_pixels_ = meter_to_pixels;
 }
 
-float CoordinateConverter::pixelsToMeters(float distance_in_pixels) const
+double CoordinateConverter::pixelsToMeters(float distance_in_pixels) const
 {
   return distance_in_pixels / meter_to_pixels_;
 }
 
-float CoordinateConverter::metersToPixels(float distance_in_meters) const
+float CoordinateConverter::metersToPixels(double distance_in_meters) const
 {
-  return distance_in_meters * meter_to_pixels_;
+  return static_cast<float>(distance_in_meters) * meter_to_pixels_;
 }
 
 sf::Vector2f CoordinateConverter::worldToScreen(Vector2d const& world_position,
@@ -51,10 +51,12 @@ sf::Vector2f CoordinateConverter::worldToScreen(Vector2d const& world_position,
                    static_cast<float>(world_position.y)};
   res *= meter_to_pixels_; // scale to pixels
   res.y *= -1.0f;          // invert y axis
-  res.x += static_cast<float>(window_width)
-         / 2.f; // translate origin to the left edge of the screen
-  res.y += static_cast<float>(window_height)
-         / 2.f; // translate origin to the top edge of the screen
+
+  // Translation of the origin
+  // sum vector from top left (screen origin) to middle of the screen (world
+  // origin)
+  res += sf::Vector2f{static_cast<float>(window_width) / 2.f,
+                      static_cast<float>(window_height) / 2.f};
 
   return res;
 }
@@ -78,7 +80,7 @@ bool Window::isOpen() const
   return window_.isOpen();
 }
 
-void Window::pullAllEvents() // BAD
+void Window::inputHandling()
 {
   if (!isOpen()) {
     return;
@@ -96,17 +98,25 @@ void Window::pullAllEvents() // BAD
                                  static_cast<float>(event.size.height)};
       window_.setView(sf::View(visible_area));
     } else if (event.type == sf::Event::MouseWheelScrolled) {
-      float multiplier{event.mouseWheelScroll.delta < 0.f ? 0.8f : 1.2f};
-      coord_conv_.setMeterToPixels(coord_conv_.getMeterToPixels() * multiplier);
+      float delta{event.mouseWheelScroll.delta};
+      // MacBooks send 0.f if the scolling is very small both in the zoom and
+      // unzoom direction, and therefore we can't know if we should zoom or not
+      if (delta != 0.f) {
+        float multiplier{delta < 0.f ? 0.8f : 1.2f};
+        coord_conv_.setMeterToPixels(coord_conv_.getMeterToPixels()
+                                     * multiplier);
+      }
     }
   }
 }
+
 void Window::clear(sf::Color const& color)
 {
   if (isOpen()) {
     window_.clear(color);
   }
 }
+
 // to be perfected, it's just to see something on the screen right now
 void Window::draw(Ant const& ant)
 {
@@ -129,7 +139,7 @@ void Window::draw(Circle const& circle, sf::Color const& color)
   }
 
   sf::CircleShape circle_drawing{
-      coord_conv_.metersToPixels(static_cast<float>(circle.getCircleRadius()))};
+      coord_conv_.metersToPixels(circle.getCircleRadius())};
   circle_drawing.setOrigin(
       sf::Vector2f(circle_drawing.getRadius(), circle_drawing.getRadius()));
   circle_drawing.setPosition(coord_conv_.worldToScreen(
@@ -157,6 +167,7 @@ void Window::display()
     window_.display();
   }
 }
+
 void Window::close()
 {
   if (isOpen()) {

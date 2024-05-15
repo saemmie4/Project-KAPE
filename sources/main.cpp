@@ -34,7 +34,7 @@ int main()
     window.draw(circle, col);
     window.draw(rectangle, col);
     window.display();
-    window.pullAllEvents();
+    window.inputHandling();
   }
 
   return 0;

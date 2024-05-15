@@ -7,7 +7,6 @@
 // TODO
 //  - find a solution for worldToScreen having to make a static_cast
 //  double->float
-//  - remove pullAllEvents()
 
 namespace kape {
 // right now we'll assume that the origin of the map lies at the center of the
@@ -23,8 +22,8 @@ class CoordinateConverter
   float getMeterToPixels() const;
   // may throw std::invalid_argument if pixel_to_meter <= 0
   void setMeterToPixels(float meter_to_pixels);
-  float pixelsToMeters(float distance_in_pixels) const;
-  float metersToPixels(float distance_in_meters) const;
+  double pixelsToMeters(float distance_in_pixels) const;
+  float metersToPixels(double distance_in_meters) const;
 
   sf::Vector2f worldToScreen(Vector2d const& world_position,
                              unsigned int window_width,
@@ -44,7 +43,7 @@ class Window
   explicit Window(unsigned int window_width, unsigned int window_height,
                   float meter_to_pixel = 1000.f);
   bool isOpen() const;
-  void pullAllEvents(); // BAD
+  void inputHandling(); 
   void clear(sf::Color const& color);
   void draw(Ant const& ant);
   void draw(Circle const& circle, sf::Color const& color);
