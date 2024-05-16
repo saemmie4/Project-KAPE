@@ -27,8 +27,8 @@ class Ant
   //if velocity == {0.,0.} instead of the angle it returns 0.
   double getFacingAngle() const;
   bool hasFood() const;
-  void update( Pheromones& to_anthill_ph,
-              Pheromones& to_food_ph, Food& food,
+  void update(Food& food, Pheromones& to_anthill_ph,
+              Pheromones& to_food_ph, Anthill& anthill,
               Obstacles const& obstacles, double delta_t= 0.01);
 };
 class Ants

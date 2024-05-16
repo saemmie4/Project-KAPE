@@ -1,4 +1,5 @@
 #include "ants.hpp"
+#include "environment.hpp"
 #include <array> //for circles of vision of the ant
 #include <cmath>
 namespace kape {
@@ -28,13 +29,19 @@ bool Ant::hasFood() const
   return has_food_;
 }
 
-void Ant::update(Pheromones& to_anthill_ph, Pheromones& to_food_ph, Food& food,
-                 Obstacles const& obstacles, double delta_t)
+void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
+                 Anthill& anthill, Obstacles const& obstacles, double delta_t)
 {
   position_ += delta_t * velocity_;
 
-  Vector2d facing_dir{velocity_ / norm(velocity_)};
-  std::array<Circle, 3> circles_of_vision;
+  if (has_food_) {
+    to_food_ph.addPheromoneParticle(position_);
+  } else {
+    to_anthill_ph.addPheromoneParticle(position_);
+  }
+
+  // Vector2d facing_dir{velocity_ / norm(velocity_)};
+  // std::array<Circle, 3> circles_of_vision;
 }
 
 } // namespace kape
