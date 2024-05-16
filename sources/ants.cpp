@@ -2,6 +2,7 @@
 #include "environment.hpp"
 #include <array> //for circles of vision of the ant
 #include <cmath>
+#include <stdexcept> //invalid_argument
 namespace kape {
 Ant::Ant(Vector2d const& position, Vector2d const& velocity, bool has_food)
     : position_{position}
@@ -29,13 +30,33 @@ bool Ant::hasFood() const
   return has_food_;
 }
 
+// may throw invalid_argument if to_anthill_ph isn't of type
+// Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
+// Pheromones::Type::TO_FOOD
 void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
                  Anthill& anthill, Obstacles const& obstacles, double delta_t)
 {
+  if (to_anthill_ph.getPheromonesType() != Pheromones::Type::TO_ANTHILL) {
+    throw std::invalid_argument{
+        "The parameter to_anthill_ph, passed to Ant::update(), isn't of type "
+        "Pheromones::Type::TO_ANTHILL"};
+  }
+  if (to_food_ph.getPheromonesType() != Pheromones::Type::TO_FOOD) {
+    throw std::invalid_argument{
+        "The parameter to_food_ph, passed to Ant::update(), isn't of type "
+        "Pheromones::Type::TO_FOOD"};
+  }
+
   position_ += delta_t * velocity_;
 
   if (has_food_) {
-    to_food_ph.addPheromoneParticle(position_);
+    // add food to anthill
+    if (anthill.isInside(position_)) {
+      anthill.addFood();
+      has_food_ = false;
+    } else {
+      to_food_ph.addPheromoneParticle(position_);
+    }
   } else {
     to_anthill_ph.addPheromoneParticle(position_);
   }

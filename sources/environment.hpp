@@ -59,7 +59,7 @@ class Food
 class Pheromones
 {
  public:
-  enum class PheromoneType
+  enum class Type
   {
     TO_FOOD,
     TO_ANTHILL
@@ -67,18 +67,36 @@ class Pheromones
 
  private:
   std::vector<PheromoneParticle> pheromones_vec_;
-  const PheromoneType type_;
+  const Type type_;
 
  public:
-  explicit Pheromones(PheromoneType type);
+  explicit Pheromones(Type type);
+  int getPheromonesIntensityInCircle(Circle const& circle) const;
+  Pheromones::Type getPheromonesType() const;
   // may throw std::invalid_argument if intensity isn't in [0,100]
   void addPheromoneParticle(Vector2d const& position, int intensity = 100);
   void addPheromoneParticle(PheromoneParticle const& particle);
   // may throw std::invalid_argument if amount < 0
   void updateParticlesEvaporation(int amount = 5);
-  int getPheromonesIntensityInCircle(Circle const& circle) const;
 };
 
+class Anthill
+{
+ private:
+  Vector2d position_;
+  double radius_;
+  int food_counter_;
+
+ public:
+  // may throw std::invalid_argument if radius<=0 or food_counter < 0
+  explicit Anthill(Vector2d position, double radius, int food_counter = 0);
+  Vector2d getPosition() const;
+  double getRadius() const;
+  int getFoodCounter() const;
+  bool isInside(Vector2d position);
+  // may throw std::invalid_argument if amount < 0
+  void addFood(int amount = 1);
+};
 
 class Obstacles
 {
@@ -86,7 +104,8 @@ class Obstacles
 
  public:
   explicit Obstacles();
-  void addObstacle(Vector2d const& top_left_corner, double width, double height);
+  void addObstacle(Vector2d const& top_left_corner, double width,
+                   double height);
   void addObstacle(Rectangle const& obstacle);
   bool anyObstaclesInCircle(Circle const& circle) const;
 };

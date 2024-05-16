@@ -15,8 +15,9 @@ int main()
 
   auto start_time{std::chrono::high_resolution_clock::now()};
 
-  kape::Pheromones ph_anthill{kape::Pheromones::PheromoneType::TO_ANTHILL};
-  kape::Pheromones ph_food{kape::Pheromones::PheromoneType::TO_FOOD};
+  kape::Anthill anthill{{0., 0.}, 0.1};
+  kape::Pheromones ph_anthill{kape::Pheromones::Type::TO_ANTHILL};
+  kape::Pheromones ph_food{kape::Pheromones::Type::TO_FOOD};
   kape::Obstacles obs{};
   kape::Food food{};
 
@@ -26,7 +27,7 @@ int main()
             (std::chrono::high_resolution_clock::now() - start_time))};
     double seconds_passed{duration.count()};
 
-    ant.update(ph_anthill, ph_food, food, obs);
+    ant.update(food, ph_anthill, ph_food, anthill, obs);
 
 
     circle.setCircleCenter(kape::Vector2d{0.1 * cos(3. * seconds_passed),

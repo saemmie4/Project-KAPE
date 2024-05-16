@@ -1,7 +1,7 @@
 #include "environment.hpp"
 #include <algorithm> //for find_if
 #include <cmath>
-#include <numeric> //for accumulate
+#include <numeric>   //for accumulate
 #include <stdexcept> //invalid_argument
 
 namespace kape {
@@ -84,11 +84,11 @@ bool Food::isThereFoodLeft() const
 
 bool Food::removeOneFoodParticleInCircle(Circle const& circle)
 {
-  auto food_particle_it{std::find_if(food_vec_.begin(), food_vec_.end(),
-                                     [&circle](FoodParticle const& food_particle) {
-                                       return circle.isInside(
-                                           food_particle.getPosition());
-                                     })};
+  auto food_particle_it{
+      std::find_if(food_vec_.begin(), food_vec_.end(),
+                   [&circle](FoodParticle const& food_particle) {
+                     return circle.isInside(food_particle.getPosition());
+                   })};
 
   if (food_particle_it == food_vec_.end()) {
     return false;
@@ -99,9 +99,26 @@ bool Food::removeOneFoodParticleInCircle(Circle const& circle)
 }
 
 // Pheromones class implementation ------------------------------
-Pheromones::Pheromones(PheromoneType type)
+Pheromones::Pheromones(Type type)
     : type_{type}
 {}
+
+int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
+{
+  return std::accumulate(
+      pheromones_vec_.begin(), pheromones_vec_.end(), 0,
+      [&circle](int sum, PheromoneParticle const& pheromone) {
+        return sum
+             + (circle.isInside(pheromone.getPosition())
+                    ? pheromone.getIntensity()
+                    : 0);
+      });
+}
+
+Pheromones::Type Pheromones::getPheromonesType() const
+{
+  return type_;
+}
 
 void Pheromones::addPheromoneParticle(Vector2d const& position, int intensity)
 {
@@ -115,47 +132,32 @@ void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
 
 void Pheromones::updateParticlesEvaporation(int amount)
 {
-  //the check if amount < 0 is done in decreaseIntensity
+  // the check if amount < 0 is done in decreaseIntensity
   for (auto& pheromone : pheromones_vec_) {
     pheromone.decreaseIntensity(amount);
   }
 }
 
-// add function which returns the difference of two Vector2d to use in lambda
-int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
-{
-  return std::accumulate(
-      pheromones_vec_.begin(), pheromones_vec_.end(), 0,
-      [&circle](int sum, PheromoneParticle const& pheromone) {
-        return sum
-             + (circle.isInside(pheromone.getPosition())
-                    ? pheromone.getIntensity()
-                    : 0);
-      });
-}
-
 // implementation of class Anthill
-explicit Anthill::Anthill(Vector2d position, double radius, int food_counter)
-    : position_{position}
-    , radius_{radius}
+Anthill::Anthill(Vector2d center, double radius, int food_counter)
+    : circle_{center, radius}
     , food_counter_{food_counter}
 {
-  if (radius_ <= 0.) {
-    throw std::invalid_argument{"the radius can't be null or negative"};
-  }
   if (food_counter_ < 0) {
     throw std::invalid_argument{"the food counter can't be negative"};
   }
 }
-
-void Anthill::addFood(int amount)
+Anthill::Anthill(Circle const& circle, int food_counter = 0)
 {
-  if (amount < 0) {
-    throw std::invalid_argument{"the amount of food added can't be negative"};
-  }
 
-  food_counter_ += amount;
 }
+
+Circle Anthill::getCircle() const
+{
+
+}
+
+
 
 Vector2d Anthill::getPosition() const
 {
@@ -167,11 +169,21 @@ double Anthill::getRadius() const
 }
 int Anthill::getFoodCounter() const
 {
-  return food_counter_; 
+  return food_counter_;
+}
+bool Anthill::isInside(Vector2d position) const
+{
+  return 
 }
 
+void Anthill::addFood(int amount)
+{
+  if (amount < 0) {
+    throw std::invalid_argument{"the amount of food added can't be negative"};
+  }
 
-
+  food_counter_ += amount;
+}
 
 // implementation of class Obstacles-----------------------------------
 
