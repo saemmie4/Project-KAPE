@@ -35,7 +35,7 @@ class PheromoneParticle
   int getIntensity() const;
 
   // may throw std::invalid_argument if amount < 0
-  void decreaseIntensity(int amount = 5);
+  void decreaseIntensity(int amount = 1);
   // returns true if the Pheromone's intensity is 0
   bool hasEvaporated() const;
 };
@@ -54,6 +54,9 @@ class Food
   // removed) returns false if there wasn't any food in the circle (therefore
   // nothing has been removed)
   bool removeOneFoodParticleInCircle(Circle const& circle);
+
+  std::vector<FoodParticle>::const_iterator begin() const;
+  std::vector<FoodParticle>::const_iterator end() const;
 };
 
 class Pheromones
@@ -66,8 +69,13 @@ class Pheromones
   };
 
  private:
+  // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 5
+  // intensity levels
+  static double constexpr PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
+
   std::vector<PheromoneParticle> pheromones_vec_;
   const Type type_;
+  double time_since_last_evaporation_;
 
  public:
   explicit Pheromones(Type type);
@@ -76,8 +84,11 @@ class Pheromones
   // may throw std::invalid_argument if intensity isn't in [0,100]
   void addPheromoneParticle(Vector2d const& position, int intensity = 100);
   void addPheromoneParticle(PheromoneParticle const& particle);
-  // may throw std::invalid_argument if amount < 0
-  void updateParticlesEvaporation(int amount = 5);
+  // may throw std::invalid_argument if delta_t<0.
+  void updateParticlesEvaporation(double delta_t = 0.01);
+
+  std::vector<PheromoneParticle>::const_iterator begin() const;
+  std::vector<PheromoneParticle>::const_iterator end() const;
 };
 
 class Anthill

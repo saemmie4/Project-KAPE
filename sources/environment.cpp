@@ -1,8 +1,10 @@
 #include "environment.hpp"
-#include <algorithm> //for find_if
+#include <algorithm> //for find_if and remove_if
 #include <cmath>
 #include <numeric>   //for accumulate
 #include <stdexcept> //invalid_argument
+#include <vector>
+
 
 namespace kape {
 
@@ -98,9 +100,20 @@ bool Food::removeOneFoodParticleInCircle(Circle const& circle)
   return true;
 }
 
+std::vector<FoodParticle>::const_iterator Food::begin() const
+{
+  return food_vec_.cbegin();
+}
+std::vector<FoodParticle>::const_iterator Food::end() const
+{
+  return food_vec_.cend();
+}
+
 // Pheromones class implementation ------------------------------
 Pheromones::Pheromones(Type type)
-    : type_{type}
+    : pheromones_vec_{}
+    , type_{type}
+    , time_since_last_evaporation_{0.}
 {}
 
 int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
@@ -130,12 +143,39 @@ void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
   pheromones_vec_.push_back(particle);
 }
 
-void Pheromones::updateParticlesEvaporation(int amount)
+// may throw std::invalid_argument if delta_t<0.
+void Pheromones::updateParticlesEvaporation(double delta_t)
 {
-  // the check if amount < 0 is done in decreaseIntensity
-  for (auto& pheromone : pheromones_vec_) {
-    pheromone.decreaseIntensity(amount);
+  if (delta_t < 0.) {
+    throw std::invalid_argument{"delta_t can't be negative"};
   }
+
+  time_since_last_evaporation_ += delta_t;
+  if (time_since_last_evaporation_ < PERIOD_BETWEEN_EVAPORATION_UPDATE_) {
+    return;
+  }
+  time_since_last_evaporation_ -= PERIOD_BETWEEN_EVAPORATION_UPDATE_;
+
+  for (auto& pheromone : pheromones_vec_) {
+    pheromone.decreaseIntensity();
+  }
+
+  // remove phermones that have evaporated
+  pheromones_vec_.erase(std::remove_if(pheromones_vec_.begin(),
+                                       pheromones_vec_.end(),
+                                       [](PheromoneParticle const& particle) {
+                                         return particle.hasEvaporated();
+                                       }),
+                        pheromones_vec_.end());
+}
+
+std::vector<PheromoneParticle>::const_iterator Pheromones::begin() const
+{
+  return pheromones_vec_.cbegin();
+}
+std::vector<PheromoneParticle>::const_iterator Pheromones::end() const
+{
+  return pheromones_vec_.cend();
 }
 
 // implementation of class Anthill
@@ -147,7 +187,7 @@ Anthill::Anthill(Vector2d center, double radius, int food_counter)
     throw std::invalid_argument{"the food counter can't be negative"};
   }
 }
-Anthill::Anthill(Circle const& circle, int food_counter = 0)
+Anthill::Anthill(Circle const& circle, int food_counter)
     : Anthill{circle.getCircleCenter(), circle.getCircleRadius(), food_counter}
 {}
 

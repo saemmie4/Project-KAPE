@@ -47,9 +47,12 @@ class Window
   bool isOpen() const;
   void inputHandling();
   void clear(sf::Color const& color);
-  void draw(Ant const& ant);
   void draw(Circle const& circle, sf::Color const& color);
   void draw(Rectangle const& rectangle, sf::Color const& color);
+  void draw(Ant const& ant);
+  void draw(Food const& food);
+  void draw(Anthill const& anthill);
+  void draw(Pheromones const& pheromones);
   void display();
   void close();
 

@@ -125,25 +125,6 @@ void Window::clear(sf::Color const& color)
   }
 }
 
-// to be perfected, it's just to see something on the screen right now
-void Window::draw(Ant const& ant)
-{
-  if (!isOpen()) {
-    return;
-  }
-
-  float length{coord_conv_.metersToPixels(Ant::ANT_LENGTH)};
-  sf::RectangleShape ant_drawing{sf::Vector2f{length / 3.f, length}};
-  ant_drawing.setOrigin(sf::Vector2f(ant_drawing.getSize().x / 2.f,
-                                     ant_drawing.getSize().y / 2.f));
-
-  ant_drawing.setPosition(coord_conv_.worldToScreen(
-      ant.getPosition(), window_.getSize().x, window_.getSize().y));
-
-  ant_drawing.setRotation(coord_conv_.worldToScreenRotation(ant.getFacingAngle()));
-  window_.draw(ant_drawing);
-}
-
 void Window::draw(Circle const& circle, sf::Color const& color)
 {
   if (!isOpen()) {
@@ -172,6 +153,56 @@ void Window::draw(Rectangle const& rectangle, sf::Color const& color)
 
   rectangle_drawing.setFillColor(color);
   window_.draw(rectangle_drawing);
+}
+
+// to be perfected, it's just to see something on the screen right now
+void Window::draw(Ant const& ant)
+{
+  if (!isOpen()) {
+    return;
+  }
+
+  float length{coord_conv_.metersToPixels(Ant::ANT_LENGTH)};
+  sf::RectangleShape ant_drawing{sf::Vector2f{length / 3.f, length}};
+  ant_drawing.setOrigin(sf::Vector2f(ant_drawing.getSize().x / 2.f,
+                                     ant_drawing.getSize().y / 2.f));
+
+  ant_drawing.setPosition(coord_conv_.worldToScreen(
+      ant.getPosition(), window_.getSize().x, window_.getSize().y));
+
+  ant_drawing.setRotation(
+      coord_conv_.worldToScreenRotation(ant.getFacingAngle()));
+
+  ant_drawing.setFillColor(
+      (ant.hasFood() ? sf::Color::Green : sf::Color::White));
+
+  window_.draw(ant_drawing);
+}
+
+void Window::draw(Food const& food)
+{
+  for (auto const& food_particle : food) {
+    Circle food_drawing{food_particle.getPosition(), 0.001};
+    draw(food_drawing, sf::Color::Green);
+  }
+}
+
+void Window::draw(Anthill const& anthill)
+{
+  draw(Circle{anthill.getCenter(), anthill.getRadius()}, sf::Color::Yellow);
+}
+
+void Window::draw(Pheromones const& pheromones)
+{
+  sf::Color color{pheromones.getPheromonesType() == Pheromones::Type::TO_ANTHILL
+                      ? sf::Color::Blue
+                      : sf::Color::Red};
+
+  for (auto const& pheromone : pheromones) {
+    color.a = static_cast<sf::Uint8>((pheromone.getIntensity() / 100. * 255.));
+    Circle pheromone_drawing{pheromone.getPosition(), 0.001};
+    draw(pheromone_drawing, color);
+  }
 }
 
 void Window::display()

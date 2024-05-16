@@ -28,6 +28,7 @@ Ant::Ant(Vector2d const& position, Vector2d const& velocity, bool has_food)
     : position_{position}
     , velocity_{velocity}
     , has_food_{has_food}
+    , time_since_last_pheromone_release_{0.}
 {
   if (norm2(velocity) == 0.) {
     throw std::invalid_argument{"the ant's velocity can't be null"};
@@ -70,6 +71,16 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
         "The parameter to_food_ph, passed to Ant::update(), isn't of type "
         "Pheromones::Type::TO_FOOD"};
   }
+  if (delta_t < 0.) {
+    throw std::invalid_argument{"delta_t can't be negative"};
+  }
+
+  time_since_last_pheromone_release_ += delta_t;
+  bool time_to_release_pheromone{false};
+  if (time_since_last_pheromone_release_ > PERIOD_BETWEEN_PHEROMONE_RELEASE_) {
+    time_since_last_pheromone_release_ -= PERIOD_BETWEEN_PHEROMONE_RELEASE_;
+    time_to_release_pheromone = true;
+  }
 
   position_ += delta_t * velocity_;
 
@@ -82,10 +93,14 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       anthill.addFood();
       has_food_ = false;
     } else { // outside the anthill
-      to_food_ph.addPheromoneParticle(position_);
+      if (time_to_release_pheromone) {
+        to_food_ph.addPheromoneParticle(position_);
+      }
     }
   } else { // has no food
-    to_anthill_ph.addPheromoneParticle(position_);
+    if (time_to_release_pheromone) {
+      to_anthill_ph.addPheromoneParticle(position_);
+    }
     for (auto const& cov : circles_of_vision) {
       if (food.removeOneFoodParticleInCircle(cov)) {
         has_food_ = true;
