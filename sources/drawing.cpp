@@ -122,6 +122,7 @@ void Window::clear(sf::Color const& color)
 {
   if (isOpen()) {
     window_.clear(color);
+    points_vector_.clear();
   }
 }
 
@@ -180,11 +181,16 @@ void Window::draw(Ant const& ant)
   window_.draw(ant_drawing);
 }
 
-void Window::draw(Food const& food)
+void Window::loadForDrawing(Food const& food)
 {
+  unsigned int window_width{window_.getSize().x};
+  unsigned int window_height{window_.getSize().y};
+
   for (auto const& food_particle : food) {
-    Circle food_drawing{food_particle.getPosition(), 0.001};
-    draw(food_drawing, sf::Color::Green);
+    sf::Vertex food_drawing{coord_conv_.worldToScreen(
+        food_particle.getPosition(), window_width, window_height)};
+    food_drawing.color = sf::Color::Green;
+    points_vector_.push_back(food_drawing);
   }
 }
 
@@ -193,27 +199,28 @@ void Window::draw(Anthill const& anthill)
   draw(Circle{anthill.getCenter(), anthill.getRadius()}, sf::Color::Yellow);
 }
 
-void Window::draw(Pheromones const& pheromones)
+void Window::loadForDrawing(Pheromones const& pheromones)
 {
   sf::Color color{pheromones.getPheromonesType() == Pheromones::Type::TO_ANTHILL
                       ? sf::Color::Blue
                       : sf::Color::Red};
 
-  std::vector<sf::Vertex> pheromones_drawings;
-  pheromones_drawings.reserve(pheromones.getNumberOfPheromones());
+  unsigned int window_width{window_.getSize().x};
+  unsigned int window_height{window_.getSize().y};
 
   for (auto const& pheromone : pheromones) {
-    sf::Vertex single_ph_drawing{coord_conv_.worldToScreen(
-        pheromone.getPosition(), window_.getSize().x, window_.getSize().y)};
+    sf::Vertex pheromone_drawing{coord_conv_.worldToScreen(
+        pheromone.getPosition(), window_width, window_height)};
     color.a = static_cast<sf::Uint8>((pheromone.getIntensity() / 100. * 255.));
-    single_ph_drawing.color = color;
+    pheromone_drawing.color = color;
 
-    pheromones_drawings.push_back(single_ph_drawing);
+    points_vector_.push_back(pheromone_drawing);
   }
-
-  if (!pheromones_drawings.empty()) {
-    window_.draw(&pheromones_drawings.front(), pheromones_drawings.size(),
-                 sf::Points);
+}
+void Window::drawLoaded()
+{
+  if (!points_vector_.empty()) {
+    window_.draw(points_vector_.data(), points_vector_.size(), sf::Points);
   }
 }
 

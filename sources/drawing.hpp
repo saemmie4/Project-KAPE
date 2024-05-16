@@ -37,9 +37,14 @@ class CoordinateConverter
 class Window
 {
  private:
- public:
   sf::RenderWindow window_;
   CoordinateConverter coord_conv_;
+
+  // holds the points of Food and Pheromones to be drawn on the next
+  // display() call gets cleared with clear()
+  std::vector<sf::Vertex> points_vector_;
+
+ public:
   // may throw std::invalid_argument if meter_to_pixel <= 0
   // may throw std::runtime_error if it fails to open a new window
   explicit Window(unsigned int window_width, unsigned int window_height,
@@ -51,9 +56,10 @@ class Window
             std::size_t point_count = 30U);
   void draw(Rectangle const& rectangle, sf::Color const& color);
   void draw(Ant const& ant);
-  void draw(Food const& food);
   void draw(Anthill const& anthill);
-  void draw(Pheromones const& pheromones);
+  void loadForDrawing(Food const& food);
+  void loadForDrawing(Pheromones const& pheromones);
+  void drawLoaded();
   void display();
   void close();
 

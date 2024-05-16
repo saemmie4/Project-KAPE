@@ -6,11 +6,12 @@
 #include <array>
 #include <chrono>
 #include <cmath>
-#include <iostream>
+// #include <iostream>
+// #include <numeric>
 
 int main()
 {
-  kape::Ant ant{{0., 0.}, {0.0, 0.005}};
+  kape::Ant ant{{0., 0.}, {0.005, 0.005}};
   std::array<kape::Circle, 3> circles_of_vision;
   kape::Window window{700u, 600u};
 
@@ -25,8 +26,7 @@ int main()
   food.addFoodParticle({-0.01, -0.1});
   food.addFoodParticle({0.0, -0.1});
 
-
-  auto start{std::chrono::high_resolution_clock::now()};
+  // std::vector<int> t_count;
 
   while (window.isOpen()) {
     ant.calculateCirclesOfVision(circles_of_vision);
@@ -36,10 +36,15 @@ int main()
 
     window.clear(sf::Color::Black);
 
+    window.loadForDrawing(food);
 
-    window.draw(ph_anthill);
-    window.draw(ph_food);
-
+    // auto start{std::chrono::high_resolution_clock::now()};
+    window.loadForDrawing(ph_anthill);
+    window.loadForDrawing(ph_food);
+    window.drawLoaded();
+    // t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
+    //                       std::chrono::high_resolution_clock::now() - start)
+    //                       .count());
 
     window.draw(ant);
 
@@ -49,12 +54,13 @@ int main()
 
     window.draw(anthill);
 
-    window.draw(food);
-
     window.display();
 
     window.inputHandling();
   }
 
-      return 0;
+  // std::cout<<std::accumulate(t_count.begin(), t_count.end(),
+  // 0.)/t_count.size()<<"\n";
+
+  return 0;
 }
