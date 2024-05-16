@@ -148,24 +148,21 @@ Anthill::Anthill(Vector2d center, double radius, int food_counter)
   }
 }
 Anthill::Anthill(Circle const& circle, int food_counter = 0)
-{
-
-}
+    : Anthill{circle.getCircleCenter(), circle.getCircleRadius(), food_counter}
+{}
 
 Circle Anthill::getCircle() const
 {
-
+  return circle_;
 }
 
-
-
-Vector2d Anthill::getPosition() const
+Vector2d Anthill::getCenter() const
 {
-  return position_;
+  return circle_.getCircleCenter();
 }
 double Anthill::getRadius() const
 {
-  return radius_;
+  return circle_.getCircleRadius();
 }
 int Anthill::getFoodCounter() const
 {
@@ -173,7 +170,7 @@ int Anthill::getFoodCounter() const
 }
 bool Anthill::isInside(Vector2d position) const
 {
-  return 
+  return circle_.isInside(position);
 }
 
 void Anthill::addFood(int amount)

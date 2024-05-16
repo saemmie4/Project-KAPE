@@ -97,6 +97,7 @@ Vector2d rotate(Vector2d const& vec, double angle)
 
 // Circle implementation----------------------------------
 
+// may throw std::invalid_argument if radius <= 0
 Circle::Circle(Vector2d const& center, double radius)
     : center_{center}
     , radius_{radius}
@@ -120,6 +121,15 @@ void Circle::setCircleCenter(Vector2d const& center)
 {
   center_ = center;
 }
+
+// may throw std::invalid_argument if radius <= 0
+void Circle::setCircleRadius(double radius)
+{
+  if (radius <= 0) {
+    throw std::invalid_argument{"The radius can't be negative or null"};
+  }
+}
+
 bool Circle::isInside(Vector2d const& position) const
 {
   return doShapesIntersect(*this, position);

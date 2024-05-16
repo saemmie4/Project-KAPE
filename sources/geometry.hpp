@@ -53,10 +53,12 @@ class Circle
   double radius_;
 
  public:
+  // may throw std::invalid_argument if radius <= 0
   Circle(Vector2d const& center = {0., 0.}, double radius = 1.);
   Vector2d getCircleCenter() const;
   double getCircleRadius() const;
   void setCircleCenter(Vector2d const& center);
+  void setCircleRadius(double radius);
   bool isInside(Vector2d const& position) const;
 };
 

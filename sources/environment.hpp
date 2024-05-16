@@ -83,17 +83,18 @@ class Pheromones
 class Anthill
 {
  private:
-  Vector2d position_;
-  double radius_;
+  Circle circle_;
   int food_counter_;
 
  public:
   // may throw std::invalid_argument if radius<=0 or food_counter < 0
-  explicit Anthill(Vector2d position, double radius, int food_counter = 0);
-  Vector2d getPosition() const;
+  explicit Anthill(Vector2d center, double radius, int food_counter = 0);
+  explicit Anthill(Circle const& circle, int food_counter = 0);
+  Circle getCircle() const;
+  Vector2d getCenter() const;
   double getRadius() const;
   int getFoodCounter() const;
-  bool isInside(Vector2d position);
+  bool isInside(Vector2d position) const;
   // may throw std::invalid_argument if amount < 0
   void addFood(int amount = 1);
 };
