@@ -132,6 +132,12 @@ Pheromones::Type Pheromones::getPheromonesType() const
 {
   return type_;
 }
+std::size_t Pheromones::getNumberOfPheromones() const
+{
+  return pheromones_vec_.size();
+}
+
+
 
 void Pheromones::addPheromoneParticle(Vector2d const& position, int intensity)
 {

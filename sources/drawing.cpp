@@ -125,14 +125,15 @@ void Window::clear(sf::Color const& color)
   }
 }
 
-void Window::draw(Circle const& circle, sf::Color const& color)
+void Window::draw(Circle const& circle, sf::Color const& color,
+                  std::size_t point_count)
 {
   if (!isOpen()) {
     return;
   }
 
   sf::CircleShape circle_drawing{
-      coord_conv_.metersToPixels(circle.getCircleRadius())};
+      coord_conv_.metersToPixels(circle.getCircleRadius()), point_count};
   circle_drawing.setOrigin(
       sf::Vector2f(circle_drawing.getRadius(), circle_drawing.getRadius()));
   circle_drawing.setPosition(coord_conv_.worldToScreen(
@@ -198,10 +199,21 @@ void Window::draw(Pheromones const& pheromones)
                       ? sf::Color::Blue
                       : sf::Color::Red};
 
+  std::vector<sf::Vertex> pheromones_drawings;
+  pheromones_drawings.reserve(pheromones.getNumberOfPheromones());
+
   for (auto const& pheromone : pheromones) {
+    sf::Vertex single_ph_drawing{coord_conv_.worldToScreen(
+        pheromone.getPosition(), window_.getSize().x, window_.getSize().y)};
     color.a = static_cast<sf::Uint8>((pheromone.getIntensity() / 100. * 255.));
-    Circle pheromone_drawing{pheromone.getPosition(), 0.001};
-    draw(pheromone_drawing, color);
+    single_ph_drawing.color = color;
+
+    pheromones_drawings.push_back(single_ph_drawing);
+  }
+
+  if (!pheromones_drawings.empty()) {
+    window_.draw(&pheromones_drawings.front(), pheromones_drawings.size(),
+                 sf::Points);
   }
 }
 

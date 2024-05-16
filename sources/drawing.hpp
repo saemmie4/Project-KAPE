@@ -29,7 +29,7 @@ class CoordinateConverter
                              unsigned int window_width,
                              unsigned int window_height);
 
-  //note: angle is in radians, the returned angle is in degrees
+  // note: angle is in radians, the returned angle is in degrees
   float worldToScreenRotation(double angle);
 };
 
@@ -47,7 +47,8 @@ class Window
   bool isOpen() const;
   void inputHandling();
   void clear(sf::Color const& color);
-  void draw(Circle const& circle, sf::Color const& color);
+  void draw(Circle const& circle, sf::Color const& color,
+            std::size_t point_count = 30U);
   void draw(Rectangle const& rectangle, sf::Color const& color);
   void draw(Ant const& ant);
   void draw(Food const& food);

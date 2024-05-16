@@ -3,9 +3,10 @@
 #include <SFML/Graphics.hpp>
 
 // for testing, to be removed
+#include <array>
 #include <chrono>
 #include <cmath>
-#include <array>
+#include <iostream>
 
 int main()
 {
@@ -24,6 +25,9 @@ int main()
   food.addFoodParticle({-0.01, -0.1});
   food.addFoodParticle({0.0, -0.1});
 
+
+  auto start{std::chrono::high_resolution_clock::now()};
+
   while (window.isOpen()) {
     ant.calculateCirclesOfVision(circles_of_vision);
     ant.update(food, ph_anthill, ph_food, anthill, obs);
@@ -36,17 +40,21 @@ int main()
     window.draw(ph_anthill);
     window.draw(ph_food);
 
-    // window.draw(ant);
+
+    window.draw(ant);
+
     window.draw(circles_of_vision[0], sf::Color::Blue);
     window.draw(circles_of_vision[1], sf::Color::Blue);
     window.draw(circles_of_vision[2], sf::Color::Blue);
-    
+
     window.draw(anthill);
+
     window.draw(food);
 
     window.display();
+
     window.inputHandling();
   }
 
-  return 0;
+      return 0;
 }

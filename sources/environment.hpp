@@ -81,6 +81,7 @@ class Pheromones
   explicit Pheromones(Type type);
   int getPheromonesIntensityInCircle(Circle const& circle) const;
   Pheromones::Type getPheromonesType() const;
+  std::size_t getNumberOfPheromones() const;
   // may throw std::invalid_argument if intensity isn't in [0,100]
   void addPheromoneParticle(Vector2d const& position, int intensity = 100);
   void addPheromoneParticle(PheromoneParticle const& particle);
