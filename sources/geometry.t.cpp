@@ -188,7 +188,7 @@ TEST_CASE("Testing doShapesIntersect")
   kape::Circle c4{{1., 0.}, std::sqrt(2.) * 2.};
   kape::Circle c5{{0., 1}, 0.5};
   CHECK(doShapesIntersect(c2, v1) == true);
-  CHECK(doShapesIntersect(c2, v1) == false);
+  CHECK(doShapesIntersect(c3, v1) == false);
   CHECK(doShapesIntersect(r2, v2) == true);
   CHECK(doShapesIntersect(c1, v4) == true);
   CHECK(doShapesIntersect(c3, r2) == true);
