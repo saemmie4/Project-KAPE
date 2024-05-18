@@ -4,13 +4,14 @@
 #include <numbers>
 
 // TODO:
-//  -tests for rotate
 //  - tests for doShapesIntersect(Circle const& circle, Vector2d const& point);
 //  - tests for doShapesIntersect(Rectangle const& rectangle, Vector2d const&
 //   point);
 //  - tests for doShapesIntersect(Circle const& circle, Rectangle const&
 //   rectangle);
 //
+//  NEW:
+//  - tests for doShapesInstersec(Circle const& circle1, Circle const& circle2)
 //  -solve that operator/ makes tests fail because it (correctly) crashes the
 //  program with the assert to check if the denominator is 0
 
