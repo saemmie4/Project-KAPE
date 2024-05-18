@@ -51,7 +51,29 @@ class Ant
               std::default_random_engine& random_engine, double delta_t = 0.01);
 };
 class Ants
-{};
+{
+ private:
+  std::vector<Ant> ants_vec_;
+  std::default_random_engine random_engine_;
+
+ public:
+  explicit Ants(long unsigned int seed = 44444444ul);
+  // may throw std::invalid_argument if velocity is null
+  void addAnt(Vector2d const& position, Vector2d const& velocity,
+              bool has_food = false);
+  void addAnt(Ant const& ant);
+
+  // may throw std::invalid_argument if to_anthill_ph isn't of type
+  // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
+  // Pheromones::Type::TO_FOOD
+  // may throw std::invalid_argument if delta_t < 0.
+  void update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
+              Anthill& anthill, Obstacles const& obstacles,
+              double delta_t = 0.01);
+
+  std::vector<Ant>::const_iterator begin() const;
+  std::vector<Ant>::const_iterator end() const;
+};
 
 } // namespace kape
 

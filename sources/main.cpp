@@ -12,8 +12,7 @@
 
 int main()
 {
-  kape::Ant ant{{0., 0.}, {0.001, 0.005}};
-  std::array<kape::Circle, 3> circles_of_vision;
+  kape::Ants ants{};
   kape::Window window{700u, 600u};
 
   kape::Anthill anthill{{0., 0.}, 0.01};
@@ -22,43 +21,56 @@ int main()
   kape::Obstacles obs{};
   kape::Food food{};
 
+  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
+
   food.generateFoodInCircle({{0., 0.2}, 0.1}, 200, obs);
   food.generateFoodInCircle({{-0.2, 0.}, 0.1}, 200, obs);
   food.generateFoodInCircle({{0.2, 0.}, 0.1}, 200, obs);
   food.generateFoodInCircle({{0., -0.2}, 0.1}, 200, obs);
 
-  obs.addObstacle({{-0.2, 0.15}, 0.4, 0.04});
-  std::default_random_engine engine{417325ul};
+  obs.addObstacle({{-0.5, 0.5}, 1, 0.02});
+  obs.addObstacle({{0.5, 0.5}, 0.02, 1});
+  obs.addObstacle({{-0.5, -0.5}, 1, 0.02});
+  obs.addObstacle({{-0.5, 0.5}, 0.02, 1});
+
   std::vector<int> t_count;
 
   while (window.isOpen()) {
-    ant.calculateCirclesOfVision(circles_of_vision);
-    ant.update(food, ph_anthill, ph_food, anthill, obs, engine);
+    auto start{std::chrono::high_resolution_clock::now()};
+    ants.update(food, ph_anthill, ph_food, anthill, obs);
+    t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
+                          std::chrono::high_resolution_clock::now() - start)
+                          .count());
     ph_anthill.updateParticlesEvaporation();
     ph_food.updateParticlesEvaporation();
 
     window.clear(sf::Color::Black);
 
-    auto start{std::chrono::high_resolution_clock::now()};
-
     window.loadForDrawing(ph_anthill);
     window.loadForDrawing(ph_food);
 
-    t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
-                          std::chrono::high_resolution_clock::now() - start)
-                          .count());
     window.loadForDrawing(food);
     window.drawLoaded();
 
-    window.draw(ant);
+    window.draw(ants);
 
-    window.draw(circles_of_vision[0], sf::Color::Blue);
-    window.draw(circles_of_vision[1], sf::Color::Blue);
-    window.draw(circles_of_vision[2], sf::Color::Blue);
-
+    for (auto const& ant : ants) {
+      std::array<kape::Circle, 3> circles_of_vision;
+      ant.calculateCirclesOfVision(circles_of_vision);
+      window.draw(circles_of_vision[0], sf::Color::Blue);
+      window.draw(circles_of_vision[1], sf::Color::Blue);
+      window.draw(circles_of_vision[2], sf::Color::Blue);
+    }
     window.draw(anthill);
 
-    window.draw({{-0.2, 0.15}, 0.4, 0.04}, sf::Color::Yellow);
+    window.draw(obs, sf::Color::Yellow);
 
     window.display();
 

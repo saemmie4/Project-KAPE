@@ -56,7 +56,9 @@ class Window
             std::size_t point_count = 30U);
   void draw(Rectangle const& rectangle, sf::Color const& color);
   void draw(Ant const& ant);
+  void draw(Ants const& ants);
   void draw(Anthill const& anthill);
+  void draw(Obstacles const& obstacles, sf::Color const& color);
   void loadForDrawing(Food const& food);
   void loadForDrawing(Pheromones const& pheromones);
   void drawLoaded();

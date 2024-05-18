@@ -181,6 +181,13 @@ void Window::draw(Ant const& ant)
   window_.draw(ant_drawing);
 }
 
+void Window::draw(Ants const& ants)
+{
+  for(auto const& ant: ants){
+    draw(ant);
+  }
+}
+
 void Window::loadForDrawing(Food const& food)
 {
   unsigned int window_width{window_.getSize().x};
@@ -217,6 +224,14 @@ void Window::loadForDrawing(Pheromones const& pheromones)
     points_vector_.push_back(pheromone_drawing);
   }
 }
+
+void Window::draw(Obstacles const& obstacles, sf::Color const& color)
+{
+  for (auto obstacle : obstacles) {
+    draw(obstacle, color);
+  }
+}
+
 void Window::drawLoaded()
 {
   if (!points_vector_.empty()) {

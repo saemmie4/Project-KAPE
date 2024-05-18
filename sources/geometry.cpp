@@ -128,7 +128,7 @@ void Circle::setCircleRadius(double radius)
   if (radius <= 0) {
     throw std::invalid_argument{"The radius can't be negative or null"};
   }
-  radius_= radius;
+  radius_ = radius;
 }
 
 bool Circle::isInside(Vector2d const& position) const

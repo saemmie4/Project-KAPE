@@ -102,7 +102,6 @@ Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
   double rotate_by_angle{0.};
 
   return rotate_by_angle;
-
 }
 
 // may throw invalid_argument if to_anthill_ph isn't of type
@@ -178,6 +177,46 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   angle_chosen += calculateRandomTurning(random_engine);
 
   velocity_ = rotate(velocity_, angle_chosen);
+}
+
+// Ants class implementation---------------------
+Ants::Ants(long unsigned int seed)
+    : ants_vec_{}
+    , random_engine_{seed}
+{}
+// may throw std::invalid_argument if velocity is null
+void Ants::addAnt(Vector2d const& position, Vector2d const& velocity,
+                  bool has_food)
+{
+  ants_vec_.push_back(Ant{position, velocity, has_food});
+}
+void Ants::addAnt(Ant const& ant)
+{
+  ants_vec_.push_back(ant);
+}
+
+// may throw std::invalid_argument if to_anthill_ph isn't of type
+// Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
+// Pheromones::Type::TO_FOOD
+// may throw std::invalid_argument if delta_t < 0.
+void Ants::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
+                  Anthill& anthill, Obstacles const& obstacles,
+                  double delta_t)
+{
+  for (auto& ant : ants_vec_) {
+    ant.update(food, to_anthill_ph, to_food_ph, anthill, obstacles,
+               random_engine_, delta_t);
+  }
+}
+
+std::vector<Ant>::const_iterator Ants::begin() const
+{
+  return ants_vec_.cbegin();
+}
+
+std::vector<Ant>::const_iterator Ants::end() const
+{
+  return ants_vec_.cend();
 }
 
 } // namespace kape
