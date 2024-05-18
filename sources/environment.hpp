@@ -59,17 +59,38 @@ class PheromoneParticle
 class Food
 {
  private:
-  std::vector<FoodParticle> food_vec_;
+  class CircleWithFood
+  {
+   private:
+    Circle circle_;
+    std::vector<FoodParticle> food_vec_;
+
+   public:
+    // may throw std::invalid_argument if number_of_food_particles < 0 or if
+    // the circle intersects with any of the obstacles
+    explicit CircleWithFood::CircleWithFood(Circle const& circle,
+                                            int number_of_food_particles,
+                                            Obstacles const& obs,
+                                            std::default_random_engine& engine);
+    Circle getCircle() const;
+    bool removeOneFoodParticleInCircle(Circle const& circle);
+    bool isThereFoodLeft() const;
+  };
+
+  std::vector<CircleWithFood> circles_with_food_vec_;
   std::default_random_engine engine_;
+
+  // void addFoodParticle(Vector2d const& position);
+  // void addFoodParticle(FoodParticle const& food_particle);
 
  public:
   explicit Food(long unsigned int seed = 11ul);
-  void addFoodParticle(Vector2d const& position);
-  void addFoodParticle(FoodParticle const& food_particle);
   // returns:
   //  - true if it generated the food_particles
   //  - false if it didn't generate any particle, i.e. the circle intersects at
   //    least in part one obstacle
+  //
+  // may throw std::invalid_argument if number_of_particles<0
   bool generateFoodInCircle(Circle const& circle, int number_of_food_particles,
                             Obstacles const& obstacles);
   bool isThereFoodLeft() const;
@@ -78,8 +99,14 @@ class Food
   // nothing has been removed)
   bool removeOneFoodParticleInCircle(Circle const& circle);
 
-  std::vector<FoodParticle>::const_iterator begin() const;
-  std::vector<FoodParticle>::const_iterator end() const;
+  class iterator{
+    
+  };
+  iterator begin();
+  iterator end();
+  // std::vector<FoodParticle>::const_iterator begin() const;
+  // std::vector<FoodParticle>::const_iterator end() const;
+
 };
 
 class Pheromones

@@ -2,9 +2,7 @@
 #define GEOMETRY_HPP
 
 // TODO:
-// operator-=
-// operator*=
-// operator/=
+
 
 namespace kape {
 
@@ -81,7 +79,7 @@ class Rectangle
 bool doShapesIntersect(Circle const& circle, Vector2d const& point);
 bool doShapesIntersect(Rectangle const& rectangle, Vector2d const& point);
 bool doShapesIntersect(Circle const& circle, Rectangle const& rectangle);
-
+bool doShapesIntersect(Circle const& circle1, Circle const& circle2);
 } // namespace kape
 
 #endif

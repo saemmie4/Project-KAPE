@@ -6,6 +6,9 @@
 #include <stdexcept> //invalid_argument
 #include <vector>
 
+// TODO:
+//  - find a way to use algorithms in removeOneFoodParticleInCircle()
+
 namespace kape {
 
 // implementation of class Obstacles-----------------------------------
@@ -98,35 +101,29 @@ bool PheromoneParticle::hasEvaporated() const
 }
 
 // Food Class implementation -----------------------------------
-Food::Food(long unsigned int seed)
-    : food_vec_{}
-    , engine_{seed}
-{}
 
-void Food::addFoodParticle(Vector2d const& position)
+// Food::CircleWithFood class implementation--------------------
+// may throw std::invalid_argument if number_of_food_particles < 0 or if the
+// circle intersects with any of the obstacles
+Food::CircleWithFood::CircleWithFood(Circle const& circle,
+                                     int number_of_food_particles,
+                                     Obstacles const& obstacles,
+                                     std::default_random_engine& engine)
+    : circle_{circle}
+    , food_vec_{}
 {
-  food_vec_.push_back(FoodParticle{position});
-}
+  if (number_of_food_particles < 0) {
+    throw std::invalid_argument{
+        "can't add a negative number of food particles"};
+  }
 
-void Food::addFoodParticle(FoodParticle const& food_particle)
-{
-  food_vec_.push_back(food_particle);
-}
-
-// returns:
-//  - true if it generated the food_particles
-//  - false if it didn't generate any particle, i.e. the circle intersects at
-//    least in part one obstacle
-bool Food::generateFoodInCircle(Circle const& circle,
-                                int number_of_food_particles,
-                                Obstacles const& obstacles)
-{
   // if the circle intersects any obstacles
   if (std::any_of(obstacles.begin(), obstacles.end(),
                   [&circle](Rectangle const& rectangle) {
                     return doShapesIntersect(circle, rectangle);
                   })) {
-    return false;
+    throw std::invalid_argument{"can't construct a CircleWithFood object if "
+                                "its circle intersects obstacle"};
   }
 
   std::uniform_real_distribution angle_distribution{0., 2 * PI};
@@ -137,9 +134,9 @@ bool Food::generateFoodInCircle(Circle const& circle,
 
   std::generate_n(
       std::back_inserter(food_vec_), number_of_food_particles,
-      [&circle, &center_distance_distribution, &angle_distribution, this]() {
-        double angle{angle_distribution(engine_)};
-        double center_distance{std::abs(center_distance_distribution(engine_))};
+      [&circle, &center_distance_distribution, &angle_distribution, &engine]() {
+        double angle{angle_distribution(engine)};
+        double center_distance{std::abs(center_distance_distribution(engine))};
         if (center_distance > circle.getCircleRadius()) {
           center_distance = circle.getCircleRadius();
         }
@@ -149,16 +146,14 @@ bool Food::generateFoodInCircle(Circle const& circle,
         position += circle.getCircleCenter();
         return FoodParticle{position};
       });
-
-  return true;
 }
 
-bool Food::isThereFoodLeft() const
+Circle Food::CircleWithFood::getCircle() const
 {
-  return !food_vec_.empty();
+  return circle_;
 }
 
-bool Food::removeOneFoodParticleInCircle(Circle const& circle)
+bool Food::CircleWithFood::removeOneFoodParticleInCircle(Circle const& circle)
 {
   auto food_particle_it{
       std::find_if(food_vec_.begin(), food_vec_.end(),
@@ -172,6 +167,91 @@ bool Food::removeOneFoodParticleInCircle(Circle const& circle)
 
   food_vec_.erase(food_particle_it);
   return true;
+}
+
+bool Food::CircleWithFood::isThereFoodLeft() const
+{
+  return !food_vec_.empty();
+}
+
+// actual Food class implementation-------------------------------------------
+
+Food::Food(long unsigned int seed)
+    : circles_with_food_vec_{}
+    , engine_{seed}
+{}
+
+// void Food::addFoodParticle(Vector2d const& position)
+// {
+//   food_vec_.push_back(FoodParticle{position});
+// }
+
+// void Food::addFoodParticle(FoodParticle const& food_particle)
+// {
+//   food_vec_.push_back(food_particle);
+// }
+
+// returns:
+//  - true if it generated the food_particles (0 if number_of_particles==0 ->
+//    the function did nothing)
+//  - false if it didn't generate any particle, i.e. the circle intersects at
+//    least in part one obstacle
+//
+// may throw std::invalid_argument if number_of_particles<0
+bool Food::generateFoodInCircle(Circle const& circle,
+                                int number_of_food_particles,
+                                Obstacles const& obstacles)
+{
+  if (number_of_food_particles < 0) {
+    throw std::invalid_argument{
+        "can't add a negative number of food particles"};
+  }
+
+  // if the circle intersects any obstacles
+  if (std::any_of(obstacles.begin(), obstacles.end(),
+                  [&circle](Rectangle const& rectangle) {
+                    return doShapesIntersect(circle, rectangle);
+                  })) {
+    return false;
+  }
+
+  // nothing to do...
+  if (number_of_food_particles == 0) {
+    return true;
+  }
+
+  // generating a new circle_with_food.
+  // no need for try catch because we already checked that number of particles
+  // is > 0 and that the circle doesn't intersect any obstacle
+  circles_with_food_vec_.push_back(
+      CircleWithFood{circle, number_of_food_particles, obstacles, engine_});
+
+  return true;
+}
+
+bool Food::isThereFoodLeft() const
+{
+  return !circles_with_food_vec_.empty();
+}
+
+bool Food::removeOneFoodParticleInCircle(Circle const& circle)
+{
+  auto circles_with_food_it{circles_with_food_vec_.begin()};
+  for (; circles_with_food_it != circles_with_food_vec_.end();
+       ++circles_with_food_it) {
+    if (!doShapesIntersect(circle, circles_with_food_it->getCircle())) {
+      continue;
+    }
+
+    if(circles_with_food_it->removeOneFoodParticleInCircle(circle)){
+      if(!circles_with_food_it->isThereFoodLeft()) {
+        circles_with_food_vec_.erase(circles_with_food_it);
+      }
+      return true;
+    }
+  }
+  // no particle found in any of the circles
+  return false;
 }
 
 std::vector<FoodParticle>::const_iterator Food::begin() const
