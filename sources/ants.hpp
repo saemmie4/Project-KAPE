@@ -4,6 +4,7 @@
 #include "environment.hpp" //Pheromones, Food, Obstacles
 #include "geometry.hpp"    //Vector2d
 #include <array>
+#include <random>
 namespace kape {
 class Ant
 {
@@ -15,6 +16,15 @@ class Ant
   Vector2d velocity_;
   bool has_food_;
   double time_since_last_pheromone_release_;
+
+  double calculateAngleToAvoidObstacles(
+      std::array<Circle, 3> const& cov, Obstacles obs,
+      std::default_random_engine& random_engine) const;
+
+  double calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
+                                      Pheromones const& ph_to_follow) const;
+  double
+  calculateRandomTurning(std::default_random_engine& random_engine) const;
 
  public:
   void calculateCirclesOfVision(std::array<Circle, 3>& circles_of_vision) const;
@@ -38,7 +48,7 @@ class Ant
   // may throw std::invalid_argument if delta_t < 0.
   void update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
               Anthill& anthill, Obstacles const& obstacles,
-              double delta_t = 0.01);
+              std::default_random_engine& random_engine, double delta_t = 0.01);
 };
 class Ants
 {};

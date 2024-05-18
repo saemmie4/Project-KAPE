@@ -3,6 +3,7 @@
 #include <array> //for circles of vision of the ant
 #include <cmath>
 #include <stdexcept> //invalid_argument
+
 namespace kape {
 
 // TODO:
@@ -14,12 +15,12 @@ void Ant::calculateCirclesOfVision(
   // note: velocity can't be null for class invariant
   Vector2d facing_dir{velocity_ / norm(velocity_)};
 
-  double angle{-CIRCLE_OF_VISION_ANGLE};
+  double angle{CIRCLE_OF_VISION_ANGLE};
   for (auto& cov : circles_of_vision) {
     cov.setCircleRadius(CIRCLE_OF_VISION_RADIUS);
     cov.setCircleCenter(
         position_ + CIRCLE_OF_VISION_DISTANCE * rotate(facing_dir, angle));
-    angle += CIRCLE_OF_VISION_ANGLE;
+    angle -= CIRCLE_OF_VISION_ANGLE;
   }
 }
 
@@ -55,11 +56,61 @@ bool Ant::hasFood() const
   return has_food_;
 }
 
+double Ant::calculateAngleToAvoidObstacles(
+    std::array<Circle, 3> const& cov, Obstacles obs,
+    std::default_random_engine& random_engine) const
+{
+  double const LEFT_RIGHT_ANGLE{PI / 6.};
+  double const AHEAD_ANGLE{PI / 2.};
+  double const AHED_ANGLE_MULTIPLIER{4.};
+
+  double rotate_by_angle{0.};
+
+  bool any_obs_left{obs.anyObstaclesInCircle(cov[0])};
+  bool any_obs_ahead{obs.anyObstaclesInCircle(cov[1])};
+  bool any_obs_right{obs.anyObstaclesInCircle(cov[2])};
+
+  if (!any_obs_left && any_obs_ahead && !any_obs_right) {
+    std::uniform_int_distribution coinflip{0, 1};
+    // pick at random left or right
+    return AHEAD_ANGLE * (coinflip(random_engine) == 0 ? -1 : 1);
+  }
+
+  if (any_obs_left) {
+    rotate_by_angle -= LEFT_RIGHT_ANGLE;
+  }
+  if (any_obs_right) {
+    rotate_by_angle += LEFT_RIGHT_ANGLE;
+  }
+  if (any_obs_ahead) {
+    rotate_by_angle = 2 * AHEAD_ANGLE - AHED_ANGLE_MULTIPLIER * rotate_by_angle;
+  }
+
+  return rotate_by_angle;
+}
+
+double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
+                                         Pheromones const& ph_to_follow) const
+{
+  double rotate_by_angle{0.};
+
+  return rotate_by_angle;
+}
+double
+Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
+{
+  double rotate_by_angle{0.};
+
+  return rotate_by_angle;
+
+}
+
 // may throw invalid_argument if to_anthill_ph isn't of type
 // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
 // Pheromones::Type::TO_FOOD
 void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
-                 Anthill& anthill, Obstacles const& obstacles, double delta_t)
+                 Anthill& anthill, Obstacles const& obstacles,
+                 std::default_random_engine& random_engine, double delta_t)
 {
   if (to_anthill_ph.getPheromonesType() != Pheromones::Type::TO_ANTHILL) {
     throw std::invalid_argument{
@@ -110,6 +161,23 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       }
     }
   }
+
+  // avoid obstacles
+  double angle_to_avoid_obstacles{calculateAngleToAvoidObstacles(
+      circles_of_vision, obstacles, random_engine)};
+
+  if (angle_to_avoid_obstacles != 0.) {
+    velocity_ = rotate(velocity_, angle_to_avoid_obstacles);
+    calculateCirclesOfVision(circles_of_vision);
+  }
+
+  // follow appropriate pheromone + randomness
+  Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
+  double angle_chosen{
+      calculateAngleFromPheromones(circles_of_vision, pheromone_to_follow)};
+  angle_chosen += calculateRandomTurning(random_engine);
+
+  velocity_ = rotate(velocity_, angle_chosen);
 }
 
 } // namespace kape

@@ -1,6 +1,7 @@
 #ifndef ENVIRONMENT_HPP
 #define ENVIRONMENT_HPP
 #include "geometry.hpp" //for Vector2d
+#include <random>
 #include <stdexcept>
 #include <vector>
 // TODO:
@@ -9,6 +10,21 @@
 //  - check if adding things to a vector can cause exceptions
 
 namespace kape {
+class Obstacles
+{
+  std::vector<Rectangle> obstacles_vec_;
+
+ public:
+  explicit Obstacles();
+  void addObstacle(Vector2d const& top_left_corner, double width,
+                   double height);
+  void addObstacle(Rectangle const& obstacle);
+  bool anyObstaclesInCircle(Circle const& circle) const;
+
+  std::vector<Rectangle>::const_iterator begin() const;
+  std::vector<Rectangle>::const_iterator end() const;
+};
+
 class FoodParticle
 {
  private:
@@ -44,11 +60,18 @@ class Food
 {
  private:
   std::vector<FoodParticle> food_vec_;
+  std::default_random_engine engine_;
 
  public:
-  explicit Food();
+  explicit Food(long unsigned int seed = 11ul);
   void addFoodParticle(Vector2d const& position);
   void addFoodParticle(FoodParticle const& food_particle);
+  // returns:
+  //  - true if it generated the food_particles
+  //  - false if it didn't generate any particle, i.e. the circle intersects at
+  //    least in part one obstacle
+  bool generateFoodInCircle(Circle const& circle, int number_of_food_particles,
+                            Obstacles const& obstacles);
   bool isThereFoodLeft() const;
   // returns true if there was food in the circle (therefore if has also been
   // removed) returns false if there wasn't any food in the circle (therefore
@@ -111,17 +134,6 @@ class Anthill
   void addFood(int amount = 1);
 };
 
-class Obstacles
-{
-  std::vector<Rectangle> obstacles_vec_;
-
- public:
-  explicit Obstacles();
-  void addObstacle(Vector2d const& top_left_corner, double width,
-                   double height);
-  void addObstacle(Rectangle const& obstacle);
-  bool anyObstaclesInCircle(Circle const& circle) const;
-};
 } // namespace kape
 
 #endif

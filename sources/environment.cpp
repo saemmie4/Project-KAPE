@@ -1,12 +1,44 @@
 #include "environment.hpp"
-#include <algorithm> //for find_if and remove_if
+#include "geometry.hpp"
+#include <algorithm> //for find_if and remove_if any_of
 #include <cmath>
 #include <numeric>   //for accumulate
 #include <stdexcept> //invalid_argument
 #include <vector>
 
-
 namespace kape {
+
+// implementation of class Obstacles-----------------------------------
+
+Obstacles::Obstacles()
+{}
+
+void Obstacles::addObstacle(Vector2d const& top_left_corner, double width,
+                            double height)
+{
+  obstacles_vec_.push_back(Rectangle{top_left_corner, width, height});
+}
+void Obstacles::addObstacle(Rectangle const& obstacle)
+{
+  obstacles_vec_.push_back(obstacle);
+}
+
+bool Obstacles::anyObstaclesInCircle(Circle const& circle) const
+{
+  return std::any_of(obstacles_vec_.begin(), obstacles_vec_.end(),
+                     [&circle](Rectangle const& obstacle) {
+                       return doShapesIntersect(circle, obstacle);
+                     });
+}
+
+std::vector<Rectangle>::const_iterator Obstacles::begin() const
+{
+  return obstacles_vec_.cbegin();
+}
+std::vector<Rectangle>::const_iterator Obstacles::end() const
+{
+  return obstacles_vec_.cend();
+}
 
 // FoodParticle class Implementation--------------------------
 FoodParticle::FoodParticle(Vector2d const& position)
@@ -66,7 +98,9 @@ bool PheromoneParticle::hasEvaporated() const
 }
 
 // Food Class implementation -----------------------------------
-Food::Food()
+Food::Food(long unsigned int seed)
+    : food_vec_{}
+    , engine_{seed}
 {}
 
 void Food::addFoodParticle(Vector2d const& position)
@@ -77,6 +111,46 @@ void Food::addFoodParticle(Vector2d const& position)
 void Food::addFoodParticle(FoodParticle const& food_particle)
 {
   food_vec_.push_back(food_particle);
+}
+
+// returns:
+//  - true if it generated the food_particles
+//  - false if it didn't generate any particle, i.e. the circle intersects at
+//    least in part one obstacle
+bool Food::generateFoodInCircle(Circle const& circle,
+                                int number_of_food_particles,
+                                Obstacles const& obstacles)
+{
+  // if the circle intersects any obstacles
+  if (std::any_of(obstacles.begin(), obstacles.end(),
+                  [&circle](Rectangle const& rectangle) {
+                    return doShapesIntersect(circle, rectangle);
+                  })) {
+    return false;
+  }
+
+  std::uniform_real_distribution angle_distribution{0., 2 * PI};
+  // sigma = radius/3. makes the probability of having a generated distance from
+  // the center = 99.7%.
+  std::normal_distribution center_distance_distribution{
+      0., circle.getCircleRadius() / 3.};
+
+  std::generate_n(
+      std::back_inserter(food_vec_), number_of_food_particles,
+      [&circle, &center_distance_distribution, &angle_distribution, this]() {
+        double angle{angle_distribution(engine_)};
+        double center_distance{std::abs(center_distance_distribution(engine_))};
+        if (center_distance > circle.getCircleRadius()) {
+          center_distance = circle.getCircleRadius();
+        }
+
+        Vector2d position{rotate({0., 1.}, angle)};
+        position *= center_distance;
+        position += circle.getCircleCenter();
+        return FoodParticle{position};
+      });
+
+  return true;
 }
 
 bool Food::isThereFoodLeft() const
@@ -136,8 +210,6 @@ std::size_t Pheromones::getNumberOfPheromones() const
 {
   return pheromones_vec_.size();
 }
-
-
 
 void Pheromones::addPheromoneParticle(Vector2d const& position, int intensity)
 {
@@ -226,29 +298,6 @@ void Anthill::addFood(int amount)
   }
 
   food_counter_ += amount;
-}
-
-// implementation of class Obstacles-----------------------------------
-
-Obstacles::Obstacles()
-{}
-
-void Obstacles::addObstacle(Vector2d const& top_left_corner, double width,
-                            double height)
-{
-  obstacles_vec_.push_back(Rectangle{top_left_corner, width, height});
-}
-void Obstacles::addObstacle(Rectangle const& obstacle)
-{
-  obstacles_vec_.push_back(obstacle);
-}
-
-bool Obstacles::anyObstaclesInCircle(Circle const& circle) const
-{
-  return std::any_of(obstacles_vec_.begin(), obstacles_vec_.end(),
-                     [&circle](Rectangle const& obstacle) {
-                       return doShapesIntersect(circle, obstacle);
-                     });
 }
 
 } // namespace kape
