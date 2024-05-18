@@ -278,4 +278,14 @@ bool doShapesIntersect(Circle const& circle, Rectangle const& rectangle)
   return doShapesIntersect(rectangle, c);
 }
 
+bool doShapesIntersect(Circle const& circle1, Circle const& circle2)
+{
+  Vector2d distance_vector{circle1.getCircleCenter()
+                           - circle2.getCircleCenter()};
+  double max_distance_to_intersect{circle1.getCircleRadius()
+                                   + circle2.getCircleRadius()};
+  return norm2(distance_vector)
+      <= max_distance_to_intersect * max_distance_to_intersect;
+}
+
 } // namespace kape
