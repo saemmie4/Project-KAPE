@@ -4,6 +4,8 @@
 #include <random>
 #include <stdexcept>
 #include <vector>
+
+#include <iterator>
 // TODO:
 //  - Add Obstacles class
 //  - Food class
@@ -68,13 +70,15 @@ class Food
    public:
     // may throw std::invalid_argument if number_of_food_particles < 0 or if
     // the circle intersects with any of the obstacles
-    explicit CircleWithFood::CircleWithFood(Circle const& circle,
-                                            int number_of_food_particles,
-                                            Obstacles const& obs,
-                                            std::default_random_engine& engine);
+    explicit CircleWithFood(Circle const& circle, int number_of_food_particles,
+                            Obstacles const& obs,
+                            std::default_random_engine& engine);
     Circle getCircle() const;
     bool removeOneFoodParticleInCircle(Circle const& circle);
     bool isThereFoodLeft() const;
+    
+    std::vector<FoodParticle>::const_iterator begin() const;
+    std::vector<FoodParticle>::const_iterator end() const;
   };
 
   std::vector<CircleWithFood> circles_with_food_vec_;
@@ -91,22 +95,44 @@ class Food
   //    least in part one obstacle
   //
   // may throw std::invalid_argument if number_of_particles<0
+  // iterators of class Food::Iterator are invalidated
+  // (in particular, an iterator that was == end() may now be != end())
   bool generateFoodInCircle(Circle const& circle, int number_of_food_particles,
                             Obstacles const& obstacles);
   bool isThereFoodLeft() const;
   // returns true if there was food in the circle (therefore if has also been
   // removed) returns false if there wasn't any food in the circle (therefore
   // nothing has been removed)
+  // iterators of class Food::Iterator are invalidated if true
   bool removeOneFoodParticleInCircle(Circle const& circle);
 
-  class iterator{
-    
+  std::vector<FoodParticle>::const_iterator
+  next(std::vector<FoodParticle>::const_iterator food_it) const;
+
+  class iterator
+  {
+   private:
+    std::vector<FoodParticle>::const_iterator it_;
+    Food const& food_container_;
+
+    //  protected:
+    //   Food const& getFoodVectorIterator();
+    //   Food const& getContainer();
+
+   public:
+    explicit iterator(std::vector<FoodParticle>::const_iterator it,
+                      Food const& food_container);
+    iterator& operator++(); // prefix ++
+    FoodParticle const& operator*() const;
+
+    friend bool operator==(iterator const& lhs, iterator const& rhs);
+    friend bool operator!=(iterator const& lhs, iterator const& rhs);
   };
-  iterator begin();
-  iterator end();
+
+  iterator begin() const;
+  iterator end() const;
   // std::vector<FoodParticle>::const_iterator begin() const;
   // std::vector<FoodParticle>::const_iterator end() const;
-
 };
 
 class Pheromones

@@ -6,6 +6,7 @@
 #include <stdexcept> //invalid_argument
 #include <vector>
 
+#include <cassert>
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
 
@@ -123,7 +124,7 @@ Food::CircleWithFood::CircleWithFood(Circle const& circle,
                     return doShapesIntersect(circle, rectangle);
                   })) {
     throw std::invalid_argument{"can't construct a CircleWithFood object if "
-                                "its circle intersects obstacle"};
+                                "its circle intersects any obstacle"};
   }
 
   std::uniform_real_distribution angle_distribution{0., 2 * PI};
@@ -174,6 +175,15 @@ bool Food::CircleWithFood::isThereFoodLeft() const
   return !food_vec_.empty();
 }
 
+std::vector<FoodParticle>::const_iterator Food::CircleWithFood::begin() const
+{
+  return food_vec_.cbegin();
+}
+std::vector<FoodParticle>::const_iterator Food::CircleWithFood::end() const
+{
+  return food_vec_.cend();
+}
+
 // actual Food class implementation-------------------------------------------
 
 Food::Food(long unsigned int seed)
@@ -198,6 +208,7 @@ Food::Food(long unsigned int seed)
 //    least in part one obstacle
 //
 // may throw std::invalid_argument if number_of_particles<0
+// iterators of class Food::Iterator are invalidated
 bool Food::generateFoodInCircle(Circle const& circle,
                                 int number_of_food_particles,
                                 Obstacles const& obstacles)
@@ -234,6 +245,7 @@ bool Food::isThereFoodLeft() const
   return !circles_with_food_vec_.empty();
 }
 
+// iterators of class Food::Iterator are invalidated if true
 bool Food::removeOneFoodParticleInCircle(Circle const& circle)
 {
   auto circles_with_food_it{circles_with_food_vec_.begin()};
@@ -243,8 +255,8 @@ bool Food::removeOneFoodParticleInCircle(Circle const& circle)
       continue;
     }
 
-    if(circles_with_food_it->removeOneFoodParticleInCircle(circle)){
-      if(!circles_with_food_it->isThereFoodLeft()) {
+    if (circles_with_food_it->removeOneFoodParticleInCircle(circle)) {
+      if (!circles_with_food_it->isThereFoodLeft()) {
         circles_with_food_vec_.erase(circles_with_food_it);
       }
       return true;
@@ -254,14 +266,86 @@ bool Food::removeOneFoodParticleInCircle(Circle const& circle)
   return false;
 }
 
-std::vector<FoodParticle>::const_iterator Food::begin() const
+std::vector<FoodParticle>::const_iterator
+Food::next(std::vector<FoodParticle>::const_iterator food_it) const
 {
-  return food_vec_.cbegin();
+  // go to the next
+  ++food_it;
+
+  // check if it points to the end() of a CircleWithFood
+  std::vector<CircleWithFood>::const_iterator circles_with_food_it{std::find_if(
+      circles_with_food_vec_.begin(), circles_with_food_vec_.end(),
+      [&food_it](CircleWithFood const& circle_with_food) {
+        return food_it == circle_with_food.end();
+      })};
+
+  // if it didn't point to any end(): we're good, we can return it
+  if (circles_with_food_it == circles_with_food_vec_.end()) {
+    return food_it;
+  }
+
+  // if it points to the end() of the last circle with food we return it
+  if (!circles_with_food_vec_.empty()) {
+    if (circles_with_food_it == circles_with_food_vec_.end() - 1) {
+      return food_it;
+    }
+  }
+
+  // if it points to the end a circle with food, that also isn't the last one:
+  // we go to the begin of the next circle with food
+  {
+    return (++circles_with_food_it)->begin();
+  }
 }
-std::vector<FoodParticle>::const_iterator Food::end() const
+
+// class Food::iterator implementation-------------------------------------
+Food::iterator::iterator(std::vector<FoodParticle>::const_iterator it,
+                         Food const& food_container)
+    : it_{it}
+    , food_container_{food_container}
+{}
+
+Food::iterator& Food::iterator::operator++() // prefix ++
 {
-  return food_vec_.cend();
+  it_ = food_container_.next(it_);
+  return *this;
 }
+
+FoodParticle const& Food::iterator::operator*() const
+{
+  return *it_;
+}
+
+bool operator==(Food::iterator const& lhs, Food::iterator const& rhs)
+{
+  return lhs.it_ == rhs.it_;
+}
+
+bool operator!=(Food::iterator const& lhs, Food::iterator const& rhs)
+{
+  return lhs.it_ != rhs.it_;
+}
+
+Food::iterator Food::begin() const
+{
+  Food::iterator it{circles_with_food_vec_.front().begin(), *this};
+  return it;
+}
+
+Food::iterator Food::end() const
+{
+  Food::iterator it{circles_with_food_vec_.back().end(), *this};
+  return it;
+}
+
+// std::vector<FoodParticle>::const_iterator Food::begin() const
+// {
+//   return food_vec_.cbegin();
+// }
+// std::vector<FoodParticle>::const_iterator Food::end() const
+// {
+//   return food_vec_.cend();
+// }
 
 // Pheromones class implementation ------------------------------
 Pheromones::Pheromones(Type type)

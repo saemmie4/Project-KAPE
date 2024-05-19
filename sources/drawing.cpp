@@ -183,7 +183,7 @@ void Window::draw(Ant const& ant)
 
 void Window::draw(Ants const& ants)
 {
-  for(auto const& ant: ants){
+  for (auto const& ant : ants) {
     draw(ant);
   }
 }
