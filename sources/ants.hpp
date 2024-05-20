@@ -5,6 +5,10 @@
 #include "geometry.hpp"    //Vector2d
 #include <array>
 #include <random>
+
+// calculateAngleToAvoidObstacles, calculateAngleFromPheromones and
+// calculateRandomTurning temporarily made public to run tests
+
 namespace kape {
 class Ant
 {
@@ -17,6 +21,14 @@ class Ant
   bool has_food_;
   double time_since_last_pheromone_release_;
 
+ public:
+  void calculateCirclesOfVision(std::array<Circle, 3>& circles_of_vision) const;
+  static double constexpr ANT_LENGTH{0.005}; // 0.5 cm
+  static double constexpr ANT_SPEED{0.05};   // 5 cm/s
+  static double constexpr CIRCLE_OF_VISION_RADIUS{ANT_LENGTH};
+  static double constexpr CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
+  static double constexpr CIRCLE_OF_VISION_ANGLE{PI / 3.};
+
   double calculateAngleToAvoidObstacles(
       std::array<Circle, 3> const& cov, Obstacles obs,
       std::default_random_engine& random_engine) const;
@@ -25,14 +37,6 @@ class Ant
                                       Pheromones const& ph_to_follow) const;
   double
   calculateRandomTurning(std::default_random_engine& random_engine) const;
-
- public:
-  void calculateCirclesOfVision(std::array<Circle, 3>& circles_of_vision) const;
-  static double constexpr ANT_LENGTH{0.005}; // 0.5 cm
-  static double constexpr ANT_SPEED{0.05};   // 5 cm/s
-  static double constexpr CIRCLE_OF_VISION_RADIUS{ANT_LENGTH};
-  static double constexpr CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
-  static double constexpr CIRCLE_OF_VISION_ANGLE{PI / 3.};
 
   // may throw std::invalid_argument if velocity is null
   explicit Ant(Vector2d const& position, Vector2d const& velocity,
