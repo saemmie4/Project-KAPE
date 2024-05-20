@@ -29,6 +29,14 @@ int main()
   ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
   ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
   ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
 
   food.generateFoodInCircle({{0., 0.2}, 0.1}, 200, obs);
   food.generateFoodInCircle({{-0.2, 0.}, 0.1}, 200, obs);
@@ -68,7 +76,7 @@ int main()
       window.draw(circles_of_vision[1], sf::Color::Blue);
       window.draw(circles_of_vision[2], sf::Color::Blue);
     }
-    window.draw(anthill);
+    // window.draw(anthill);
 
     window.draw(obs, sf::Color::Yellow);
 

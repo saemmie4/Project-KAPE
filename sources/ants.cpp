@@ -2,8 +2,10 @@
 #include "environment.hpp"
 #include <array> //for circles of vision of the ant
 #include <cmath>
+#include <random>    //for random turning
 #include <stdexcept> //invalid_argument
 
+#include <iostream>
 namespace kape {
 
 // TODO:
@@ -92,16 +94,41 @@ double Ant::calculateAngleToAvoidObstacles(
 double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
                                          Pheromones const& ph_to_follow) const
 {
-  double rotate_by_angle{0.};
+  double const ANGLE_OF_ROTATION{PI / 6.};
 
-  return rotate_by_angle;
+  struct angle_result
+  {
+    double weighted_angle;
+    int sum_of_weights;
+    double angle_of_cov;
+  };
+
+  angle_result starting{0., 0, ANGLE_OF_ROTATION};
+
+  auto [weighted_angle, sum_of_weights, useless]{std::accumulate(
+      cov.begin(), cov.end(), starting,
+      [&ph_to_follow, ANGLE_OF_ROTATION](angle_result sum,
+                                         Circle const& circle_of_vision) {
+        int cov_weight{
+            ph_to_follow.getPheromonesIntensityInCircle(circle_of_vision)};
+
+        sum.weighted_angle += sum.angle_of_cov * cov_weight;
+        sum.sum_of_weights += cov_weight;
+        sum.angle_of_cov -= ANGLE_OF_ROTATION;
+        return sum;
+      })};
+
+  if (sum_of_weights == 0) {
+    return 0.;
+  }
+  return weighted_angle / sum_of_weights;
 }
 double
 Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
 {
-  double rotate_by_angle{0.};
+  std::normal_distribution angle_randomizer{0., PI / 50.};
 
-  return rotate_by_angle;
+  return angle_randomizer(random_engine);
 }
 
 // may throw invalid_argument if to_anthill_ph isn't of type
@@ -200,8 +227,7 @@ void Ants::addAnt(Ant const& ant)
 // Pheromones::Type::TO_FOOD
 // may throw std::invalid_argument if delta_t < 0.
 void Ants::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
-                  Anthill& anthill, Obstacles const& obstacles,
-                  double delta_t)
+                  Anthill& anthill, Obstacles const& obstacles, double delta_t)
 {
   for (auto& ant : ants_vec_) {
     ant.update(food, to_anthill_ph, to_food_ph, anthill, obstacles,
