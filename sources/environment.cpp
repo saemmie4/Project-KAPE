@@ -273,11 +273,11 @@ Food::next(std::vector<FoodParticle>::const_iterator food_it) const
   ++food_it;
 
   // check if it points to the end() of a CircleWithFood
-  std::vector<CircleWithFood>::const_iterator circles_with_food_it{std::find_if(
-      circles_with_food_vec_.begin(), circles_with_food_vec_.end(),
-      [&food_it](CircleWithFood const& circle_with_food) {
-        return food_it == circle_with_food.end();
-      })};
+  std::vector<CircleWithFood>::const_iterator circles_with_food_it{
+      std::find_if(circles_with_food_vec_.begin(), circles_with_food_vec_.end(),
+                   [&food_it](CircleWithFood const& circle_with_food) {
+                     return food_it == circle_with_food.end();
+                   })};
 
   // if it didn't point to any end(): we're good, we can return it
   if (circles_with_food_it == circles_with_food_vec_.end()) {
@@ -293,9 +293,7 @@ Food::next(std::vector<FoodParticle>::const_iterator food_it) const
 
   // if it points to the end a circle with food, that also isn't the last one:
   // we go to the begin of the next circle with food
-  {
-    return (++circles_with_food_it)->begin();
-  }
+  return (++circles_with_food_it)->begin();
 }
 
 // class Food::iterator implementation-------------------------------------
