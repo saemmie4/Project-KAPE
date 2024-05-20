@@ -148,7 +148,7 @@ Rectangle::Rectangle(Vector2d const& top_left_corner, double width,
     throw std::invalid_argument{"The width can't be negative or null"};
   if (height <= 0)
     throw std::invalid_argument{"The height can't be negative or null"};
-};
+}
 
 Vector2d Rectangle::getRectangleTopLeftCorner() const
 {
