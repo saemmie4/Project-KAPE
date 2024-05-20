@@ -1,11 +1,11 @@
 #include "ants.hpp"
 #include "environment.hpp"
-#include <array> //for circles of vision of the ant
+#include <algorithm> //for generate_n
+#include <array>     //for circles of vision of the ant
 #include <cmath>
 #include <random>    //for random turning
 #include <stdexcept> //invalid_argument
 
-#include <iostream>
 namespace kape {
 
 // TODO:
@@ -232,16 +232,12 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       circles_of_vision,
       pheromone_to_follow)}; // add random_engine as a third parameter if using
                              // the second method for calculating the angle
-  // angle_chosen += calculateRandomTurning(random_engine);
+   angle_chosen += calculateRandomTurning(random_engine);
 
   velocity_ = rotate(velocity_, angle_chosen);
 }
 
 // Ants class implementation---------------------
-Ants::Ants(unsigned int seed)
-    : ants_vec_{}
-    , random_engine_{seed}
-{}
 // may throw std::invalid_argument if velocity is null
 void Ants::addAnt(Vector2d const& position, Vector2d const& velocity,
                   bool has_food)
@@ -251,6 +247,37 @@ void Ants::addAnt(Vector2d const& position, Vector2d const& velocity,
 void Ants::addAnt(Ant const& ant)
 {
   ants_vec_.push_back(ant);
+}
+
+Ants::Ants(unsigned int seed)
+    : ants_vec_{}
+    , random_engine_{seed}
+{}
+
+// may throw std::invalid_argument if number_of_ants<0
+void Ants::addAntsAroundCircle(Circle const& circle, int number_of_ants)
+{
+  if (number_of_ants < 0) {
+    throw std::invalid_argument{"can't add a negative number of ants"};
+  }
+
+  // nothing to do
+  if (number_of_ants == 0) {
+    return;
+  }
+
+  ants_vec_.reserve(static_cast<std::size_t>(number_of_ants));
+  double const delta_angle{2. * PI / number_of_ants};
+  int counter{0};
+  std::generate_n(std::back_inserter(ants_vec_), number_of_ants,
+                  [&circle, &counter, delta_angle]() {
+                    Vector2d facing_direction{
+                        rotate(Vector2d{0., 1.}, counter * delta_angle)};
+                    ++counter;
+                    return Ant{circle.getCircleRadius() * facing_direction
+                                   + circle.getCircleCenter(),
+                               Ant::ANT_SPEED * facing_direction};
+                  });
 }
 
 // may throw std::invalid_argument if to_anthill_ph isn't of type

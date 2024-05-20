@@ -15,38 +15,27 @@ int main()
   kape::Ants ants{};
   kape::Window window{700u, 600u};
 
-  kape::Anthill anthill{{0., 0.}, 0.05};
+  kape::Anthill anthill{{0.3, 0.}, 0.05};
   kape::Pheromones ph_anthill{kape::Pheromones::Type::TO_ANTHILL};
   kape::Pheromones ph_food{kape::Pheromones::Type::TO_FOOD};
   kape::Obstacles obs{};
   kape::Food food{};
 
-  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.00, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {-0.00, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.00, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.00, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.00}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.00}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.00}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.00, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {-0.00, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
+  ants.addAntsAroundCircle(anthill.getCircle(), 10);
 
-  food.generateFoodInCircle({{0., 0.2}, 0.1}, 200, obs);
-  food.generateFoodInCircle({{-0.2, 0.}, 0.1}, 200, obs);
-  food.generateFoodInCircle({{0.2, 0.}, 0.1}, 200, obs);
-  food.generateFoodInCircle({{0., -0.2}, 0.1}, 200, obs);
+  //map walls
+  obs.addObstacle({{-2, +1}, 4, 0.02});
+  obs.addObstacle({{-2, +1}, 0.02, 2});
+  obs.addObstacle({{+2, +1}, 0.02, 2});
+  obs.addObstacle({{-2, -1}, 4, 0.02});
 
-  obs.addObstacle({{-0.5, 0.5}, 1, 0.02});
-  obs.addObstacle({{0.5, 0.5}, 0.02, 1});
-  obs.addObstacle({{-0.5, -0.5}, 1, 0.02});
-  obs.addObstacle({{-0.5, 0.5}, 0.02, 1});
+  //obstacles
+  obs.addObstacle({{-0.5, -0.5}, 0.5, 0.2});
+
+  food.generateFoodInCircle({{0., 0.5}, 0.1}, 500, obs);
+  food.generateFoodInCircle({{-1.2, 0.3}, 0.1}, 500, obs);
+  food.generateFoodInCircle({{1.3, -0.4}, 0.1}, 500, obs);
+  food.generateFoodInCircle({{-0.5, -0.85}, 0.1}, 500, obs);
 
   std::vector<long long int> t_count;
 
@@ -69,13 +58,13 @@ int main()
 
     window.draw(ants);
 
-    for (auto const& ant : ants) {
-      std::array<kape::Circle, 3> circles_of_vision;
-      ant.calculateCirclesOfVision(circles_of_vision);
-      window.draw(circles_of_vision[0], sf::Color::Blue);
-      window.draw(circles_of_vision[1], sf::Color::Blue);
-      window.draw(circles_of_vision[2], sf::Color::Blue);
-    }
+    // for (auto const& ant : ants) {
+    //   std::array<kape::Circle, 3> circles_of_vision;
+    //   ant.calculateCirclesOfVision(circles_of_vision);
+    //   window.draw(circles_of_vision[0], sf::Color::Blue);
+    //   window.draw(circles_of_vision[1], sf::Color::Blue);
+    //   window.draw(circles_of_vision[2], sf::Color::Blue);
+    // }
     window.draw(anthill);
 
     window.draw(obs, sf::Color::Yellow);

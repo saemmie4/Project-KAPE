@@ -35,11 +35,12 @@ class Ant
 
   double calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
                                       Pheromones const& ph_to_follow) const;
-  
+
   double
   calculateRandomTurning(std::default_random_engine& random_engine) const;
   /*double calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
-                                      Pheromones const& ph_to_follow, std::default_random_engine& random_engine) const;*/
+                                      Pheromones const& ph_to_follow,
+     std::default_random_engine& random_engine) const;*/
 
   // may throw std::invalid_argument if velocity is null
   explicit Ant(Vector2d const& position, Vector2d const& velocity,
@@ -63,13 +64,15 @@ class Ants
   std::vector<Ant> ants_vec_;
   std::default_random_engine random_engine_;
 
- public:
-  explicit Ants(unsigned int seed = 44444444u);
   // may throw std::invalid_argument if velocity is null
   void addAnt(Vector2d const& position, Vector2d const& velocity,
               bool has_food = false);
   void addAnt(Ant const& ant);
 
+ public:
+  explicit Ants(unsigned int seed = 44444444u);
+  // may throw std::invalid_argument if number_of_ants<0
+  void addAntsAroundCircle(Circle const& circle, int number_of_ants);
   // may throw std::invalid_argument if to_anthill_ph isn't of type
   // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
   // Pheromones::Type::TO_FOOD
