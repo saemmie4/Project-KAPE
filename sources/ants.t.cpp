@@ -43,5 +43,12 @@ TEST_CASE("Testing the Ants class")
   obs.addObstacle(r5);
 
 SUBCASE("testing the calculateAngleToAvoidObstacles function") {
+  CHECK(a2.calculateAngleToAvoidObstacles(cov2, obs, eng) == doctest::Approx(kape::PI / 6.));
+}
+
+SUBCASE("testing the getFacingAngle function") {
+  CHECK(a1.getFacingAngle() == doctest::Approx(0.695));
+  CHECK(a3.getFacingAngle() == doctest::Approx(-0.112));
+  CHECK(a5.getFacingAngle() == doctest::Approx(0.695 + kape::PI));
 }
 }
