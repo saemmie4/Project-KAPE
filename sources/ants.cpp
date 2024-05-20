@@ -123,12 +123,39 @@ double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
   }
   return weighted_angle / sum_of_weights;
 }
+
+/*double Ant::calculateAngleFromPheromones(
+    std::array<Circle, 3> const& cov, Pheromones const& ph_to_follow,
+    std::default_random_engine& random_engine) const
+{
+  double const DEFAULT_ANGLE{PI / 500.};
+  std::array<int, 3> weights;
+
+  int sum{0};
+  for (unsigned long int i = 0; i < 3; i++) // ORRIBILE
+  {
+    weights[i] = ph_to_follow.getPheromonesIntensityInCircle(cov[i]) + 10;
+    sum += weights[i];
+  }
+
+  for (unsigned long int i = 0; i < 3; i++) // ORRIBILE
+  {
+    weights[i] += sum/3;
+  }
+
+
+
+  std::discrete_distribution<int> the_chooser{weights.begin(), weights.end()};
+  return DEFAULT_ANGLE * (1 - the_chooser(random_engine));
+}*/
 double
 Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
 {
   std::normal_distribution angle_randomizer{0., PI / 50.};
 
   return angle_randomizer(random_engine);
+
+  return 0.;
 }
 
 // may throw invalid_argument if to_anthill_ph isn't of type
@@ -201,9 +228,11 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
 
   // follow appropriate pheromone + randomness
   Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
-  double angle_chosen{
-      calculateAngleFromPheromones(circles_of_vision, pheromone_to_follow)};
-  angle_chosen += calculateRandomTurning(random_engine);
+  double angle_chosen{calculateAngleFromPheromones(
+      circles_of_vision,
+      pheromone_to_follow)}; // add random_engine as a third parameter if using
+                             // the second method for calculating the angle
+  // angle_chosen += calculateRandomTurning(random_engine);
 
   velocity_ = rotate(velocity_, angle_chosen);
 }

@@ -22,20 +22,20 @@ int main()
   kape::Food food{};
 
   ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.00, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {-0.00, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.00, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.00, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.00}});
   ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
   ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.00}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.00}});
   ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
   ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0., 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.005}});
-  ants.addAnt(kape::Ant{{0., 0.0}, {-0.005, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {0.00, 0.005}});
+  ants.addAnt(kape::Ant{{0., 0.0}, {-0.00, 0.005}});
   ants.addAnt(kape::Ant{{0., 0.0}, {0.005, 0.}});
 
   food.generateFoodInCircle({{0., 0.2}, 0.1}, 200, obs);

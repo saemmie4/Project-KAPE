@@ -35,8 +35,11 @@ class Ant
 
   double calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
                                       Pheromones const& ph_to_follow) const;
+  
   double
   calculateRandomTurning(std::default_random_engine& random_engine) const;
+  /*double calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
+                                      Pheromones const& ph_to_follow, std::default_random_engine& random_engine) const;*/
 
   // may throw std::invalid_argument if velocity is null
   explicit Ant(Vector2d const& position, Vector2d const& velocity,
