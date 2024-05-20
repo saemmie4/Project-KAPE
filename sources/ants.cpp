@@ -207,7 +207,7 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
 }
 
 // Ants class implementation---------------------
-Ants::Ants(long unsigned int seed)
+Ants::Ants(unsigned int seed)
     : ants_vec_{}
     , random_engine_{seed}
 {}

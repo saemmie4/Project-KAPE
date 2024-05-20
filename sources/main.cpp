@@ -48,7 +48,7 @@ int main()
   obs.addObstacle({{-0.5, -0.5}, 1, 0.02});
   obs.addObstacle({{-0.5, 0.5}, 0.02, 1});
 
-  std::vector<int> t_count;
+  std::vector<long long int> t_count;
 
   while (window.isOpen()) {
     auto start{std::chrono::high_resolution_clock::now()};

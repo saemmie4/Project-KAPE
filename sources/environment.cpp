@@ -54,6 +54,14 @@ Vector2d FoodParticle::getPosition() const
   return position_;
 }
 
+FoodParticle& FoodParticle::operator=(FoodParticle const& rhs)
+{
+  if (&rhs != this) {
+    position_ = rhs.position_;
+  }
+  return *this;
+}
+
 // PheromoneParticle class Implementation--------------------------
 PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
     : position_{position}
@@ -73,7 +81,7 @@ PheromoneParticle::PheromoneParticle(
 Vector2d PheromoneParticle::getPosition() const
 {
   return position_;
-};
+}
 
 int PheromoneParticle::getIntensity() const
 {
@@ -97,8 +105,18 @@ bool PheromoneParticle::hasEvaporated() const
   return intensity_ == 0;
 }
 
+PheromoneParticle& PheromoneParticle::operator=(PheromoneParticle const& rhs)
+{
+  if (&rhs != this) {
+    position_  = rhs.position_;
+    intensity_ = rhs.intensity_;
+  }
+
+  return *this;
+}
+
 // Food Class implementation -----------------------------------
-Food::Food(long unsigned int seed)
+Food::Food(unsigned int seed)
     : food_vec_{}
     , engine_{seed}
 {}

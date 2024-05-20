@@ -34,6 +34,9 @@ class FoodParticle
   explicit FoodParticle(Vector2d const& position);
   explicit FoodParticle(FoodParticle const& food_particle);
   Vector2d getPosition() const;
+  
+  //
+  FoodParticle& operator=(FoodParticle const& rhs);
 };
 
 class PheromoneParticle
@@ -54,6 +57,7 @@ class PheromoneParticle
   void decreaseIntensity(int amount = 1);
   // returns true if the Pheromone's intensity is 0
   bool hasEvaporated() const;
+  PheromoneParticle& operator=(PheromoneParticle const& rhs);
 };
 
 class Food
@@ -63,7 +67,7 @@ class Food
   std::default_random_engine engine_;
 
  public:
-  explicit Food(long unsigned int seed = 11ul);
+  explicit Food(unsigned int seed = 11u);
   void addFoodParticle(Vector2d const& position);
   void addFoodParticle(FoodParticle const& food_particle);
   // returns:

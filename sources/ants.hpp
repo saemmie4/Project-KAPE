@@ -61,7 +61,7 @@ class Ants
   std::default_random_engine random_engine_;
 
  public:
-  explicit Ants(long unsigned int seed = 44444444ul);
+  explicit Ants(unsigned int seed = 44444444u);
   // may throw std::invalid_argument if velocity is null
   void addAnt(Vector2d const& position, Vector2d const& velocity,
               bool has_food = false);
