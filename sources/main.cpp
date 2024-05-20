@@ -15,7 +15,7 @@ int main()
   kape::Ants ants{};
   kape::Window window{700u, 600u};
 
-  kape::Anthill anthill{{0., 0.}, 0.01};
+  kape::Anthill anthill{{0., 0.}, 0.05};
   kape::Pheromones ph_anthill{kape::Pheromones::Type::TO_ANTHILL};
   kape::Pheromones ph_food{kape::Pheromones::Type::TO_FOOD};
   kape::Obstacles obs{};
@@ -76,7 +76,7 @@ int main()
       window.draw(circles_of_vision[1], sf::Color::Blue);
       window.draw(circles_of_vision[2], sf::Color::Blue);
     }
-    // window.draw(anthill);
+    window.draw(anthill);
 
     window.draw(obs, sf::Color::Yellow);
 

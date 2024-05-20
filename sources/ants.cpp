@@ -169,6 +169,8 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     if (anthill.isInside(position_)) { // inside anthill
       anthill.addFood();
       has_food_ = false;
+      velocity_ *= -1.;
+      calculateCirclesOfVision(circles_of_vision);
     } else { // outside the anthill
       if (time_to_release_pheromone) {
         to_food_ph.addPheromoneParticle(position_);
