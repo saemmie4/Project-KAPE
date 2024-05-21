@@ -1,8 +1,7 @@
 #include "drawing.hpp"
 #include "ants.hpp"
 #include "geometry.hpp"
-#include <algorithm>
-#include <execution> //std::execution::par
+#include <algorithm> //for transform
 #include <stdexcept> //for std::invalid_argument, std::runtime_error
 // TODO
 //  - the implementation of the Window constructor is a bit bad
@@ -44,9 +43,10 @@ float CoordinateConverter::metersToPixels(double distance_in_meters) const
   return static_cast<float>(distance_in_meters) * meter_to_pixels_;
 }
 
-sf::Vector2f CoordinateConverter::worldToScreen(Vector2d const& world_position,
-                                                unsigned int window_width,
-                                                unsigned int window_height)
+sf::Vector2f
+CoordinateConverter::worldToScreen(Vector2d const& world_position,
+                                   unsigned int window_width,
+                                   unsigned int window_height) const
 {
   sf::Vector2f res{static_cast<float>(world_position.x),
                    static_cast<float>(world_position.y)};
@@ -63,7 +63,7 @@ sf::Vector2f CoordinateConverter::worldToScreen(Vector2d const& world_position,
 }
 
 // note: angle is in radians, the returned angle is in degrees
-float CoordinateConverter::worldToScreenRotation(double angle)
+float CoordinateConverter::worldToScreenRotation(double angle) const
 {
   // for SFML angle>0: clockwise, angle<0:anticlockwise.
   // t0 degrees are on the screen's negative y axis (-> 90 - ...)
@@ -73,16 +73,17 @@ float CoordinateConverter::worldToScreenRotation(double angle)
 // Window implementation---------------------------------------
 std::vector<sf::Vertex>::iterator Window::loadForDrawing(
     Food const& food,
-    std::vector<sf::Vertex>::iterator points_vector_output_start)
+    std::vector<sf::Vertex>::iterator points_vector_output_start) const
 {
   unsigned int window_width{window_.getSize().x};
   unsigned int window_height{window_.getSize().y};
 
   return std::transform(
-      std::execution::par, food.begin(), food.end(), points_vector_output_start,
-      [window_width, window_height](kape::Food::Iterator food_particle_it) {
+      food.begin(), food.end(), points_vector_output_start,
+      [window_width, window_height,
+       this](FoodParticle const& food_particle) {
         sf::Vertex food_drawing{coord_conv_.worldToScreen(
-            (*food_particle_it).getPosition(), window_width, window_height)};
+            food_particle.getPosition(), window_width, window_height)};
         food_drawing.color = sf::Color::Green;
         return food_drawing;
       });
@@ -247,10 +248,9 @@ void Window::draw(Obstacles const& obstacles, sf::Color const& color)
 void Window::draw(Food const& food, Pheromones const& pheromone1,
                   Pheromones const& pheromone2)
 {
-  std::vector<sf::Vertex> points_vector;
-  points_vector.reserve(food.getNumberOfFoodParticles()
-                        + pheromone1.getNumberOfPheromones()
-                        + pheromone2.getNumberOfPheromones());
+  std::vector<sf::Vertex> points_vector(food.getNumberOfFoodParticles()
+                                        + pheromone1.getNumberOfPheromones()
+                                        + pheromone2.getNumberOfPheromones());
 
   loadForDrawing(food, points_vector.begin());
   loadForDrawing(pheromone1, points_vector);

@@ -27,10 +27,10 @@ class CoordinateConverter
 
   sf::Vector2f worldToScreen(Vector2d const& world_position,
                              unsigned int window_width,
-                             unsigned int window_height);
+                             unsigned int window_height) const;
 
   // note: angle is in radians, the returned angle is in degrees
-  float worldToScreenRotation(double angle);
+  float worldToScreenRotation(double angle) const;
 };
 
 // name to be changed
@@ -44,7 +44,9 @@ class Window
   // display() call gets cleared with clear()
   // std::vector<sf::Vertex> points_vector_;
 
-  std::vector<sf::Vertex>::iterator loadForDrawing(Food const& food, std::vector<sf::Vertex>::iterator points_vector_output_start);
+std::vector<sf::Vertex>::iterator loadForDrawing(
+    Food const& food,
+    std::vector<sf::Vertex>::iterator points_vector_output_start) const;
   void loadForDrawing(Pheromones const& pheromones, std::vector<sf::Vertex>& points_vector);
   void drawLoaded(std::vector<sf::Vertex>& points_vector);
  public:
