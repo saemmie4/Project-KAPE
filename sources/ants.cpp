@@ -38,7 +38,7 @@ Ant::Ant(Vector2d const& position, Vector2d const& velocity, bool has_food)
   }
 }
 
-Vector2d Ant::getPosition() const
+Vector2d const& Ant::getPosition() const
 {
   return position_;
 }

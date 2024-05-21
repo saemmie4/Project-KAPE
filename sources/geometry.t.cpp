@@ -162,7 +162,7 @@ TEST_CASE("Testing the Vector2d class")
 
 TEST_CASE("Testing Circle class")
 {
-  kape::Circle c1{{1., 1.}, 1.};
+  kape::Circle c1{kape::Vector2d{1., 1.}, 1.};
   kape::Vector2d v1{-1., 0.};
   kape::Vector2d v2{1., 1.};
   kape::Vector2d v3{0., 1.};
@@ -180,14 +180,14 @@ TEST_CASE("Testing doShapesIntersect")
   kape::Vector2d v2{0.5, 3.};
   kape::Vector2d v3{-3., 5.};
   kape::Vector2d v4{1.5, 1};
-  kape::Circle c1{{1., 1.}, 1.};
-  kape::Rectangle r1{{-1., 2.}, 2., 3.};
-  kape::Circle c2{{-3., 4.}, 3.};
-  kape::Rectangle r2{{-1., 4.}, 2., 4.};
-  kape::Circle c3{{-3., 4.}, 2.};
-  kape::Rectangle r3{{3., 6.}, 3., 4.};
-  kape::Circle c4{{1., 0.}, std::sqrt(2.) * 2.};
-  kape::Circle c5{{0., 1}, 0.5};
+  kape::Circle c1{kape::Vector2d{1., 1.}, 1.};
+  kape::Rectangle r1{kape::Vector2d{-1., 2.}, 2., 3.};
+  kape::Circle c2{kape::Vector2d{-3., 4.}, 3.};
+  kape::Rectangle r2{kape::Vector2d{-1., 4.}, 2., 4.};
+  kape::Circle c3{kape::Vector2d{-3., 4.}, 2.};
+  kape::Rectangle r3{kape::Vector2d{3., 6.}, 3., 4.};
+  kape::Circle c4{kape::Vector2d{1., 0.}, std::sqrt(2.) * 2.};
+  kape::Circle c5{kape::Vector2d{0., 1}, 0.5};
   CHECK(doShapesIntersect(c2, v1) == true);
   CHECK(doShapesIntersect(c3, v1) == false);
   CHECK(doShapesIntersect(r2, v2) == true);

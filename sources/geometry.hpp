@@ -3,7 +3,6 @@
 
 // TODO:
 
-
 namespace kape {
 
 double constexpr PI{3.1415926535897932};
@@ -12,6 +11,8 @@ struct Vector2d
 {
   double x;
   double y;
+
+  explicit Vector2d(double x_input, double y_input);
 
   Vector2d& operator+=(Vector2d const& rhs);
   Vector2d& operator-=(Vector2d const& rhs);
@@ -52,8 +53,8 @@ class Circle
 
  public:
   // may throw std::invalid_argument if radius <= 0
-  Circle(Vector2d const& center = {0., 0.}, double radius = 1.);
-  Vector2d getCircleCenter() const;
+  explicit Circle(Vector2d const& center = Vector2d{0., 0.}, double radius = 1.);
+  Vector2d const& getCircleCenter() const;
   double getCircleRadius() const;
   void setCircleCenter(Vector2d const& center);
   void setCircleRadius(double radius);
@@ -67,8 +68,8 @@ class Rectangle
   double height_;
 
  public:
-  Rectangle(Vector2d const& top_left_corner, double width, double height);
-  Vector2d getRectangleTopLeftCorner() const;
+  explicit Rectangle(Vector2d const& top_left_corner, double width, double height);
+  Vector2d const& getRectangleTopLeftCorner() const;
   double getRectangleWidth() const;
   double getRectangleHeight() const;
   void setRectangleTopLeftCorner(Vector2d const& position);

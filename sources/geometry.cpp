@@ -7,6 +7,11 @@
 // - rectangle implementation
 namespace kape {
 
+Vector2d::Vector2d(double x_input, double y_input)
+    : x{x_input}
+    , y{y_input}
+{}
+
 Vector2d& Vector2d::operator+=(Vector2d const& rhs)
 {
   *this = *this + rhs;
@@ -107,7 +112,7 @@ Circle::Circle(Vector2d const& center, double radius)
   }
 }
 
-Vector2d Circle::getCircleCenter() const
+Vector2d const& Circle::getCircleCenter() const
 {
   return center_;
 }
@@ -150,7 +155,7 @@ Rectangle::Rectangle(Vector2d const& top_left_corner, double width,
     throw std::invalid_argument{"The height can't be negative or null"};
 }
 
-Vector2d Rectangle::getRectangleTopLeftCorner() const
+Vector2d const& Rectangle::getRectangleTopLeftCorner() const
 {
   return top_left_corner_;
 }

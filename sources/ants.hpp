@@ -46,7 +46,7 @@ class Ant
   explicit Ant(Vector2d const& position, Vector2d const& velocity,
                bool has_food = false);
 
-  Vector2d getPosition() const;
+  Vector2d const& getPosition() const;
   // if velocity == {0.,0.} instead of the angle it returns 0.
   double getFacingAngle() const;
   bool hasFood() const;

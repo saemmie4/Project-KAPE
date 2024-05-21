@@ -49,22 +49,22 @@ FoodParticle::FoodParticle(Vector2d const& position)
     : position_{position}
 {}
 
-FoodParticle::FoodParticle(FoodParticle const& food_particle)
-    : FoodParticle{food_particle.getPosition()}
-{}
+// FoodParticle::FoodParticle(FoodParticle const& food_particle)
+//     : FoodParticle{food_particle.getPosition()}
+// {}
 
-Vector2d FoodParticle::getPosition() const
+Vector2d const& FoodParticle::getPosition() const
 {
   return position_;
 }
 
-FoodParticle& FoodParticle::operator=(FoodParticle const& rhs)
-{
-  if (&rhs != this) {
-    position_ = rhs.position_;
-  }
-  return *this;
-}
+// FoodParticle& FoodParticle::operator=(FoodParticle const& rhs)
+// {
+//   if (&rhs != this) {
+//     position_ = rhs.position_;
+//   }
+//   return *this;
+// }
 
 // PheromoneParticle class Implementation--------------------------
 PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
@@ -76,13 +76,13 @@ PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
         "The pheromones intensity must be between 0 and 100"};
 }
 
-PheromoneParticle::PheromoneParticle(
-    PheromoneParticle const& pheromone_particle)
-    : PheromoneParticle{pheromone_particle.getPosition(),
-                        pheromone_particle.getIntensity()}
-{}
+// PheromoneParticle::PheromoneParticle(
+//     PheromoneParticle const& pheromone_particle)
+//     : PheromoneParticle{pheromone_particle.getPosition(),
+//                         pheromone_particle.getIntensity()}
+// {}
 
-Vector2d PheromoneParticle::getPosition() const
+Vector2d const& PheromoneParticle::getPosition() const
 {
   return position_;
 }
@@ -109,15 +109,15 @@ bool PheromoneParticle::hasEvaporated() const
   return intensity_ == 0;
 }
 
-PheromoneParticle& PheromoneParticle::operator=(PheromoneParticle const& rhs)
-{
-  if (&rhs != this) {
-    position_  = rhs.position_;
-    intensity_ = rhs.intensity_;
-  }
+// PheromoneParticle& PheromoneParticle::operator=(PheromoneParticle const& rhs)
+// {
+//   if (&rhs != this) {
+//     position_  = rhs.position_;
+//     intensity_ = rhs.intensity_;
+//   }
 
-  return *this;
-}
+//   return *this;
+// }
 
 // Food Class implementation -----------------------------------
 
@@ -160,14 +160,14 @@ Food::CircleWithFood::CircleWithFood(Circle const& circle,
           center_distance = circle.getCircleRadius();
         }
 
-        Vector2d position{rotate({0., 1.}, angle)};
+        Vector2d position{rotate(Vector2d{0., 1.}, angle)};
         position *= center_distance;
         position += circle.getCircleCenter();
         return FoodParticle{position};
       });
 }
 
-Circle Food::CircleWithFood::getCircle() const
+Circle const& Food::CircleWithFood::getCircle() const
 {
   return circle_;
 }
@@ -449,12 +449,12 @@ Anthill::Anthill(Circle const& circle, int food_counter)
     : Anthill{circle.getCircleCenter(), circle.getCircleRadius(), food_counter}
 {}
 
-Circle Anthill::getCircle() const
+Circle const& Anthill::getCircle() const
 {
   return circle_;
 }
 
-Vector2d Anthill::getCenter() const
+Vector2d const& Anthill::getCenter() const
 {
   return circle_.getCircleCenter();
 }
@@ -466,7 +466,7 @@ int Anthill::getFoodCounter() const
 {
   return food_counter_;
 }
-bool Anthill::isInside(Vector2d position) const
+bool Anthill::isInside(Vector2d const& position) const
 {
   return circle_.isInside(position);
 }

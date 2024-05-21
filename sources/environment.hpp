@@ -34,11 +34,11 @@ class FoodParticle
 
  public:
   explicit FoodParticle(Vector2d const& position);
-  explicit FoodParticle(FoodParticle const& food_particle);
-  Vector2d getPosition() const;
-  
+  // explicit FoodParticle(FoodParticle const& food_particle);
+  Vector2d const& getPosition() const;
+
   //
-  FoodParticle& operator=(FoodParticle const& rhs);
+  // FoodParticle& operator=(FoodParticle const& rhs);
 };
 
 class PheromoneParticle
@@ -50,8 +50,8 @@ class PheromoneParticle
  public:
   // may throw std::invalid_argument if intensity isn't in [0,100]
   PheromoneParticle(Vector2d const& position, int intensity = 100);
-  PheromoneParticle(PheromoneParticle const& pheromone_particle);
-  Vector2d getPosition() const;
+  // PheromoneParticle(PheromoneParticle const& pheromone_particle);
+  Vector2d const& getPosition() const;
   // returns the intensity as a number in the interval [0, 100]
   int getIntensity() const;
 
@@ -59,7 +59,7 @@ class PheromoneParticle
   void decreaseIntensity(int amount = 1);
   // returns true if the Pheromone's intensity is 0
   bool hasEvaporated() const;
-  PheromoneParticle& operator=(PheromoneParticle const& rhs);
+  // PheromoneParticle& operator=(PheromoneParticle const& rhs);
 };
 
 class Food
@@ -77,10 +77,11 @@ class Food
     explicit CircleWithFood(Circle const& circle, int number_of_food_particles,
                             Obstacles const& obs,
                             std::default_random_engine& engine);
-    Circle getCircle() const;
+    Circle const& getCircle() const;
     bool removeOneFoodParticleInCircle(Circle const& circle);
     bool isThereFoodLeft() const;
-    
+
+    // add auto?
     std::vector<FoodParticle>::const_iterator begin() const;
     std::vector<FoodParticle>::const_iterator end() const;
   };
@@ -110,6 +111,7 @@ class Food
   // iterators of class Food::Iterator are invalidated if true
   bool removeOneFoodParticleInCircle(Circle const& circle);
 
+  // add auto?
   std::vector<FoodParticle>::const_iterator
   next(std::vector<FoodParticle>::const_iterator food_it) const;
 
@@ -182,11 +184,11 @@ class Anthill
   // may throw std::invalid_argument if radius<=0 or food_counter < 0
   explicit Anthill(Vector2d center, double radius, int food_counter = 0);
   explicit Anthill(Circle const& circle, int food_counter = 0);
-  Circle getCircle() const;
-  Vector2d getCenter() const;
+  Circle const& getCircle() const;
+  Vector2d const& getCenter() const;
   double getRadius() const;
   int getFoodCounter() const;
-  bool isInside(Vector2d position) const;
+  bool isInside(Vector2d const& position) const;
   // may throw std::invalid_argument if amount < 0
   void addFood(int amount = 1);
 };
