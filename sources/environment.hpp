@@ -95,7 +95,7 @@ class Food
 
  public:
   explicit Food(unsigned int seed = 11u);
-    std::size_t getNumberOfFoodParticles() const;
+  std::size_t getNumberOfFoodParticles() const;
 
   // returns:
   //  - true if it generated the food_particles
@@ -114,23 +114,19 @@ class Food
   // iterators of class Food::Iterator are invalidated if true
   bool removeOneFoodParticleInCircle(Circle const& circle);
 
-  // add auto?
-  std::vector<FoodParticle>::const_iterator
-  next(std::vector<FoodParticle>::const_iterator food_it) const;
-
   class Iterator
   {
    private:
-    std::vector<FoodParticle>::const_iterator it_;
-    Food const& food_container_;
-
-    //  protected:
-    //   Food const& getFoodVectorIterator();
-    //   Food const& getContainer();
+    std::vector<FoodParticle>::const_iterator food_particle_it_;
+    std::vector<CircleWithFood>::const_iterator circle_with_food_it_;
+    std::vector<CircleWithFood>::const_iterator const circle_with_food_back_it_;
 
    public:
-    explicit Iterator(std::vector<FoodParticle>::const_iterator it,
-                      Food const& food_container);
+    explicit Iterator(
+        std::vector<FoodParticle>::const_iterator const& food_particle_it,
+        std::vector<CircleWithFood>::const_iterator const& circle_with_food_it,
+        std::vector<CircleWithFood>::const_iterator const&
+            circle_with_food_back_it);
     Iterator& operator++(); // prefix ++
     FoodParticle const& operator*() const;
 

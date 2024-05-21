@@ -9,7 +9,10 @@
 #include <cassert>
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
-
+    // In Food::Iterator::begin()/end() CAN'T DO (if empty vector):
+    // begin()->begin()
+    // end()-1
+    // back().end()
 namespace kape {
 
 // implementation of class Obstacles-----------------------------------
@@ -172,7 +175,8 @@ Circle const& Food::CircleWithFood::getCircle() const
   return circle_;
 }
 
-std::size_t Food::CircleWithFood::getNumberOfFoodParticles () const {
+std::size_t Food::CircleWithFood::getNumberOfFoodParticles() const
+{
   return food_vec_.size();
 }
 
@@ -296,74 +300,70 @@ bool Food::removeOneFoodParticleInCircle(Circle const& circle)
   return false;
 }
 
-std::vector<FoodParticle>::const_iterator
-Food::next(std::vector<FoodParticle>::const_iterator food_it) const
-{
-  // go to the next
-  ++food_it;
-
-  // check if it points to the end() of a CircleWithFood
-  std::vector<CircleWithFood>::const_iterator circles_with_food_it{
-      std::find_if(circles_with_food_vec_.begin(), circles_with_food_vec_.end(),
-                   [&food_it](CircleWithFood const& circle_with_food) {
-                     return food_it == circle_with_food.end();
-                   })};
-
-  // if it didn't point to any end(): we're good, we can return it
-  if (circles_with_food_it == circles_with_food_vec_.end()) {
-    return food_it;
-  }
-
-  // if it points to the end() of the last circle with food we return it
-  if (!circles_with_food_vec_.empty()) {
-    if (circles_with_food_it == circles_with_food_vec_.end() - 1) {
-      return food_it;
-    }
-  }
-
-  // if it points to the end a circle with food, that also isn't the last one:
-  // we go to the begin of the next circle with food
-  return (++circles_with_food_it)->begin();
-}
-
 // class Food::iterator implementation-------------------------------------
-Food::Iterator::Iterator(std::vector<FoodParticle>::const_iterator it,
-                         Food const& food_container)
-    : it_{it}
-    , food_container_{food_container}
+Food::Iterator::Iterator(
+    std::vector<FoodParticle>::const_iterator const& food_particle_it,
+    std::vector<CircleWithFood>::const_iterator const& circle_with_food_it,
+    std::vector<CircleWithFood>::const_iterator const& circle_with_food_back_it)
+    : food_particle_it_{food_particle_it}
+    , circle_with_food_it_{circle_with_food_it}
+    , circle_with_food_back_it_{circle_with_food_back_it}
 {}
 
 Food::Iterator& Food::Iterator::operator++() // prefix ++
 {
-  it_ = food_container_.next(it_);
+  ++food_particle_it_;
+
+  //if we're at the end of the current circle with food
+  if (food_particle_it_ == circle_with_food_it_->end()) { 
+
+    //if we're NOT the end of the last circle with food
+    if (circle_with_food_it_ != circle_with_food_back_it_) {
+      food_particle_it_ = (++circle_with_food_it_)->begin();
+    }
+  }
   return *this;
 }
 
 FoodParticle const& Food::Iterator::operator*() const
 {
-  return *it_;
+  return *food_particle_it_;
 }
 
 bool operator==(Food::Iterator const& lhs, Food::Iterator const& rhs)
 {
-  return lhs.it_ == rhs.it_;
+  return lhs.food_particle_it_ == rhs.food_particle_it_;
 }
 
 bool operator!=(Food::Iterator const& lhs, Food::Iterator const& rhs)
 {
-  return lhs.it_ != rhs.it_;
+  return lhs.food_particle_it_ != rhs.food_particle_it_;
 }
 
 Food::Iterator Food::begin() const
 {
-  Food::Iterator it{circles_with_food_vec_.front().begin(), *this};
-  return it;
+  if(circles_with_food_vec_.empty())
+  {
+    //CAN'T DO:
+    // begin()->begin()
+    // end()-1
+  }
+  return Food::Iterator{circles_with_food_vec_.begin()->begin(),
+                        circles_with_food_vec_.begin(),
+                        circles_with_food_vec_.end() - 1};
 }
 
 Food::Iterator Food::end() const
 {
-  Food::Iterator it{circles_with_food_vec_.back().end(), *this};
-  return it;
+  if(circles_with_food_vec_.empty())
+  {
+    //CAN'T DO:
+    // back()->end()
+    // end()-1
+  }
+  return Food::Iterator{circles_with_food_vec_.back().end(),
+                        circles_with_food_vec_.end() - 1,
+                        circles_with_food_vec_.end() - 1};
 }
 
 // std::vector<FoodParticle>::const_iterator Food::begin() const
