@@ -9,10 +9,7 @@
 #include <cassert>
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
-    // In Food::Iterator::begin()/end() CAN'T DO (if empty vector):
-    // begin()->begin()
-    // end()-1
-    // back().end()
+
 namespace kape {
 
 // implementation of class Obstacles-----------------------------------
@@ -314,10 +311,9 @@ Food::Iterator& Food::Iterator::operator++() // prefix ++
 {
   ++food_particle_it_;
 
-  //if we're at the end of the current circle with food
-  if (food_particle_it_ == circle_with_food_it_->end()) { 
-
-    //if we're NOT the end of the last circle with food
+  // if we're at the end of the current circle with food
+  if (food_particle_it_ == circle_with_food_it_->end()) {
+    // if we're NOT the end of the last circle with food
     if (circle_with_food_it_ != circle_with_food_back_it_) {
       food_particle_it_ = (++circle_with_food_it_)->begin();
     }
@@ -342,12 +338,12 @@ bool operator!=(Food::Iterator const& lhs, Food::Iterator const& rhs)
 
 Food::Iterator Food::begin() const
 {
-  if(circles_with_food_vec_.empty())
-  {
-    //CAN'T DO:
-    // begin()->begin()
-    // end()-1
+  if (circles_with_food_vec_.empty()) {
+    return Food::Iterator{std::vector<FoodParticle>::iterator{nullptr},
+                          circles_with_food_vec_.end(),
+                          circles_with_food_vec_.end()};
   }
+
   return Food::Iterator{circles_with_food_vec_.begin()->begin(),
                         circles_with_food_vec_.begin(),
                         circles_with_food_vec_.end() - 1};
@@ -355,12 +351,12 @@ Food::Iterator Food::begin() const
 
 Food::Iterator Food::end() const
 {
-  if(circles_with_food_vec_.empty())
-  {
-    //CAN'T DO:
-    // back()->end()
-    // end()-1
+  if (circles_with_food_vec_.empty()) {
+    return Food::Iterator{std::vector<FoodParticle>::iterator{nullptr},
+                          circles_with_food_vec_.end(),
+                          circles_with_food_vec_.end()};
   }
+
   return Food::Iterator{circles_with_food_vec_.back().end(),
                         circles_with_food_vec_.end() - 1,
                         circles_with_food_vec_.end() - 1};
