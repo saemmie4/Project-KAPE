@@ -21,7 +21,7 @@ int main()
   kape::Obstacles obs{};
   kape::Food food{};
 
-  ants.addAntsAroundCircle(anthill.getCircle(), 10);
+  ants.addAntsAroundCircle(anthill.getCircle(), 10000);
 
   //map walls
   obs.addObstacle({{-2, +1}, 4, 0.02});

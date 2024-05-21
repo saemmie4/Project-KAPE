@@ -2,9 +2,7 @@
 #define GEOMETRY_HPP
 
 // TODO:
-// operator-=
-// operator*=
-// operator/=
+
 
 namespace kape {
 
