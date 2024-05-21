@@ -17,11 +17,17 @@ class Obstacles
   std::vector<Rectangle> obstacles_vec_;
 
  public:
+  inline static std::string const DEFAULT_FILEPATH_{
+      "./assets/obstacles/obstacles.dat"};
+
   explicit Obstacles();
   void addObstacle(Vector2d const& top_left_corner, double width,
                    double height);
   void addObstacle(Rectangle const& obstacle);
   bool anyObstaclesInCircle(Circle const& circle) const;
+
+  bool loadFromFile(std::string const& filepath = DEFAULT_FILEPATH_);
+  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_);
 
   std::vector<Rectangle>::const_iterator begin() const;
   std::vector<Rectangle>::const_iterator end() const;

@@ -2,11 +2,13 @@
 #include "geometry.hpp"
 #include <algorithm> //for find_if and remove_if any_of
 #include <cmath>
+#include <fstream>
 #include <numeric>   //for accumulate
 #include <stdexcept> //invalid_argument
 #include <vector>
 
 #include <cassert>
+#include <iostream>
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
 
@@ -42,6 +44,69 @@ std::vector<Rectangle>::const_iterator Obstacles::begin() const
 std::vector<Rectangle>::const_iterator Obstacles::end() const
 {
   return obstacles_vec_.cend();
+}
+
+bool Obstacles::loadFromFile(std::string const& filepath)
+{
+  std::ifstream file_in{filepath, std::ios::in};
+
+  // failed to open the file
+  if (!file_in.is_open()) {
+    return false;
+  }
+
+  std::size_t num_obstacles;
+  file_in >> num_obstacles;
+
+  // badly formatted file
+  if (file_in.eof()) {
+    return false;
+  }
+
+  obstacles_vec_.reserve(num_obstacles);
+  std::generate_n(
+      std::back_inserter(obstacles_vec_), num_obstacles, [&file_in]() {
+        double top_left_corner_x;
+        double top_left_corner_y;
+        double width;
+        double height;
+
+        file_in >> top_left_corner_x >> top_left_corner_y >> width >> height;
+        return Rectangle{Vector2d{top_left_corner_x, top_left_corner_y}, width,
+                         height};
+      });
+
+  std::string end_check;
+  file_in >> end_check;
+  // reached the eof too early->the read failed
+  if (end_check != "END") {
+    obstacles_vec_.clear();
+    return false;
+  }
+
+  return true;
+}
+bool Obstacles::saveToFile(std::string const& filepath)
+{
+  std::ofstream file_out{filepath, std::ios::out | std::ios::trunc};
+
+  // failed to open the file
+  if (!file_out.is_open()) {
+    return false;
+  }
+
+  file_out << obstacles_vec_.size() << '\n';
+  for (auto const& obs : obstacles_vec_) {
+    file_out << obs.getRectangleTopLeftCorner().x << '\t'
+             << obs.getRectangleTopLeftCorner().y << '\t'
+             << obs.getRectangleWidth() << '\t' << obs.getRectangleHeight()
+             << '\n';
+  }
+
+  file_out << "END\n";
+
+  // no need to call file_out.close() because it's done by its deconstructor
+  return true;
 }
 
 // FoodParticle class Implementation--------------------------
