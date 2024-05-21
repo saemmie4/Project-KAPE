@@ -172,6 +172,10 @@ Circle const& Food::CircleWithFood::getCircle() const
   return circle_;
 }
 
+std::size_t Food::CircleWithFood::getNumberOfFoodParticles () const {
+  return food_vec_.size();
+}
+
 bool Food::CircleWithFood::removeOneFoodParticleInCircle(Circle const& circle)
 {
   auto food_particle_it{
@@ -209,6 +213,14 @@ Food::Food(unsigned int seed)
     , engine_{seed}
 {}
 
+std::size_t Food::getNumberOfFoodParticles() const
+{
+  return std::accumulate(
+      circles_with_food_vec_.begin(), circles_with_food_vec_.end(), 0ul,
+      [](std::size_t sum, CircleWithFood const& circle_with_food) {
+        return sum + circle_with_food.getNumberOfFoodParticles();
+      });
+}
 // void Food::addFoodParticle(Vector2d const& position)
 // {
 //   food_vec_.push_back(FoodParticle{position});
@@ -315,42 +327,42 @@ Food::next(std::vector<FoodParticle>::const_iterator food_it) const
 }
 
 // class Food::iterator implementation-------------------------------------
-Food::iterator::iterator(std::vector<FoodParticle>::const_iterator it,
+Food::Iterator::Iterator(std::vector<FoodParticle>::const_iterator it,
                          Food const& food_container)
     : it_{it}
     , food_container_{food_container}
 {}
 
-Food::iterator& Food::iterator::operator++() // prefix ++
+Food::Iterator& Food::Iterator::operator++() // prefix ++
 {
   it_ = food_container_.next(it_);
   return *this;
 }
 
-FoodParticle const& Food::iterator::operator*() const
+FoodParticle const& Food::Iterator::operator*() const
 {
   return *it_;
 }
 
-bool operator==(Food::iterator const& lhs, Food::iterator const& rhs)
+bool operator==(Food::Iterator const& lhs, Food::Iterator const& rhs)
 {
   return lhs.it_ == rhs.it_;
 }
 
-bool operator!=(Food::iterator const& lhs, Food::iterator const& rhs)
+bool operator!=(Food::Iterator const& lhs, Food::Iterator const& rhs)
 {
   return lhs.it_ != rhs.it_;
 }
 
-Food::iterator Food::begin() const
+Food::Iterator Food::begin() const
 {
-  Food::iterator it{circles_with_food_vec_.front().begin(), *this};
+  Food::Iterator it{circles_with_food_vec_.front().begin(), *this};
   return it;
 }
 
-Food::iterator Food::end() const
+Food::Iterator Food::end() const
 {
-  Food::iterator it{circles_with_food_vec_.back().end(), *this};
+  Food::Iterator it{circles_with_food_vec_.back().end(), *this};
   return it;
 }
 

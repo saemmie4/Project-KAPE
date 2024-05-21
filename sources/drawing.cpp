@@ -1,9 +1,10 @@
 #include "drawing.hpp"
 #include "ants.hpp"
 #include "geometry.hpp"
+#include <algorithm>
+#include <execution> //std::execution::par
 #include <stdexcept> //for std::invalid_argument, std::runtime_error
 // TODO
-
 //  - the implementation of the Window constructor is a bit bad
 //  - find a solution for worldToScreen having to use static_cast
 //  - remove pullAllEvents()
@@ -70,6 +71,49 @@ float CoordinateConverter::worldToScreenRotation(double angle)
 }
 
 // Window implementation---------------------------------------
+std::vector<sf::Vertex>::iterator Window::loadForDrawing(
+    Food const& food,
+    std::vector<sf::Vertex>::iterator points_vector_output_start)
+{
+  unsigned int window_width{window_.getSize().x};
+  unsigned int window_height{window_.getSize().y};
+
+  return std::transform(
+      std::execution::par, food.begin(), food.end(), points_vector_output_start,
+      [window_width, window_height](kape::Food::Iterator food_particle_it) {
+        sf::Vertex food_drawing{coord_conv_.worldToScreen(
+            (*food_particle_it).getPosition(), window_width, window_height)};
+        food_drawing.color = sf::Color::Green;
+        return food_drawing;
+      });
+}
+
+void Window::loadForDrawing(Pheromones const& pheromones,
+                            std::vector<sf::Vertex>& points_vector)
+{
+  sf::Color color{pheromones.getPheromonesType() == Pheromones::Type::TO_ANTHILL
+                      ? sf::Color::Blue
+                      : sf::Color::Red};
+
+  unsigned int window_width{window_.getSize().x};
+  unsigned int window_height{window_.getSize().y};
+
+  for (auto const& pheromone : pheromones) {
+    sf::Vertex pheromone_drawing{coord_conv_.worldToScreen(
+        pheromone.getPosition(), window_width, window_height)};
+    color.a = static_cast<sf::Uint8>((pheromone.getIntensity() / 100. * 255.));
+    pheromone_drawing.color = color;
+
+    points_vector.push_back(pheromone_drawing);
+  }
+}
+
+void Window::drawLoaded(std::vector<sf::Vertex>& points_vector)
+{
+  if (!points_vector.empty()) {
+    window_.draw(points_vector.data(), points_vector.size(), sf::Points);
+  }
+}
 
 Window::Window(unsigned int window_width, unsigned int window_height,
                float meter_to_pixel)
@@ -122,7 +166,7 @@ void Window::clear(sf::Color const& color)
 {
   if (isOpen()) {
     window_.clear(color);
-    points_vector_.clear();
+    // points_vector_.clear();
   }
 }
 
@@ -188,41 +232,9 @@ void Window::draw(Ants const& ants)
   }
 }
 
-void Window::loadForDrawing(Food const& food)
-{
-  unsigned int window_width{window_.getSize().x};
-  unsigned int window_height{window_.getSize().y};
-
-  for (auto const& food_particle : food) {
-    sf::Vertex food_drawing{coord_conv_.worldToScreen(
-        food_particle.getPosition(), window_width, window_height)};
-    food_drawing.color = sf::Color::Green;
-    points_vector_.push_back(food_drawing);
-  }
-}
-
 void Window::draw(Anthill const& anthill)
 {
   draw(Circle{anthill.getCenter(), anthill.getRadius()}, sf::Color::Yellow);
-}
-
-void Window::loadForDrawing(Pheromones const& pheromones)
-{
-  sf::Color color{pheromones.getPheromonesType() == Pheromones::Type::TO_ANTHILL
-                      ? sf::Color::Blue
-                      : sf::Color::Red};
-
-  unsigned int window_width{window_.getSize().x};
-  unsigned int window_height{window_.getSize().y};
-
-  for (auto const& pheromone : pheromones) {
-    sf::Vertex pheromone_drawing{coord_conv_.worldToScreen(
-        pheromone.getPosition(), window_width, window_height)};
-    color.a = static_cast<sf::Uint8>((pheromone.getIntensity() / 100. * 255.));
-    pheromone_drawing.color = color;
-
-    points_vector_.push_back(pheromone_drawing);
-  }
 }
 
 void Window::draw(Obstacles const& obstacles, sf::Color const& color)
@@ -232,11 +244,19 @@ void Window::draw(Obstacles const& obstacles, sf::Color const& color)
   }
 }
 
-void Window::drawLoaded()
+void Window::draw(Food const& food, Pheromones const& pheromone1,
+                  Pheromones const& pheromone2)
 {
-  if (!points_vector_.empty()) {
-    window_.draw(points_vector_.data(), points_vector_.size(), sf::Points);
-  }
+  std::vector<sf::Vertex> points_vector;
+  points_vector.reserve(food.getNumberOfFoodParticles()
+                        + pheromone1.getNumberOfPheromones()
+                        + pheromone2.getNumberOfPheromones());
+
+  loadForDrawing(food, points_vector.begin());
+  loadForDrawing(pheromone1, points_vector);
+  loadForDrawing(pheromone2, points_vector);
+
+  drawLoaded(points_vector);
 }
 
 void Window::display()

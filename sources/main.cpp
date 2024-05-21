@@ -13,7 +13,7 @@
 int main()
 {
   kape::Ants ants{};
-  kape::Window window{700u, 600u};
+  kape::Window window{700u, 600u, 500.f};
 
   kape::Anthill anthill{kape::Vector2d{0.3, 0.}, 0.05};
   kape::Pheromones ph_anthill{kape::Pheromones::Type::TO_ANTHILL};
@@ -21,7 +21,7 @@ int main()
   kape::Obstacles obs{};
   kape::Food food{};
 
-  ants.addAntsAroundCircle(anthill.getCircle(), 50);
+  ants.addAntsAroundCircle(anthill.getCircle(), 4000);
 
   // map walls
   obs.addObstacle(kape::Rectangle{kape::Vector2d{-2, +1}, 4, 0.02});
@@ -44,15 +44,20 @@ int main()
     ph_anthill.updateParticlesEvaporation();
     ph_food.updateParticlesEvaporation();
 
-    auto start{std::chrono::high_resolution_clock::now()};
     window.clear(sf::Color::Black);
 
-    window.loadForDrawing(ph_anthill);
-    window.loadForDrawing(ph_food);
+    auto start{std::chrono::high_resolution_clock::now()};
+    // window.loadForDrawing(ph_anthill);
+    // window.loadForDrawing(ph_food);
 
-    window.loadForDrawing(food);
-    window.drawLoaded();
+    // window.loadForDrawing(food);
+    // window.drawLoaded();
 
+    window.draw(food, ph_anthill, ph_food);
+
+    t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
+                          std::chrono::high_resolution_clock::now() - start)
+                          .count());
     window.draw(ants);
 
     // for (auto const& ant : ants) {
@@ -69,9 +74,6 @@ int main()
     window.display();
 
     window.inputHandling();
-    t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
-                          std::chrono::high_resolution_clock::now() - start)
-                          .count());
   }
 
   std::cout << std::accumulate(t_count.begin(), t_count.end(), 0.)

@@ -42,8 +42,11 @@ class Window
 
   // holds the points of Food and Pheromones to be drawn on the next
   // display() call gets cleared with clear()
-  std::vector<sf::Vertex> points_vector_;
+  // std::vector<sf::Vertex> points_vector_;
 
+  std::vector<sf::Vertex>::iterator loadForDrawing(Food const& food, std::vector<sf::Vertex>::iterator points_vector_output_start);
+  void loadForDrawing(Pheromones const& pheromones, std::vector<sf::Vertex>& points_vector);
+  void drawLoaded(std::vector<sf::Vertex>& points_vector);
  public:
   // may throw std::invalid_argument if meter_to_pixel <= 0
   // may throw std::runtime_error if it fails to open a new window
@@ -59,9 +62,7 @@ class Window
   void draw(Ants const& ants);
   void draw(Anthill const& anthill);
   void draw(Obstacles const& obstacles, sf::Color const& color);
-  void loadForDrawing(Food const& food);
-  void loadForDrawing(Pheromones const& pheromones);
-  void drawLoaded();
+  void draw(Food const& food, Pheromones const& pheromone1, Pheromones const& pheromone2);
   void display();
   void close();
 

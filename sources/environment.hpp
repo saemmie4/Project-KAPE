@@ -78,6 +78,7 @@ class Food
                             Obstacles const& obs,
                             std::default_random_engine& engine);
     Circle const& getCircle() const;
+    std::size_t getNumberOfFoodParticles() const;
     bool removeOneFoodParticleInCircle(Circle const& circle);
     bool isThereFoodLeft() const;
 
@@ -94,6 +95,8 @@ class Food
 
  public:
   explicit Food(unsigned int seed = 11u);
+    std::size_t getNumberOfFoodParticles() const;
+
   // returns:
   //  - true if it generated the food_particles
   //  - false if it didn't generate any particle, i.e. the circle intersects at
@@ -115,7 +118,7 @@ class Food
   std::vector<FoodParticle>::const_iterator
   next(std::vector<FoodParticle>::const_iterator food_it) const;
 
-  class iterator
+  class Iterator
   {
    private:
     std::vector<FoodParticle>::const_iterator it_;
@@ -126,17 +129,17 @@ class Food
     //   Food const& getContainer();
 
    public:
-    explicit iterator(std::vector<FoodParticle>::const_iterator it,
+    explicit Iterator(std::vector<FoodParticle>::const_iterator it,
                       Food const& food_container);
-    iterator& operator++(); // prefix ++
+    Iterator& operator++(); // prefix ++
     FoodParticle const& operator*() const;
 
-    friend bool operator==(iterator const& lhs, iterator const& rhs);
-    friend bool operator!=(iterator const& lhs, iterator const& rhs);
+    friend bool operator==(Iterator const& lhs, Iterator const& rhs);
+    friend bool operator!=(Iterator const& lhs, Iterator const& rhs);
   };
 
-  iterator begin() const;
-  iterator end() const;
+  Iterator begin() const;
+  Iterator end() const;
   // std::vector<FoodParticle>::const_iterator begin() const;
   // std::vector<FoodParticle>::const_iterator end() const;
 };
