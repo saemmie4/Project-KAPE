@@ -1,12 +1,12 @@
 #include "drawing.hpp"
 #include "ants.hpp"
 #include "geometry.hpp"
+#include "logger.hpp"
 #include <algorithm> //for transform
 #include <stdexcept> //for std::invalid_argument, std::runtime_error
 // TODO
 //  - the implementation of the Window constructor is a bit bad
-//  - find a solution for worldToScreen having to use static_cast
-//  - remove pullAllEvents()
+//  - loadAntAnimationFrames uses a for loop which is kinda bad
 
 namespace kape {
 CoordinateConverter::CoordinateConverter(float meter_to_pixels)
@@ -162,6 +162,55 @@ void Window::inputHandling()
   }
 }
 
+// Note: the first frame, if frames_naming_convention is left as is, would be
+// Ant_frame_0.png won't do anything if it fails to load from the path may throw
+// std::invalid argument if "[X]" isn't part of frames_naming_convention
+bool Window::loadAntAnimationFrames(
+    std::string const& animation_frames_filepath,
+    std::size_t number_of_animation_frames,
+    std::string const& frames_naming_convention)
+{
+  std::string const string_to_be_substituted{"[X]"};
+
+  std::size_t subtitute_position =
+      frames_naming_convention.find(string_to_be_substituted);
+
+  if (subtitute_position == frames_naming_convention.npos) {
+    throw std::invalid_argument{
+        "no \"[X]\" found in the string frames_naming_convention"};
+  }
+  std::string frame_name_prefix =
+      frames_naming_convention.substr(0, subtitute_position);
+  std::string frame_name_suffix = frames_naming_convention.substr(
+      subtitute_position + string_to_be_substituted.size(),
+      frames_naming_convention.size()
+          - (subtitute_position + string_to_be_substituted.size()));
+
+  ants_animation_frames_.reserve(number_of_animation_frames);
+
+  try {
+    for (std::size_t current_frame{0};
+         current_frame < number_of_animation_frames; ++current_frame) {
+      ants_animation_frames_.push_back(sf::Texture{});
+      if (!ants_animation_frames_.back().loadFromFile(
+              animation_frames_filepath + frame_name_prefix
+              + std::to_string(current_frame) + frame_name_suffix)) {
+        throw std::runtime_error{"failed to load Ant's frame number "
+                                 + std::to_string(current_frame)};
+      }
+    }
+  } catch (std::runtime_error const& error) {
+    log << "[ERROR]: \tFrom Window::loadAntAnimationFrames(...): failed to "
+           "load the ants textures."
+        << "\n\t\t\tfilepath: " << animation_frames_filepath
+        << "\n\t\t\tnaming convention used: " << frames_naming_convention
+        << "\n\t\t\terror reported: " << error.what() << '\n';
+    ants_animation_frames_.clear();
+    return false;
+  }
+
+  return true;
+}
 void Window::clear(sf::Color const& color)
 {
   if (isOpen()) {
@@ -202,16 +251,34 @@ void Window::draw(Rectangle const& rectangle, sf::Color const& color)
 }
 
 // to be perfected, it's just to see something on the screen right now
+// may throw std::runtime_error if it tries to draw a frame that hasn't been
+// previously loaded
 void Window::draw(Ant const& ant)
 {
   if (!isOpen()) {
     return;
   }
 
-  float length{coord_conv_.metersToPixels(Ant::ANT_LENGTH)};
-  sf::RectangleShape ant_drawing{sf::Vector2f{length / 3.f, length}};
-  ant_drawing.setOrigin(sf::Vector2f(ant_drawing.getSize().x / 2.f,
-                                     ant_drawing.getSize().y / 2.f));
+  std::size_t current_frame{ant.getCurrentFrame()};
+  if (current_frame >= ants_animation_frames_.size()) {
+    throw std::runtime_error{"tried to draw a frame [frame "
+                             + std::to_string(current_frame)
+                             + "] that hasn't been loaded"};
+  }
+
+  sf::Sprite ant_drawing;
+  ant_drawing.setTexture(ants_animation_frames_.at(ant.getCurrentFrame()));
+  ant_drawing.setOrigin(
+      sf::Vector2f{ant_drawing.getTexture()->getSize().x / 2.f,
+                   ant_drawing.getTexture()->getSize().y / 2.f});
+
+  // scaling the ant_drawing to make it the correct size on the screen
+  float ant_drawing_length{coord_conv_.metersToPixels(Ant::ANT_LENGTH)};
+  float ant_drawing_width{ant_drawing_length / 2.f};
+  sf::Vector2f scale_factor{
+      ant_drawing_width / ant_drawing.getTexture()->getSize().x,
+      ant_drawing_length / ant_drawing.getTexture()->getSize().y};
+  ant_drawing.setScale(scale_factor);
 
   ant_drawing.setPosition(coord_conv_.worldToScreen(
       ant.getPosition(), window_.getSize().x, window_.getSize().y));
@@ -219,8 +286,7 @@ void Window::draw(Ant const& ant)
   ant_drawing.setRotation(
       coord_conv_.worldToScreenRotation(ant.getFacingAngle()));
 
-  ant_drawing.setFillColor(
-      (ant.hasFood() ? sf::Color::Green : sf::Color::White));
+  ant_drawing.setColor((ant.hasFood() ? sf::Color::Green : sf::Color::White));
 
   window_.draw(ant_drawing);
 }

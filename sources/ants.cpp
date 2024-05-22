@@ -28,14 +28,23 @@ void Ant::calculateCirclesOfVision(
 }
 
 // may throw std::invalid_argument if velocity is null
-Ant::Ant(Vector2d const& position, Vector2d const& velocity, bool has_food)
+// may throw std::invalid_argument if current_frame isn't in
+//     [0, ANIMATION_TOTAL_NUMBER_OF_FRAMES)
+Ant::Ant(Vector2d const& position, Vector2d const& velocity, int current_frame,
+         bool has_food)
     : position_{position}
     , velocity_{velocity}
     , has_food_{has_food}
     , time_since_last_pheromone_release_{0.}
+    , current_frame_{current_frame}
 {
   if (norm2(velocity) == 0.) {
     throw std::invalid_argument{"the ant's velocity can't be null"};
+  }
+
+  if (current_frame_ < 0 || current_frame_ > ANIMATION_TOTAL_NUMBER_OF_FRAMES) {
+    throw std::invalid_argument{"the current frame must be in [0, "
+                                "ANT::ANIMATION_TOTAL_NUMBER_OF_FRAMES)"};
   }
 }
 
@@ -238,12 +247,21 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   velocity_ = rotate(velocity_, angle_chosen);
 }
 
+int Ant::getCurrentFrame() const
+{
+  return current_frame_;
+}
+void Ant::goToNextFrame()
+{
+  current_frame_ = (current_frame_ + 1) % ANIMATION_TOTAL_NUMBER_OF_FRAMES;
+}
+
 // Ants class implementation---------------------
 // may throw std::invalid_argument if velocity is null
 void Ants::addAnt(Vector2d const& position, Vector2d const& velocity,
-                  bool has_food)
+                  int current_frame, bool has_food)
 {
-  ants_vec_.push_back(Ant{position, velocity, has_food});
+  ants_vec_.push_back(Ant{position, velocity, current_frame, has_food});
 }
 void Ants::addAnt(Ant const& ant)
 {
@@ -253,6 +271,7 @@ void Ants::addAnt(Ant const& ant)
 Ants::Ants(unsigned int seed)
     : ants_vec_{}
     , random_engine_{seed}
+    , time_since_last_frame_change{0.}
 {}
 
 void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
@@ -265,15 +284,19 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
   ants_vec_.reserve(number_of_ants);
   double const delta_angle{2. * PI / static_cast<double>(number_of_ants)};
   int counter{0};
-  std::generate_n(std::back_inserter(ants_vec_), number_of_ants,
-                  [&circle, &counter, delta_angle]() {
-                    Vector2d facing_direction{
-                        rotate(Vector2d{0., 1.}, counter * delta_angle)};
-                    ++counter;
-                    return Ant{circle.getCircleRadius() * facing_direction
-                                   + circle.getCircleCenter(),
-                               Ant::ANT_SPEED * facing_direction};
-                  });
+  std::uniform_int_distribution starting_frame_generator{
+      0, Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES - 1};
+  std::generate_n(
+      std::back_inserter(ants_vec_), number_of_ants,
+      [&circle, &counter, delta_angle, &starting_frame_generator, this]() {
+        Vector2d facing_direction{
+            rotate(Vector2d{0., 1.}, counter * delta_angle)};
+        ++counter;
+        return Ant{circle.getCircleRadius() * facing_direction
+                       + circle.getCircleCenter(),
+                   Ant::ANT_SPEED * facing_direction,
+                   starting_frame_generator(random_engine_)};
+      });
 }
 
 // may throw std::invalid_argument if to_anthill_ph isn't of type
@@ -283,9 +306,19 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
 void Ants::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
                   Anthill& anthill, Obstacles const& obstacles, double delta_t)
 {
+  bool change_frame{false};
+  time_since_last_frame_change += delta_t;
+  if (time_since_last_frame_change >= ANIMATION_TIME_BETWEEN_FRAMES) {
+    time_since_last_frame_change -= ANIMATION_TIME_BETWEEN_FRAMES;
+    change_frame = true;
+  }
+
   for (auto& ant : ants_vec_) {
     ant.update(food, to_anthill_ph, to_food_ph, anthill, obstacles,
                random_engine_, delta_t);
+    if (change_frame) {
+      ant.goToNextFrame();
+    }
   }
 }
 

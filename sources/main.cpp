@@ -13,6 +13,8 @@
 int main()
 {
   kape::Window window{700u, 600u, 500.f};
+  window.loadAntAnimationFrames("./assets/ants/",
+                                kape::Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES);
 
   kape::Anthill anthill{};
   kape::Ants ants{};
@@ -21,7 +23,6 @@ int main()
   kape::Obstacles obs{};
   kape::Food food{};
 
-  
   anthill.loadFromFile();
   ants.loadFromFile(anthill);
   obs.loadFromFile();
@@ -34,7 +35,7 @@ int main()
     ph_anthill.updateParticlesEvaporation();
     ph_food.updateParticlesEvaporation();
 
-    window.clear(sf::Color::Black);
+    window.clear(sf::Color(184, 139, 74));
 
     auto start{std::chrono::high_resolution_clock::now()};
     // window.loadForDrawing(ph_anthill);

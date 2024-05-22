@@ -3,6 +3,8 @@
 #include "ants.hpp"
 #include "geometry.hpp"
 #include <SFML/Graphics.hpp>
+#include <string>
+#include <vector>
 
 // TODO
 //  - find a solution for worldToScreen having to make a static_cast
@@ -39,14 +41,16 @@ class Window
  private:
   sf::RenderWindow window_;
   CoordinateConverter coord_conv_;
+  std::vector<sf::Texture> ants_animation_frames_;
 
   // holds the points of Food and Pheromones to be drawn on the next
   // display() call gets cleared with clear()
   std::vector<sf::Vertex> points_vector_;
 
-void loadForDrawing(Food const& food);
+  void loadForDrawing(Food const& food);
   void loadForDrawing(Pheromones const& pheromones);
   void drawLoaded();
+
  public:
   // may throw std::invalid_argument if meter_to_pixel <= 0
   // may throw std::runtime_error if it fails to open a new window
@@ -54,6 +58,13 @@ void loadForDrawing(Food const& food);
                   float meter_to_pixel = 1000.f);
   bool isOpen() const;
   void inputHandling();
+  //Note: the first frame, if frames_naming_convention is left as is, would be Ant_frame_0.png
+  //won't do anything if it fails to load from the path
+  //may throw std::invalid argument if "[X]" isn't part of frames_naming_convention
+  bool loadAntAnimationFrames(
+      std::string const& animation_frames_filepath,
+      std::size_t number_of_animation_frames,
+      std::string const& frames_naming_convention = "Ant_frame_[X].png");
   void clear(sf::Color const& color);
   void draw(Circle const& circle, sf::Color const& color,
             std::size_t point_count = 30U);
@@ -62,7 +73,8 @@ void loadForDrawing(Food const& food);
   void draw(Ants const& ants);
   void draw(Anthill const& anthill);
   void draw(Obstacles const& obstacles, sf::Color const& color);
-  void draw(Food const& food, Pheromones const& pheromone1, Pheromones const& pheromone2);
+  void draw(Food const& food, Pheromones const& pheromone1,
+            Pheromones const& pheromone2);
   void display();
   void close();
 
