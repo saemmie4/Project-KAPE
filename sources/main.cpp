@@ -12,38 +12,20 @@
 
 int main()
 {
-  kape::Ants ants{};
   kape::Window window{700u, 600u, 500.f};
 
-  kape::Anthill anthill{kape::Vector2d{0.3, 0.}, 0.05};
+  kape::Anthill anthill{};
+  kape::Ants ants{};
   kape::Pheromones ph_anthill{kape::Pheromones::Type::TO_ANTHILL};
   kape::Pheromones ph_food{kape::Pheromones::Type::TO_FOOD};
   kape::Obstacles obs{};
   kape::Food food{};
 
-  ants.addAntsAroundCircle(anthill.getCircle(), 4000);
-  if (!obs.loadFromFile()) {
-    std::cout << "Error loading from the default file path of obstacles: "
-              << kape::Obstacles::DEFAULT_FILEPATH_ << "\n";
-  }
-
-  // // map walls
-  // obs.addObstacle(kape::Rectangle{kape::Vector2d{-2, +1}, 4, 0.02});
-  // obs.addObstacle(kape::Rectangle{kape::Vector2d{-2, +1}, 0.02, 2});
-  // obs.addObstacle(kape::Rectangle{kape::Vector2d{+2, +1}, 0.02, 2});
-  // obs.addObstacle(kape::Rectangle{kape::Vector2d{-2, -1}, 4, 0.02});
-
-  // // obstacles
-  // obs.addObstacle(kape::Rectangle{kape::Vector2d{-0.5, -0.5}, 0.5, 0.2});
-
-  food.generateFoodInCircle(kape::Circle{kape::Vector2d{0., 0.5}, 0.1}, 500,
-                            obs);
-  food.generateFoodInCircle(kape::Circle{kape::Vector2d{-1.2, 0.3}, 0.1}, 500,
-                            obs);
-  food.generateFoodInCircle(kape::Circle{kape::Vector2d{1.3, -0.4}, 0.1}, 500,
-                            obs);
-  food.generateFoodInCircle(kape::Circle{kape::Vector2d{-0.5, -0.85}, 0.1}, 500,
-                            obs);
+  
+  anthill.loadFromFile();
+  ants.addAntsAroundCircle(anthill.getCircle(), 50);
+  obs.loadFromFile();
+  food.loadFromFile(obs);
 
   std::vector<long long int> t_count;
 
