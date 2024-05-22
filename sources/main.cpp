@@ -23,7 +23,7 @@ int main()
 
   
   anthill.loadFromFile();
-  ants.addAntsAroundCircle(anthill.getCircle(), 50);
+  ants.loadFromFile(anthill);
   obs.loadFromFile();
   food.loadFromFile(obs);
 

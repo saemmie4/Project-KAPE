@@ -70,9 +70,10 @@ class Ants
   void addAnt(Ant const& ant);
 
  public:
+  inline static std::string const DEFAULT_FILEPATH_{
+      "./assets/ants/ants.dat"};
   explicit Ants(unsigned int seed = 44444444u);
-  // may throw std::invalid_argument if number_of_ants<0
-  void addAntsAroundCircle(Circle const& circle, int number_of_ants);
+  void addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants);
   // may throw std::invalid_argument if to_anthill_ph isn't of type
   // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
   // Pheromones::Type::TO_FOOD
@@ -80,6 +81,11 @@ class Ants
   void update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
               Anthill& anthill, Obstacles const& obstacles,
               double delta_t = 0.01);
+
+
+  bool loadFromFile(Anthill const& anthill, std::string const& filepath = DEFAULT_FILEPATH_);
+  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_);
+
 
   std::vector<Ant>::const_iterator begin() const;
   std::vector<Ant>::const_iterator end() const;

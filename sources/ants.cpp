@@ -1,11 +1,12 @@
 #include "ants.hpp"
 #include "environment.hpp"
+#include "logger.hpp"
 #include <algorithm> //for generate_n
 #include <array>     //for circles of vision of the ant
 #include <cmath>
+#include <fstream>   //for ofstream and ifstream
 #include <random>    //for random turning
 #include <stdexcept> //invalid_argument
-
 namespace kape {
 
 // TODO:
@@ -232,7 +233,7 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       circles_of_vision,
       pheromone_to_follow)}; // add random_engine as a third parameter if using
                              // the second method for calculating the angle
-   angle_chosen += calculateRandomTurning(random_engine);
+  angle_chosen += calculateRandomTurning(random_engine);
 
   velocity_ = rotate(velocity_, angle_chosen);
 }
@@ -254,20 +255,15 @@ Ants::Ants(unsigned int seed)
     , random_engine_{seed}
 {}
 
-// may throw std::invalid_argument if number_of_ants<0
-void Ants::addAntsAroundCircle(Circle const& circle, int number_of_ants)
+void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
 {
-  if (number_of_ants < 0) {
-    throw std::invalid_argument{"can't add a negative number of ants"};
-  }
-
   // nothing to do
   if (number_of_ants == 0) {
     return;
   }
 
-  ants_vec_.reserve(static_cast<std::size_t>(number_of_ants));
-  double const delta_angle{2. * PI / number_of_ants};
+  ants_vec_.reserve(number_of_ants);
+  double const delta_angle{2. * PI / static_cast<double>(number_of_ants)};
   int counter{0};
   std::generate_n(std::back_inserter(ants_vec_), number_of_ants,
                   [&circle, &counter, delta_angle]() {
@@ -291,6 +287,56 @@ void Ants::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     ant.update(food, to_anthill_ph, to_food_ph, anthill, obstacles,
                random_engine_, delta_t);
   }
+}
+
+bool Ants::loadFromFile(Anthill const& anthill, std::string const& filepath)
+{
+  std::ifstream file_in{filepath, std::ios::in};
+
+  // failed to open the file
+  if (!file_in.is_open()) {
+    kape::log << "[ERROR]:\tfrom Ants::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
+    return false;
+  }
+
+  std::size_t number_of_ants;
+  file_in >> number_of_ants;
+
+  addAntsAroundCircle(anthill.getCircle(), number_of_ants);
+
+  std::string end_check;
+  file_in >> end_check;
+  // reached the eof too early or too late->the read failed
+  if (end_check != "END") {
+    ants_vec_.clear();
+    kape::log << "[ERROR]:\tfrom Ants::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tTried to load from \""
+              << filepath << "\" but it was badly formatted\n";
+    return false;
+  }
+  return true;
+}
+
+bool Ants::saveToFile(std::string const& filepath)
+{
+  std::ofstream file_out{filepath, std::ios::out | std::ios::trunc};
+
+  // failed to open the file
+  if (!file_out.is_open()) {
+    kape::log << "[ERROR]:\tfrom Ants::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
+    return false;
+  }
+
+  file_out << ants_vec_.size() << '\n';
+
+  file_out << "END\n";
+
+  // no need to call file_out.close() because it's done by its deconstructor
+  return true;
 }
 
 std::vector<Ant>::const_iterator Ants::begin() const

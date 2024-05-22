@@ -7,10 +7,8 @@
 
 #include <iterator>
 // TODO:
-//  - Add Obstacles class
-//  - Food class
 //  - check if adding things to a vector can cause exceptions
-
+//  - Anthill::loadFromFile() should check if it intersects any obstacles
 namespace kape {
 class Obstacles
 {
