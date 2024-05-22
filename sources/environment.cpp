@@ -1,5 +1,6 @@
 #include "environment.hpp"
 #include "geometry.hpp"
+#include "logger.hpp"
 #include <algorithm> //for find_if and remove_if any_of
 #include <cmath>
 #include <fstream>
@@ -8,7 +9,6 @@
 #include <vector>
 
 #include <cassert>
-#include <iostream>
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
 
@@ -52,6 +52,9 @@ bool Obstacles::loadFromFile(std::string const& filepath)
 
   // failed to open the file
   if (!file_in.is_open()) {
+    kape::log << "[ERROR]:\tfrom Obstacles::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
     return false;
   }
 
@@ -60,26 +63,39 @@ bool Obstacles::loadFromFile(std::string const& filepath)
 
   // badly formatted file
   if (file_in.eof()) {
+    kape::log << "[ERROR]:\tfrom Obstacles::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tTried to load from \""
+              << filepath << "\" but it was badly formatted\n";
     return false;
   }
 
   obstacles_vec_.reserve(num_obstacles);
-  std::generate_n(
-      std::back_inserter(obstacles_vec_), num_obstacles, [&file_in]() {
-        double top_left_corner_x;
-        double top_left_corner_y;
-        double width;
-        double height;
+  try {
+    std::generate_n(
+        std::back_inserter(obstacles_vec_), num_obstacles, [&file_in]() {
+          double top_left_corner_x;
+          double top_left_corner_y;
+          double width;
+          double height;
 
-        file_in >> top_left_corner_x >> top_left_corner_y >> width >> height;
-        return Rectangle{Vector2d{top_left_corner_x, top_left_corner_y}, width,
-                         height};
-      });
+          file_in >> top_left_corner_x >> top_left_corner_y >> width >> height;
+          return Rectangle{Vector2d{top_left_corner_x, top_left_corner_y},
+                           width, height};
+        });
+  } catch (std::invalid_argument const& error) {
+    kape::log << "[ERROR]:\tfrom Obstacles::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tthrown exception std::invalid_argument "
+                 "with message: \n\t\t\t"
+              << error.what() << '\n';
+  }
 
   std::string end_check;
   file_in >> end_check;
   // reached the eof too early->the read failed
   if (end_check != "END") {
+    kape::log << "[ERROR]:\tfrom Obstacles::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tTried to load from \""
+              << filepath << "\" but it was badly formatted\n";
     obstacles_vec_.clear();
     return false;
   }
@@ -92,6 +108,9 @@ bool Obstacles::saveToFile(std::string const& filepath)
 
   // failed to open the file
   if (!file_out.is_open()) {
+    kape::log << "[ERROR]:\tfrom Obstacles::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
     return false;
   }
 
@@ -190,17 +209,12 @@ bool PheromoneParticle::hasEvaporated() const
 // may throw std::invalid_argument if number_of_food_particles < 0 or if the
 // circle intersects with any of the obstacles
 Food::CircleWithFood::CircleWithFood(Circle const& circle,
-                                     int number_of_food_particles,
+                                     std::size_t number_of_food_particles,
                                      Obstacles const& obstacles,
                                      std::default_random_engine& engine)
     : circle_{circle}
     , food_vec_{}
 {
-  if (number_of_food_particles < 0) {
-    throw std::invalid_argument{
-        "can't add a negative number of food particles"};
-  }
-
   // if the circle intersects any obstacles
   if (std::any_of(obstacles.begin(), obstacles.end(),
                   [&circle](Rectangle const& rectangle) {
@@ -303,17 +317,11 @@ std::size_t Food::getNumberOfFoodParticles() const
 //  - false if it didn't generate any particle, i.e. the circle intersects at
 //    least in part one obstacle
 //
-// may throw std::invalid_argument if number_of_particles<0
 // iterators of class Food::Iterator are invalidated
 bool Food::generateFoodInCircle(Circle const& circle,
-                                int number_of_food_particles,
+                                std::size_t number_of_food_particles,
                                 Obstacles const& obstacles)
 {
-  if (number_of_food_particles < 0) {
-    throw std::invalid_argument{
-        "can't add a negative number of food particles"};
-  }
-
   // if the circle intersects any obstacles
   if (std::any_of(obstacles.begin(), obstacles.end(),
                   [&circle](Rectangle const& rectangle) {
@@ -360,6 +368,92 @@ bool Food::removeOneFoodParticleInCircle(Circle const& circle)
   }
   // no particle found in any of the circles
   return false;
+}
+
+bool Food::loadFromFile(Obstacles const& obstacles, std::string const& filepath)
+{
+  std::ifstream file_in{filepath, std::ios::in};
+
+  // failed to open the file
+  if (!file_in.is_open()) {
+    kape::log << "[ERROR]:\tfrom Food::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
+    return false;
+  }
+
+  std::size_t num_circles_with_food;
+  file_in >> num_circles_with_food;
+
+  // badly formatted file
+  if (file_in.eof()) {
+    kape::log << "[ERROR]:\tfrom Food::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tTried to load from \""
+              << filepath << "\" but it was badly formatted\n";
+    return false;
+  }
+
+  circles_with_food_vec_.reserve(num_circles_with_food);
+  try {
+    std::generate_n(
+        std::back_inserter(circles_with_food_vec_), num_circles_with_food,
+        [&file_in, &obstacles, this]() {
+          double circle_center_x;
+          double circle_center_y;
+          double circle_radius;
+          std::size_t number_of_particles;
+
+          file_in >> circle_center_x >> circle_center_y >> circle_radius
+              >> number_of_particles;
+          return CircleWithFood{
+              Circle{Vector2d{circle_center_x, circle_center_y}, circle_radius},
+              number_of_particles, obstacles, engine_};
+        });
+  } catch (std::invalid_argument const& error) {
+    kape::log << "[ERROR]:\tfrom Food::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tthrown exception std::invalid_argument "
+                 "with message: \n\t\t\t"
+              << error.what() << '\n';
+  }
+
+  std::string end_check;
+  file_in >> end_check;
+  // reached the eof too early->the read failed
+  if (end_check != "END") {
+    kape::log << "[ERROR]:\tfrom Food::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tTried to load from \""
+              << filepath << "\" but it was badly formatted\n";
+    circles_with_food_vec_.clear();
+    return false;
+  }
+
+  return true;
+}
+
+bool Food::saveToFile(std::string const& filepath)
+{
+  std::ofstream file_out{filepath, std::ios::out | std::ios::trunc};
+
+  // failed to open the file
+  if (!file_out.is_open()) {
+    kape::log << "[ERROR]:\tfrom Food::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
+    return false;
+  }
+
+  file_out << circles_with_food_vec_.size() << '\n';
+  for (auto const& circle_with_food : circles_with_food_vec_) {
+    file_out << circle_with_food.getCircle().getCircleCenter().x << '\t'
+             << circle_with_food.getCircle().getCircleCenter().y << '\t'
+             << circle_with_food.getCircle().getCircleRadius() << '\t'
+             << circle_with_food.getNumberOfFoodParticles() << '\n';
+  }
+
+  file_out << "END\n";
+
+  // no need to call file_out.close() because it's done by its deconstructor
+  return true;
 }
 
 // class Food::iterator implementation-------------------------------------
@@ -551,6 +645,70 @@ void Anthill::addFood(int amount)
   }
 
   food_counter_ += amount;
+}
+
+bool Anthill::loadFromFile(std::string const& filepath)
+{
+  Circle initial_circle{circle_};
+  int initial_food_counter{food_counter_};
+
+  std::ifstream file_in{filepath, std::ios::in};
+
+  // failed to open the file
+  if (!file_in.is_open()) {
+    kape::log << "[ERROR]:\tfrom Anthill::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
+    return false;
+  }
+
+  double circle_center_x;
+  double circle_center_y;
+  double circle_radius;
+  int food_counter;
+
+  file_in >> circle_center_x >> circle_center_y >> circle_radius
+      >> food_counter;
+
+  circle_.setCircleCenter(Vector2d{circle_center_x, circle_center_y});
+  circle_.setCircleRadius(circle_radius);
+  food_counter_ = food_counter;
+
+  std::string end_check;
+  file_in >> end_check;
+
+  // reached the eof too early or too late->the read failed
+  if (end_check != "END") {
+    circle_       = initial_circle;
+    food_counter_ = initial_food_counter;
+    kape::log << "[ERROR]:\tfrom Anthill::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tTried to load from \""
+              << filepath << "\" but it was badly formatted\n";
+    return false;
+  }
+  return true;
+}
+
+bool Anthill::saveToFile(std::string const& filepath)
+{
+  std::ofstream file_out{filepath, std::ios::out | std::ios::trunc};
+
+  // failed to open the file
+  if (!file_out.is_open()) {
+    kape::log << "[ERROR]:\tfrom Anthill::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
+    return false;
+  }
+
+  file_out << circle_.getCircleCenter().x << '\t' << circle_.getCircleCenter().y
+           << '\t' << circle_.getCircleRadius() << '\t' << food_counter_
+           << '\n';
+
+  file_out << "END\n";
+
+  // no need to call file_out.close() because it's done by its deconstructor
+  return true;
 }
 
 } // namespace kape

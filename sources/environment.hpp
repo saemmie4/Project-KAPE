@@ -78,9 +78,10 @@ class Food
     std::vector<FoodParticle> food_vec_;
 
    public:
-    // may throw std::invalid_argument if number_of_food_particles < 0 or if
-    // the circle intersects with any of the obstacles
-    explicit CircleWithFood(Circle const& circle, int number_of_food_particles,
+    // may throw std::invalid_argument if the circle intersects with any of the
+    // obstacles
+    explicit CircleWithFood(Circle const& circle,
+                            std::size_t number_of_food_particles,
                             Obstacles const& obs,
                             std::default_random_engine& engine);
     Circle const& getCircle() const;
@@ -100,6 +101,7 @@ class Food
   // void addFoodParticle(FoodParticle const& food_particle);
 
  public:
+  inline static std::string const DEFAULT_FILEPATH_{"./assets/food/food.dat"};
   explicit Food(unsigned int seed = 11u);
   std::size_t getNumberOfFoodParticles() const;
 
@@ -108,10 +110,10 @@ class Food
   //  - false if it didn't generate any particle, i.e. the circle intersects at
   //    least in part one obstacle
   //
-  // may throw std::invalid_argument if number_of_particles<0
   // iterators of class Food::Iterator are invalidated
   // (in particular, an iterator that was == end() may now be != end())
-  bool generateFoodInCircle(Circle const& circle, int number_of_food_particles,
+  bool generateFoodInCircle(Circle const& circle,
+                            std::size_t number_of_food_particles,
                             Obstacles const& obstacles);
   bool isThereFoodLeft() const;
   // returns true if there was food in the circle (therefore if has also been
@@ -119,6 +121,10 @@ class Food
   // nothing has been removed)
   // iterators of class Food::Iterator are invalidated if true
   bool removeOneFoodParticleInCircle(Circle const& circle);
+
+  bool loadFromFile(Obstacles const& obstacles,
+                    std::string const& filepath = DEFAULT_FILEPATH_);
+  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_);
 
   class Iterator
   {
@@ -186,8 +192,12 @@ class Anthill
   int food_counter_;
 
  public:
+  inline static std::string const DEFAULT_FILEPATH_{
+      "./assets/anthill/anthill.dat"};
+
   // may throw std::invalid_argument if radius<=0 or food_counter < 0
-  explicit Anthill(Vector2d center, double radius, int food_counter = 0);
+  explicit Anthill(Vector2d center = Vector2d{0., 0.}, double radius = 1.,
+                   int food_counter = 0);
   explicit Anthill(Circle const& circle, int food_counter = 0);
   Circle const& getCircle() const;
   Vector2d const& getCenter() const;
@@ -196,6 +206,10 @@ class Anthill
   bool isInside(Vector2d const& position) const;
   // may throw std::invalid_argument if amount < 0
   void addFood(int amount = 1);
+
+  // if the function fails it leaves anthill as it was before the call
+  bool loadFromFile(std::string const& filepath = DEFAULT_FILEPATH_);
+  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_);
 };
 
 } // namespace kape

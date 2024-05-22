@@ -68,6 +68,7 @@ class Rectangle
   double height_;
 
  public:
+  // may throw std::invalid_argument if width or height <= 0
   explicit Rectangle(Vector2d const& top_left_corner, double width, double height);
   Vector2d const& getRectangleTopLeftCorner() const;
   double getRectangleWidth() const;

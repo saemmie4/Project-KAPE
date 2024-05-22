@@ -24,7 +24,7 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined -fno-o
 #   le dipendenze vengono identificate automaticamente
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
-add_executable(project-kape main.cpp geometry.cpp environment.cpp ants.cpp  drawing.cpp )
+add_executable(project-kape main.cpp geometry.cpp environment.cpp ants.cpp  drawing.cpp logger.cpp)
 target_link_libraries(project-kape PRIVATE sfml-graphics)
 
 # se il testing e' abilitato...
@@ -32,7 +32,7 @@ target_link_libraries(project-kape PRIVATE sfml-graphics)
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile all.t
-  add_executable(all.t geometry.t.cpp geometry.cpp)
+  add_executable(all.t geometry.t.cpp geometry.cpp logger.cpp)
   # aggiungi l'eseguibile all.t alla lista dei test
   add_test(NAME all.t COMMAND all.t)
 

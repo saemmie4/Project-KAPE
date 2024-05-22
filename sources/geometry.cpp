@@ -143,6 +143,7 @@ bool Circle::isInside(Vector2d const& position) const
 
 // Rectangle Implementation-----------------------------------
 
+  // may throw std::invalid_argument if width or height <= 0
 Rectangle::Rectangle(Vector2d const& top_left_corner, double width,
                      double height)
     : top_left_corner_{top_left_corner}
