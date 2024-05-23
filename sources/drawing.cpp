@@ -259,7 +259,7 @@ void Window::draw(Ant const& ant)
     return;
   }
 
-  std::size_t current_frame{ant.getCurrentFrame()};
+  std::size_t current_frame{static_cast<std::size_t>(ant.getCurrentFrame())};
   if (current_frame >= ants_animation_frames_.size()) {
     throw std::runtime_error{"tried to draw a frame [frame "
                              + std::to_string(current_frame)
@@ -267,17 +267,19 @@ void Window::draw(Ant const& ant)
   }
 
   sf::Sprite ant_drawing;
-  ant_drawing.setTexture(ants_animation_frames_.at(ant.getCurrentFrame()));
+  ant_drawing.setTexture(ants_animation_frames_.at(current_frame));
+  float texture_width{
+      static_cast<float>(ant_drawing.getTexture()->getSize().x)};
+  float texture_height{
+      static_cast<float>(ant_drawing.getTexture()->getSize().y)};
   ant_drawing.setOrigin(
-      sf::Vector2f{ant_drawing.getTexture()->getSize().x / 2.f,
-                   ant_drawing.getTexture()->getSize().y / 2.f});
+      sf::Vector2f{texture_width / 2.f, texture_height / 2.f});
 
   // scaling the ant_drawing to make it the correct size on the screen
   float ant_drawing_length{coord_conv_.metersToPixels(Ant::ANT_LENGTH)};
   float ant_drawing_width{ant_drawing_length / 2.f};
-  sf::Vector2f scale_factor{
-      ant_drawing_width / ant_drawing.getTexture()->getSize().x,
-      ant_drawing_length / ant_drawing.getTexture()->getSize().y};
+  sf::Vector2f scale_factor{ant_drawing_width / texture_width,
+                            ant_drawing_length / texture_height};
   ant_drawing.setScale(scale_factor);
 
   ant_drawing.setPosition(coord_conv_.worldToScreen(
@@ -286,7 +288,8 @@ void Window::draw(Ant const& ant)
   ant_drawing.setRotation(
       coord_conv_.worldToScreenRotation(ant.getFacingAngle()));
 
-  // ant_drawing.setColor((ant.hasFood() ? sf::Color::Green : sf::Color::White));
+  // ant_drawing.setColor((ant.hasFood() ? sf::Color::Green :
+  // sf::Color::White));
 
   window_.draw(ant_drawing);
 }

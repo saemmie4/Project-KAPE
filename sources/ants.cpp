@@ -27,19 +27,23 @@ void Ant::calculateCirclesOfVision(
   }
 }
 
-// may throw std::invalid_argument if velocity is null
+// may throw std::invalid_argument if direction is null
 // may throw std::invalid_argument if current_frame isn't in
 //     [0, ANIMATION_TOTAL_NUMBER_OF_FRAMES)
-Ant::Ant(Vector2d const& position, Vector2d const& velocity, int current_frame,
+Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
          bool has_food)
-    : position_{position}
-    , velocity_{velocity}
+    // if norm(direction) == 0. we would be dividing by 0.
+    // before checking if norm(direction)==0
+    : desired_direction_{norm2(direction) == 0. ? direction
+                                                : (direction / norm(direction))}
+    , position_{position}
+    , velocity_{ANT_SPEED * desired_direction_}
     , has_food_{has_food}
     , time_since_last_pheromone_release_{0.}
     , current_frame_{current_frame}
 {
-  if (norm2(velocity) == 0.) {
-    throw std::invalid_argument{"the ant's velocity can't be null"};
+  if (norm2(desired_direction_) == 0.) {
+    throw std::invalid_argument{"the ant's direction can't be null"};
   }
 
   if (current_frame_ < 0 || current_frame_ > ANIMATION_TOTAL_NUMBER_OF_FRAMES) {
@@ -196,6 +200,7 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     time_to_release_pheromone = true;
   }
 
+
   position_ += delta_t * velocity_;
 
   //[0]: left [1]: center [2]: right
@@ -257,11 +262,11 @@ void Ant::goToNextFrame()
 }
 
 // Ants class implementation---------------------
-// may throw std::invalid_argument if velocity is null
-void Ants::addAnt(Vector2d const& position, Vector2d const& velocity,
+// may throw std::invalid_argument if direction is null
+void Ants::addAnt(Vector2d const& position, Vector2d const& direction,
                   int current_frame, bool has_food)
 {
-  ants_vec_.push_back(Ant{position, velocity, current_frame, has_food});
+  ants_vec_.push_back(Ant{position, direction, current_frame, has_food});
 }
 void Ants::addAnt(Ant const& ant)
 {
@@ -292,10 +297,9 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
         Vector2d facing_direction{
             rotate(Vector2d{0., 1.}, counter * delta_angle)};
         ++counter;
-        return Ant{circle.getCircleRadius() * facing_direction
-                       + circle.getCircleCenter(),
-                   Ant::ANT_SPEED * facing_direction,
-                   starting_frame_generator(random_engine_)};
+        return Ant{circle.getCircleCenter()
+                       + circle.getCircleRadius() * facing_direction,
+                   facing_direction, starting_frame_generator(random_engine_)};
       });
 }
 
