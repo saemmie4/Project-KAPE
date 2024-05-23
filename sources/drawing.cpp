@@ -286,7 +286,7 @@ void Window::draw(Ant const& ant)
   ant_drawing.setRotation(
       coord_conv_.worldToScreenRotation(ant.getFacingAngle()));
 
-  ant_drawing.setColor((ant.hasFood() ? sf::Color::Green : sf::Color::White));
+  // ant_drawing.setColor((ant.hasFood() ? sf::Color::Green : sf::Color::White));
 
   window_.draw(ant_drawing);
 }
