@@ -151,6 +151,14 @@ Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
   return 0.;
 }
 
+bool seesTheAnthill(std::array<Circle, 3> const& cov, Anthill const& anthill)
+{
+  return std::any_of(
+      cov.begin(), cov.end(), [&anthill](Circle const& circle_of_vision) {
+        return doShapesIntersect(circle_of_vision, anthill.getCircle());
+      });
+}
+
 // may throw invalid_argument if to_anthill_ph isn't of type
 // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
 // Pheromones::Type::TO_FOOD
@@ -219,6 +227,12 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       has_food_          = false;
       desired_direction_ = -1. * current_direction;
     } else { // outside the anthill
+      if (seesTheAnthill(circles_of_vision,
+                         anthill)) // we see the anthill and we have food
+      {
+        desired_direction_ = (anthill.getCenter() - position_)
+                           / norm(anthill.getCenter() - position_);
+      }
       if (time_to_release_pheromone) {
         to_food_ph.addPheromoneParticle(position_);
       }
@@ -242,7 +256,6 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       circles_of_vision, obstacles, random_engine)};
 
   if (angle_to_avoid_obstacles != 0.) {
-    kape::log << "obstacle!\n";
     desired_direction_ = rotate(desired_direction_, angle_to_avoid_obstacles);
   }
 

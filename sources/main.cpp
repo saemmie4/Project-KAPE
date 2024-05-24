@@ -65,9 +65,10 @@ int main()
     window.display();
 
     window.inputHandling();
-    sf::sleep(sf::seconds(0.1));
   }
-  std::cout<<ph_anthill.getNumberOfPheromones()+ph_food.getNumberOfPheromones()<<'\n';
+  std::cout << ph_anthill.getNumberOfPheromones()
+                   + ph_food.getNumberOfPheromones()
+            << '\n';
 
   std::cout << std::accumulate(t_count.begin(), t_count.end(), 0.)
                    / t_count.size()
