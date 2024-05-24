@@ -112,6 +112,23 @@ double angle(Vector2d const& vec)
   // computes the angle in [-pi, +pi]
   return atan2(vec.y, vec.x);
 }
+
+
+// all vectors are in 2d, so the result will be the z component of vec1 X vec2
+//
+// vec1 = [x1, y1, 0]
+// vec2 = [x2, y2, 0]
+//                  | i  j  k |   [ y1*0-0*y2 ,
+// => vec1 X vec2 = | x1 y1 0 | =   0*x2-x1*0 ,  = [0, 0, x1*y2-y1*x2]
+//                  | x2 y2 0 |     x1*y2-y1*x2]
+double cross_product(Vector2d const& vec1, Vector2d const& vec2)
+{
+  return vec1.x * vec2.y - vec1.y * vec2.x;
+}
+
+
+
+
 // Circle implementation----------------------------------
 
 // may throw std::invalid_argument if radius <= 0

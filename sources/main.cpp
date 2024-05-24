@@ -65,6 +65,8 @@ int main()
     window.display();
 
     window.inputHandling();
+  
+    sf::sleep(sf::seconds(0.1));
   }
   std::cout << ph_anthill.getNumberOfPheromones()
                    + ph_food.getNumberOfPheromones()

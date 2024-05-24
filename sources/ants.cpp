@@ -205,8 +205,7 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   force_multiplier = 1. - force_multiplier;
   //+1 : the rotation will be anticlockwise
   //-1 : the rotation will be clockwise
-  double force_sign{
-      angle(desired_direction_) - angle(current_direction) > 0. ? +1. : -1.};
+  double force_sign{cross_product(current_direction, desired_direction_) > 0. ? +1. : -1.};
   double force{force_sign * force_multiplier * ANT_FORCE_MAX};
   // cosidered the ant's angular velocity to start from 0 rad/s each frame and
   // to be constantly increasing for delta_t sec
