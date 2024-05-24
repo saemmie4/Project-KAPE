@@ -259,7 +259,7 @@ void Window::draw(Ant const& ant)
     return;
   }
 
-  std::size_t current_frame{ant.getCurrentFrame()};
+  std::size_t current_frame{static_cast<std::size_t>(ant.getCurrentFrame())};
   if (current_frame >= ants_animation_frames_.size()) {
     throw std::runtime_error{"tried to draw a frame [frame "
                              + std::to_string(current_frame)
@@ -267,7 +267,7 @@ void Window::draw(Ant const& ant)
   }
 
   sf::Sprite ant_drawing;
-  ant_drawing.setTexture(ants_animation_frames_.at(ant.getCurrentFrame()));
+  ant_drawing.setTexture(ants_animation_frames_.at(static_cast<std::size_t>(ant.getCurrentFrame())));
   ant_drawing.setOrigin(
       sf::Vector2f{ant_drawing.getTexture()->getSize().x / 2.f,
                    ant_drawing.getTexture()->getSize().y / 2.f});
