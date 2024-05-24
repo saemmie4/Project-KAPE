@@ -12,7 +12,7 @@
 
 int main()
 {
-  kape::Window window{700u, 600u, 500.f};
+  kape::Window window{700u, 600u, 1000.f};
   window.loadAntAnimationFrames("./assets/ants/",
                                 kape::Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES);
 
@@ -31,9 +31,9 @@ int main()
   std::vector<long long int> t_count;
 
   while (window.isOpen()) {
-    ants.update(food, ph_anthill, ph_food, anthill, obs);
-    ph_anthill.updateParticlesEvaporation();
-    ph_food.updateParticlesEvaporation();
+    ants.update(food, ph_anthill, ph_food, anthill, obs, 0.01);
+    ph_anthill.updateParticlesEvaporation(0.01);
+    ph_food.updateParticlesEvaporation(0.01);
 
     window.clear(sf::Color(184, 139, 74));
 
@@ -51,13 +51,13 @@ int main()
                           .count());
     window.draw(ants);
 
-    // for (auto const& ant : ants) {
-    //   std::array<kape::Circle, 3> circles_of_vision;
-    //   ant.calculateCirclesOfVision(circles_of_vision);
-    //   window.draw(circles_of_vision[0], sf::Color::Blue);
-    //   window.draw(circles_of_vision[1], sf::Color::Blue);
-    //   window.draw(circles_of_vision[2], sf::Color::Blue);
-    // }
+    for (auto const& ant : ants) {
+      std::array<kape::Circle, 3> circles_of_vision;
+      ant.calculateCirclesOfVision(circles_of_vision);
+      window.draw(circles_of_vision[0], sf::Color::Blue);
+      window.draw(circles_of_vision[1], sf::Color::Blue);
+      window.draw(circles_of_vision[2], sf::Color::Blue);
+    }
     window.draw(anthill);
 
     window.draw(obs, sf::Color::Yellow);
@@ -65,6 +65,7 @@ int main()
     window.display();
 
     window.inputHandling();
+    sf::sleep(sf::seconds(0.1));
   }
   std::cout<<ph_anthill.getNumberOfPheromones()+ph_food.getNumberOfPheromones()<<'\n';
 

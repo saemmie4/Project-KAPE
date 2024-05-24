@@ -292,6 +292,25 @@ void Window::draw(Ant const& ant)
   // sf::Color::White));
 
   window_.draw(ant_drawing);
+
+  std::array<sf::Vertex, 4> direction_lines;
+
+  direction_lines[0] = sf::Vertex(ant_drawing.getPosition(), sf::Color::Green);
+  direction_lines[1] = sf::Vertex(
+      coord_conv_.worldToScreen(
+          ant.getPosition() + 4.* Ant::ANT_LENGTH * ant.getDesiredDirection(),
+          window_.getSize().x, window_.getSize().y),
+      sf::Color::Green);
+
+  direction_lines[2] = sf::Vertex(ant_drawing.getPosition(), sf::Color::Red);
+  direction_lines[3] = sf::Vertex(
+      coord_conv_.worldToScreen(
+          ant.getPosition() + 4.* Ant::ANT_LENGTH * ant.getVelocity() / norm(ant.getVelocity()),
+          window_.getSize().x, window_.getSize().y),
+      sf::Color::Red);
+
+  window_.draw(direction_lines.data(), direction_lines.size(), sf::LinesStrip);
+
 }
 
 void Window::draw(Ants const& ants)

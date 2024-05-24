@@ -100,6 +100,18 @@ Vector2d rotate(Vector2d const& vec, double angle)
                   vec.x * std::sin(angle) + vec.y * std::cos(angle)};
 }
 
+// return the angle of rotation in respect to the +x axis, in the range [-PI, +PI]
+// if vec == {0.,0.} instead of the angle it returns 0.
+double angle(Vector2d const& vec)
+{
+  if(vec.x == 0. && vec.y==0.)
+  {
+    return 0.;
+  }
+
+  // computes the angle in [-pi, +pi]
+  return atan2(vec.y, vec.x);
+}
 // Circle implementation----------------------------------
 
 // may throw std::invalid_argument if radius <= 0

@@ -16,7 +16,7 @@ class Ant
 {
  private:
   // every PERIOD_BETWEEN_PHEROMONE_RELEASE_ the ant releases a pheromone
-  static double constexpr PERIOD_BETWEEN_PHEROMONE_RELEASE_{.1};
+  static double constexpr PERIOD_BETWEEN_PHEROMONE_RELEASE_{.01};
 
   Vector2d desired_direction_;
   Vector2d position_;
@@ -29,8 +29,9 @@ class Ant
  public:
   void calculateCirclesOfVision(std::array<Circle, 3>& circles_of_vision) const;
   inline static double const ANT_LENGTH{0.005}; // 0.5 cm
+  inline static double const ANT_MASS{5.e-6}; // 5 milligrams
   inline static double const ANT_SPEED{0.05};   // 5 cm/s
-  inline static double const ANT_FORCE{0.01}; //0.1 N
+  inline static double const ANT_FORCE_MAX{0.0005}; //0.005 N
 
   inline static double const CIRCLE_OF_VISION_RADIUS{ANT_LENGTH};
   inline static double const CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
@@ -58,6 +59,8 @@ class Ant
                int current_frame, bool has_food = false);
 
   Vector2d const& getPosition() const;
+  Vector2d const& getVelocity() const;
+  Vector2d const& getDesiredDirection() const;
   // if velocity == {0.,0.} instead of the angle it returns 0.
   double getFacingAngle() const;
   bool hasFood() const;

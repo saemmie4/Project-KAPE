@@ -46,6 +46,10 @@ double norm(Vector2d const& vec);
 // rotate the vector by "angle" radians
 Vector2d rotate(Vector2d const& vec, double angle);
 
+// return the angle of rotation in respect to the +x axis, in the range [-PI, +PI]
+// if vec == {0.,0.} instead of the angle it returns 0.
+double angle(Vector2d const& vec);
+
 class Circle
 {
   Vector2d center_;

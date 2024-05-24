@@ -56,15 +56,18 @@ Vector2d const& Ant::getPosition() const
 {
   return position_;
 }
+Vector2d const& Ant::getVelocity() const
+{
+  return velocity_;
+}
+Vector2d const& Ant::getDesiredDirection() const
+{
+  return desired_direction_;
+}
 
 double Ant::getFacingAngle() const
 {
-  if (velocity_.x == 0. && velocity_.y == 0.) {
-    return 0.;
-  }
-
-  // computes the angle in [-pi, +pi]
-  return atan2(velocity_.y, velocity_.x);
+  return angle(velocity_);
 }
 
 bool Ant::hasFood() const
@@ -138,30 +141,6 @@ double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
   return weighted_angle / sum_of_weights;
 }
 
-/*double Ant::calculateAngleFromPheromones(
-    std::array<Circle, 3> const& cov, Pheromones const& ph_to_follow,
-    std::default_random_engine& random_engine) const
-{
-  double const DEFAULT_ANGLE{PI / 500.};
-  std::array<int, 3> weights;
-
-  int sum{0};
-  for (unsigned long int i = 0; i < 3; i++) // ORRIBILE
-  {
-    weights[i] = ph_to_follow.getPheromonesIntensityInCircle(cov[i]) + 10;
-    sum += weights[i];
-  }
-
-  for (unsigned long int i = 0; i < 3; i++) // ORRIBILE
-  {
-    weights[i] += sum/3;
-  }
-
-
-
-  std::discrete_distribution<int> the_chooser{weights.begin(), weights.end()};
-  return DEFAULT_ANGLE * (1 - the_chooser(random_engine));
-}*/
 double
 Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
 {
@@ -200,7 +179,34 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     time_to_release_pheromone = true;
   }
 
-
+  // we  consider the ant as a bar long ANTS::ANT_LENGHT that rotates along its
+  // center; this rotation is considered a consequence from two forces, one at
+  // the top and on at the bottom of the ant, that cooperatively try to rotate
+  // its velocity_ vector to align it to the desired_direction_. To try and not
+  // overshoot the desired_direction the ants acts with a that decreases with
+  // the alignment of the velocity_ and desired_direction_ vector
+  Vector2d current_direction{velocity_ / norm(velocity_)};
+  double force_multiplier{current_direction
+                          * desired_direction_}; // note: dot-product
+  if (force_multiplier < 0.) { // i.e. the vectors are more than PI/2 radians
+                               // apart
+    force_multiplier = 0.;
+  }
+  // decreases from 1 to 0 in [PI/2, 0], is = 1 if they are more than PI/2 apart
+  // note: it's analogus for negative angles
+  force_multiplier = 1. - force_multiplier;
+  //+1 : the rotation will be anticlockwise
+  //-1 : the rotation will be clockwise
+  double force_sign{
+      angle(desired_direction_) - angle(current_direction) > 0. ? +1. : -1.};
+  double force{force_sign * force_multiplier * ANT_FORCE_MAX};
+  // cosidered the ant's angular velocity to start from 0 rad/s each frame and
+  // to be constantly increasing for delta_t sec
+  double delta_theta{6. * force / (ANT_MASS * ANT_LENGTH) * delta_t * delta_t};
+  // we aren't just rotating the current_velocity to be sure its norm =
+  // ANT_SPEED even if there are small errors in floatingnpoint arithmatic
+  current_direction = rotate(current_direction, delta_theta);
+  velocity_         = current_direction * ANT_SPEED;
   position_ += delta_t * velocity_;
 
   //[0]: left [1]: center [2]: right
@@ -210,9 +216,8 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   if (has_food_) {                     // has food
     if (anthill.isInside(position_)) { // inside anthill
       anthill.addFood();
-      has_food_ = false;
-      velocity_ *= -1.;
-      calculateCirclesOfVision(circles_of_vision);
+      has_food_          = false;
+      desired_direction_ = -1. * current_direction;
     } else { // outside the anthill
       if (time_to_release_pheromone) {
         to_food_ph.addPheromoneParticle(position_);
@@ -222,11 +227,11 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     if (time_to_release_pheromone) {
       to_anthill_ph.addPheromoneParticle(position_);
     }
+    // search for food in circles_of_vision
     for (auto const& cov : circles_of_vision) {
       if (food.removeOneFoodParticleInCircle(cov)) {
-        has_food_ = true;
-        velocity_ *= -1.;
-        calculateCirclesOfVision(circles_of_vision);
+        has_food_          = true;
+        desired_direction_ = -1. * current_direction;
         break;
       }
     }
@@ -237,19 +242,20 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       circles_of_vision, obstacles, random_engine)};
 
   if (angle_to_avoid_obstacles != 0.) {
-    velocity_ = rotate(velocity_, angle_to_avoid_obstacles);
-    calculateCirclesOfVision(circles_of_vision);
+    kape::log << "obstacle!\n";
+    desired_direction_ = rotate(desired_direction_, angle_to_avoid_obstacles);
   }
 
-  // follow appropriate pheromone + randomness
-  Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
-  double angle_chosen{calculateAngleFromPheromones(
-      circles_of_vision,
-      pheromone_to_follow)}; // add random_engine as a third parameter if using
-                             // the second method for calculating the angle
-  angle_chosen += calculateRandomTurning(random_engine);
+  // // follow appropriate pheromone + randomness
+  // Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
+  // double angle_chosen{calculateAngleFromPheromones(
+  //     circles_of_vision,
+  //     pheromone_to_follow)}; // add random_engine as a third parameter if
+  //     using
+  //                            // the second method for calculating the angle
+  // angle_chosen += calculateRandomTurning(random_engine);
 
-  velocity_ = rotate(velocity_, angle_chosen);
+  // desired_direction_ = rotate(desired_direction_, angle_chosen);
 }
 
 int Ant::getCurrentFrame() const
