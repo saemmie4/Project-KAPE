@@ -498,7 +498,7 @@ bool operator!=(Food::Iterator const& lhs, Food::Iterator const& rhs)
 Food::Iterator Food::begin() const
 {
   if (circles_with_food_vec_.empty()) {
-    return Food::Iterator{std::vector<FoodParticle>::iterator{nullptr},
+    return Food::Iterator{std::vector<FoodParticle>::iterator{},
                           circles_with_food_vec_.end(),
                           circles_with_food_vec_.end()};
   }
@@ -511,7 +511,7 @@ Food::Iterator Food::begin() const
 Food::Iterator Food::end() const
 {
   if (circles_with_food_vec_.empty()) {
-    return Food::Iterator{std::vector<FoodParticle>::iterator{nullptr},
+    return Food::Iterator{std::vector<FoodParticle>::iterator{},
                           circles_with_food_vec_.end(),
                           circles_with_food_vec_.end()};
   }
