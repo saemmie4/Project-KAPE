@@ -191,7 +191,7 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   // center; this rotation is considered a consequence from two forces, one at
   // the top and on at the bottom of the ant, that cooperatively try to rotate
   // its velocity_ vector to align it to the desired_direction_. To try and not
-  // overshoot the desired_direction the ants acts with a that decreases with
+  // overshoot the desired_direction the ants acts with a force that decreases with
   // the alignment of the velocity_ and desired_direction_ vector
   Vector2d current_direction{velocity_ / norm(velocity_)};
   double force_multiplier{current_direction
