@@ -138,17 +138,16 @@ double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
   if (sum_of_weights == 0) {
     return 0.;
   }
+
   return weighted_angle / sum_of_weights;
 }
 
 double
 Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
 {
-  std::normal_distribution angle_randomizer{0., PI / 50.};
+  std::normal_distribution angle_randomizer{0., PI / 100.};
 
   return angle_randomizer(random_engine);
-
-  return 0.;
 }
 
 bool seesTheAnthill(std::array<Circle, 3> const& cov, Anthill const& anthill)
@@ -191,8 +190,8 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   // center; this rotation is considered a consequence from two forces, one at
   // the top and on at the bottom of the ant, that cooperatively try to rotate
   // its velocity_ vector to align it to the desired_direction_. To try and not
-  // overshoot the desired_direction the ants acts with a force that decreases with
-  // the alignment of the velocity_ and desired_direction_ vector
+  // overshoot the desired_direction the ants acts with a force that decreases
+  // with the alignment of the velocity_ and desired_direction_ vector
   Vector2d current_direction{velocity_ / norm(velocity_)};
   double force_multiplier{current_direction
                           * desired_direction_}; // note: dot-product
@@ -205,7 +204,8 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   force_multiplier = 1. - force_multiplier;
   //+1 : the rotation will be anticlockwise
   //-1 : the rotation will be clockwise
-  double force_sign{cross_product(current_direction, desired_direction_) > 0. ? +1. : -1.};
+  double force_sign{
+      cross_product(current_direction, desired_direction_) > 0. ? +1. : -1.};
   double force{force_sign * force_multiplier * ANT_FORCE_MAX};
   // cosidered the ant's angular velocity to start from 0 rad/s each frame and
   // to be constantly increasing for delta_t sec
@@ -256,18 +256,19 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
 
   if (angle_to_avoid_obstacles != 0.) {
     desired_direction_ = rotate(desired_direction_, angle_to_avoid_obstacles);
+    return;
   }
 
-  // // follow appropriate pheromone + randomness
-  // Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
-  // double angle_chosen{calculateAngleFromPheromones(
-  //     circles_of_vision,
-  //     pheromone_to_follow)}; // add random_engine as a third parameter if
-  //     using
-  //                            // the second method for calculating the angle
-  // angle_chosen += calculateRandomTurning(random_engine);
+  // follow appropriate pheromone + randomness
+  Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
+  double angle_chosen{calculateAngleFromPheromones(
+      circles_of_vision,
+      pheromone_to_follow)}; // add random_engine as a third parameter if
+                             //  using
+                             // the second method for calculating the angle
+  angle_chosen += calculateRandomTurning(random_engine);
 
-  // desired_direction_ = rotate(desired_direction_, angle_chosen);
+  desired_direction_ = rotate(desired_direction_, angle_chosen);
 }
 
 int Ant::getCurrentFrame() const

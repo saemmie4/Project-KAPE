@@ -16,7 +16,7 @@ class Ant
 {
  private:
   // every PERIOD_BETWEEN_PHEROMONE_RELEASE_ the ant releases a pheromone
-  static double constexpr PERIOD_BETWEEN_PHEROMONE_RELEASE_{.01};
+  static double constexpr PERIOD_BETWEEN_PHEROMONE_RELEASE_{.1};
 
   Vector2d desired_direction_;
   Vector2d position_;
