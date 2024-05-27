@@ -12,6 +12,9 @@
 //    private
 
 namespace kape {
+
+double constexpr E = 2.71828182845904523536;
+
 class Ant
 {
  private:

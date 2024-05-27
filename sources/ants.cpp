@@ -112,35 +112,65 @@ double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
                                          Pheromones const& ph_to_follow) const
 {
   double const ANGLE_OF_ROTATION{PI / 6.};
+  double angle{0.};
 
   int left_intensity{ph_to_follow.getPheromonesIntensityInCircle(cov[0])};
   int center_intensity{ph_to_follow.getPheromonesIntensityInCircle(cov[1])};
   int right_intensity{ph_to_follow.getPheromonesIntensityInCircle(cov[2])};
 
+  double left_weight{std::pow(E, -5. / left_intensity)};
+  double right_weight{std::pow(E, -5. / right_intensity)};
+
+  std::default_random_engine eng;
+
+  std::uniform_real_distribution n1(0., 1.);
+  std::uniform_real_distribution n2(0., 1.);
+
+  double left_activated{0.};
+  double right_activated{0.};
+
+  if (n1(eng) < left_weight) {
+    left_activated = 1.;
+  }
+
+  if (n2(eng) < right_weight) {
+    right_activated = 1.;
+  }
+
+  if (left_intensity != 0 && center_intensity != 0 && right_intensity != 0) {
+    angle =
+        0.5 * ANGLE_OF_ROTATION
+        * (left_activated * left_intensity - right_activated * right_intensity)
+        / (left_activated * left_intensity + center_intensity
+           + right_activated * right_intensity);
+  }
+
+  return angle;
+
   // struct angle_result
   // {
-    // double weighted_angle;
-    // int sum_of_weights;
-    // double angle_of_cov;
+  // double weighted_angle;
+  // int sum_of_weights;
+  // double angle_of_cov;
   // };
 
   // angle_result starting{0., 0, ANGLE_OF_ROTATION};
 
   // auto [weighted_angle, sum_of_weights, useless]{std::accumulate(
-      // cov.begin(), cov.end(), starting,
-      // [&ph_to_follow, ANGLE_OF_ROTATION](angle_result sum,
-                                        //  Circle const& circle_of_vision) {
-        // int cov_weight{
-            // ph_to_follow.getPheromonesIntensityInCircle(circle_of_vision)};
+  // cov.begin(), cov.end(), starting,
+  // [&ph_to_follow, ANGLE_OF_ROTATION](angle_result sum,
+  //  Circle const& circle_of_vision) {
+  // int cov_weight{
+  // ph_to_follow.getPheromonesIntensityInCircle(circle_of_vision)};
 
-        // sum.weighted_angle += sum.angle_of_cov * cov_weight;
-        // sum.sum_of_weights += cov_weight;
-        // sum.angle_of_cov -= ANGLE_OF_ROTATION;
-        // return sum;
-      // })};
+  // sum.weighted_angle += sum.angle_of_cov * cov_weight;
+  // sum.sum_of_weights += cov_weight;
+  // sum.angle_of_cov -= ANGLE_OF_ROTATION;
+  // return sum;
+  // })};
 
   // if (sum_of_weights == 0) {
-    // return 0.;
+  // return 0.;
   // }
 
   // return weighted_angle / sum_of_weights;
