@@ -113,33 +113,37 @@ double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
 {
   double const ANGLE_OF_ROTATION{PI / 6.};
 
-  struct angle_result
-  {
-    double weighted_angle;
-    int sum_of_weights;
-    double angle_of_cov;
-  };
+  int left_intensity{ph_to_follow.getPheromonesIntensityInCircle(cov[0])};
+  int center_intensity{ph_to_follow.getPheromonesIntensityInCircle(cov[1])};
+  int right_intensity{ph_to_follow.getPheromonesIntensityInCircle(cov[2])};
 
-  angle_result starting{0., 0, ANGLE_OF_ROTATION};
+  // struct angle_result
+  // {
+    // double weighted_angle;
+    // int sum_of_weights;
+    // double angle_of_cov;
+  // };
 
-  auto [weighted_angle, sum_of_weights, useless]{std::accumulate(
-      cov.begin(), cov.end(), starting,
-      [&ph_to_follow, ANGLE_OF_ROTATION](angle_result sum,
-                                         Circle const& circle_of_vision) {
-        int cov_weight{
-            ph_to_follow.getPheromonesIntensityInCircle(circle_of_vision)};
+  // angle_result starting{0., 0, ANGLE_OF_ROTATION};
 
-        sum.weighted_angle += sum.angle_of_cov * cov_weight;
-        sum.sum_of_weights += cov_weight;
-        sum.angle_of_cov -= ANGLE_OF_ROTATION;
-        return sum;
-      })};
+  // auto [weighted_angle, sum_of_weights, useless]{std::accumulate(
+      // cov.begin(), cov.end(), starting,
+      // [&ph_to_follow, ANGLE_OF_ROTATION](angle_result sum,
+                                        //  Circle const& circle_of_vision) {
+        // int cov_weight{
+            // ph_to_follow.getPheromonesIntensityInCircle(circle_of_vision)};
 
-  if (sum_of_weights == 0) {
-    return 0.;
-  }
+        // sum.weighted_angle += sum.angle_of_cov * cov_weight;
+        // sum.sum_of_weights += cov_weight;
+        // sum.angle_of_cov -= ANGLE_OF_ROTATION;
+        // return sum;
+      // })};
 
-  return weighted_angle / sum_of_weights;
+  // if (sum_of_weights == 0) {
+    // return 0.;
+  // }
+
+  // return weighted_angle / sum_of_weights;
 }
 
 double
