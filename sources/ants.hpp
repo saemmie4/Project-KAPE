@@ -86,6 +86,7 @@ class Ants
   inline static double const ANIMATION_TIME_BETWEEN_FRAMES{0.1};
 
   explicit Ants(unsigned int seed = 44444444u);
+  size_t getNumberOfAnts();
   void addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants);
   // may throw std::invalid_argument if to_anthill_ph isn't of type
   // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type

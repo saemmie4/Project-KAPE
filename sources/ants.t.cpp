@@ -7,35 +7,37 @@
 TEST_CASE("Testing the Ants class")
 {
   std::default_random_engine eng;
-  kape::Ant a1{kape::Vector2d{3., 2.5}, kape::Vector2d{3., 2.5}, false};
+  kape::Ant a1{kape::Vector2d{0.03, 0.025}, kape::Vector2d{0.03, 0.025}, false};
   std::array<kape::Circle, 3> cov1;
   a1.calculateCirclesOfVision(cov1);
-  kape::Ant a2{kape::Vector2d{0.99, 4.46}, kape::Vector2d{0.99, 4.46}, false};
+  kape::Ant a2{kape::Vector2d{0.0082815, 0.0373046},
+               kape::Vector2d{0.0082815, 0.0373046}, false};
   std::array<kape::Circle, 3> cov2;
   a2.calculateCirclesOfVision(cov2);
-  kape::Ant a3{kape::Vector2d{4.418, -0.495}, kape::Vector2d{4.418, -0.495},
+  kape::Ant a3{kape::Vector2d{0.04418, -0.00495}, kape::Vector2d{0.04418, -0.00495},
                false};
   std::array<kape::Circle, 3> cov3;
   a3.calculateCirclesOfVision(cov3);
-  kape::Ant a4{kape::Vector2d{5., 1.}, kape::Vector2d{5., 1.}, false};
+  kape::Ant a4{kape::Vector2d{0.05, -0.01}, kape::Vector2d{0.05, -0.01}, false};
   std::array<kape::Circle, 3> cov4;
   a4.calculateCirclesOfVision(cov4);
-  kape::Ant a5{kape::Vector2d{-1., 1.}, kape::Vector2d{-1., 1.}, false};
+  kape::Ant a5{kape::Vector2d{-0.01, 0.01}, kape::Vector2d{-0.01, 0.01}, false};
   std::array<kape::Circle, 3> cov5;
   a5.calculateCirclesOfVision(cov5);
-  kape::Ant a6{kape::Vector2d{-3., -2.5}, kape::Vector2d{-3., -2.5}, false};
+  kape::Ant a6{kape::Vector2d{-0.03, -0.025}, kape::Vector2d{-0.03, -0.025}, false};
   std::array<kape::Circle, 3> cov6;
   a6.calculateCirclesOfVision(cov6);
-  kape::Ant a7{kape::Vector2d{-0.99, -4.46}, kape::Vector2d{-0.99, -4.46},
-               false};
+  kape::Ant a7{kape::Vector2d{-0.0082815, -0.0373046},
+               kape::Vector2d{-0.0082815, -0.0373046}, false};
   std::array<kape::Circle, 3> cov7;
   a7.calculateCirclesOfVision(cov7);
+  kape::Ant a8{kape::Vector2d{1., 1.}, kape::Vector2d{3., 2.5}, false};
 
-  kape::Rectangle r1{kape::Vector2d{2., 6.}, 4., 5.};
-  kape::Rectangle r2{kape::Vector2d{5., -1.5}, 5., 4.};
-  kape::Rectangle r3{kape::Vector2d{-5., -1.}, 1., 3.};
-  kape::Rectangle r4{kape::Vector2d{0., -3.}, 2., 3.};
-  kape::Rectangle r5{kape::Vector2d{-2., -6.}, 4., 5.};
+  kape::Rectangle r1{kape::Vector2d{0.02, 0.06}, 0.02, 0.03};
+  kape::Rectangle r2{kape::Vector2d{0.05, -0.015}, 0.05, 0.04};
+  kape::Rectangle r3{kape::Vector2d{-0.05, -0.01}, 0.01 , 0.03};
+  kape::Rectangle r4{kape::Vector2d{0., -0.03}, 0.02, 0.03};
+  kape::Rectangle r5{kape::Vector2d{-0.04, -0.03}, 0.02, 0.03};
 
   kape::Obstacles obs;
   obs.addObstacle(r1);
@@ -44,16 +46,55 @@ TEST_CASE("Testing the Ants class")
   obs.addObstacle(r4);
   obs.addObstacle(r5);
 
+  kape::Circle c1{kape::Vector2d{0., 0.}, 1.};
+  std::size_t n0{0};
+  std::size_t n1{1};
+  std::size_t n2{10};
+  std::size_t n3{100};
+
+  kape::Ants ants{};
+
+  SUBCASE("testing the calculateCirclesOfVision function")
+  {
+    CHECK(cov2[0].getCircleCenter().x == doctest::Approx(0.0027534));
+    CHECK(cov2[0].getCircleRadius() == doctest::Approx(0.005));
+    CHECK(cov2[1].getCircleCenter().y == doctest::Approx(0.044626));
+    CHECK(cov2[2].getCircleCenter().x == doctest::Approx(0.015435));
+    CHECK(cov1[0].getCircleCenter().x == doctest::Approx(0.028723));
+    CHECK(cov1[2].getCircleRadius() == doctest::Approx(0.005));
+    CHECK(cov6[0].getCircleCenter().x == doctest::Approx(-0.028723));
+  }
+
   SUBCASE("testing the calculateAngleToAvoidObstacles function")
   {
     CHECK(a2.calculateAngleToAvoidObstacles(cov2, obs, eng)
           == doctest::Approx(kape::PI / 6.));
+    CHECK(a1.calculateAngleToAvoidObstacles(cov1, obs, eng)
+          == doctest::Approx(5. * kape::PI / 3.));
+    CHECK(a4.calculateAngleToAvoidObstacles(cov4, obs, eng)
+          == doctest::Approx(kape::PI / 3.));
+    CHECK(a7.calculateAngleToAvoidObstacles(cov7, obs, eng)
+          == doctest::Approx(0.));
+    CHECK(a5.calculateAngleToAvoidObstacles(cov5, obs, eng)
+          == doctest::Approx(0.));
+    CHECK(a6.calculateAngleToAvoidObstacles(cov6, obs, eng)
+          == doctest::Approx(kape::PI));
   }
 
   SUBCASE("testing the getFacingAngle function")
   {
-    CHECK(a1.getFacingAngle() == doctest::Approx(0.695));
-    CHECK(a3.getFacingAngle() == doctest::Approx(-0.112));
-    CHECK(a5.getFacingAngle() == doctest::Approx(0.695 + kape::PI));
+    CHECK(a1.getFacingAngle() == doctest::Approx(0.69474));
+    CHECK(a3.getFacingAngle() == doctest::Approx(-0.11158));
+    CHECK(a6.getFacingAngle() == doctest::Approx(0.69474 - kape::PI));
+    CHECK(a8.getFacingAngle() == doctest::Approx(0.69474));
+  }
+
+  SUBCASE("testing the addAntsAroundCircle function")
+  {
+    ants.addAntsAroundCircle(c1, n0);
+    CHECK(ants.getNumberOfAnts() == 0);
+    ants.addAntsAroundCircle(c1, n3);
+    CHECK(ants.getNumberOfAnts() == 100);
+    CHECK((*(++(++(ants.begin())))).getPosition().x == doctest::Approx(-0.125333));
   }
 }

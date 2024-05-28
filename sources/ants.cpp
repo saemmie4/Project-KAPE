@@ -274,6 +274,10 @@ Ants::Ants(unsigned int seed)
     , time_since_last_frame_change{0.}
 {}
 
+std::size_t Ants::getNumberOfAnts() {
+  return ants_vec_.size();
+}
+
 void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
 {
   // nothing to do
