@@ -32,8 +32,11 @@ target_link_libraries(project-kape PRIVATE sfml-graphics)
 if (BUILD_TESTING)
 
   # aggiungi l'eseguibile all.t
-  add_executable(environment_test.t geometry.cpp environment.t.cpp environment.cpp logger.cpp)
+add_executable(geometry_test.t geometry.t.cpp geometry.cpp)
+add_executable(environment_test.t geometry.cpp environment.t.cpp environment.cpp logger.cpp)
+add_executable(ant_test.t ants.t.cpp ants.cpp geometry.cpp environment.cpp logger.cpp)
   # aggiungi l'eseguibile all.t alla lista dei test
+  add_test(NAME geometry_test.t COMMAND geometry_test.t)
   add_test(NAME environment_test.t COMMAND environment_test.t)
-
+  add_test(NAME ant_test.t COMMAND ant_test.t)
 endif()
