@@ -19,6 +19,7 @@ class Obstacles
       "./assets/obstacles/obstacles.dat"};
 
   explicit Obstacles();
+  std::size_t getNumberOfObstacles() const;
   void addObstacle(Vector2d const& top_left_corner, double width,
                    double height);
   void addObstacle(Rectangle const& obstacle);
@@ -159,10 +160,11 @@ class Pheromones
     TO_ANTHILL
   };
 
- private:
   // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 5
   // intensity levels
   static double constexpr PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
+  
+ private:
 
   std::vector<PheromoneParticle> pheromones_vec_;
   const Type type_;
