@@ -294,16 +294,28 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     return;
   }
 
+  {
+    double wander_stenght = .04;
+    std::uniform_real_distribution angle_dist{0., 2 * PI};
+    Vector2d ex_desired_direction{desired_direction_};
+    desired_direction_ += wander_stenght * rotate(Vector2d{0., 1.}, angle_dist(random_engine));
+    double norm_desired_direction{norm(desired_direction_)};
+    if (norm_desired_direction != 0.) {
+      desired_direction_ /= norm_desired_direction;
+    } else{
+      desired_direction_ = ex_desired_direction;
+    }
+  }
   // follow appropriate pheromone + randomness
-  Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
-  double angle_chosen{calculateAngleFromPheromones(
-      circles_of_vision,
-      pheromone_to_follow)}; // add random_engine as a third parameter if
-                             //  using
-                             // the second method for calculating the angle
-  angle_chosen += calculateRandomTurning(random_engine);
+  // Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
+  // double angle_chosen{calculateAngleFromPheromones(
+  //     circles_of_vision,
+  //     pheromone_to_follow)}; // add random_engine as a third parameter if
+  //                            //  using
+  //                            // the second method for calculating the angle
+  // angle_chosen += calculateRandomTurning(random_engine);
 
-  desired_direction_ = rotate(desired_direction_, angle_chosen);
+  // desired_direction_ = rotate(desired_direction_, angle_chosen);
 }
 
 int Ant::getCurrentFrame() const

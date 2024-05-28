@@ -31,7 +31,7 @@ class Ant
 
  public:
   void calculateCirclesOfVision(std::array<Circle, 3>& circles_of_vision) const;
-  inline static double const ANT_LENGTH{0.5}; // 0.5 cm
+  inline static double const ANT_LENGTH{0.005}; // 0.5 cm
   inline static double const ANT_MASS{5.e-6}; // 5 milligrams
   inline static double const ANT_SPEED{0.05};   // 5 cm/s
   inline static double const ANT_FORCE_MAX{5.e-5}; //0.00005 N
