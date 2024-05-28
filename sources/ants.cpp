@@ -118,13 +118,12 @@ double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
   int center_intensity{ph_to_follow.getPheromonesIntensityInCircle(cov[1])};
   int right_intensity{ph_to_follow.getPheromonesIntensityInCircle(cov[2])};
 
-  double left_weight{std::pow(E, -5. / left_intensity)};
-  double right_weight{std::pow(E, -5. / right_intensity)};
+  double left_weight{std::pow(E, -20. / left_intensity)};
+  double right_weight{std::pow(E, -20. / right_intensity)};
 
   std::default_random_engine eng;
 
   std::uniform_real_distribution n1(0., 1.);
-  std::uniform_real_distribution n2(0., 1.);
 
   double left_activated{0.};
   double right_activated{0.};
@@ -133,15 +132,17 @@ double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
     left_activated = 1.;
   }
 
-  if (n2(eng) < right_weight) {
+  if (n1(eng) < right_weight) {
     right_activated = 1.;
   }
 
-  if (left_intensity != 0 && center_intensity != 0 && right_intensity != 0) {
+  if (left_intensity * left_activated + center_intensity
+          + right_intensity * right_activated
+      != 0) {
     angle =
-        0.5 * ANGLE_OF_ROTATION
+        ANGLE_OF_ROTATION
         * (left_activated * left_intensity - right_activated * right_intensity)
-        / (left_activated * left_intensity + center_intensity
+        / (left_activated * left_intensity + 10 * center_intensity
            + right_activated * right_intensity);
   }
 
@@ -179,7 +180,7 @@ double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
 double
 Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
 {
-  std::normal_distribution angle_randomizer{0., PI / 100.};
+  std::normal_distribution angle_randomizer{0., PI / 80.};
 
   return angle_randomizer(random_engine);
 }
