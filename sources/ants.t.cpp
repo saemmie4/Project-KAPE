@@ -14,8 +14,8 @@ TEST_CASE("Testing the Ants class")
                kape::Vector2d{0.0082815, 0.0373046}, false};
   std::array<kape::Circle, 3> cov2;
   a2.calculateCirclesOfVision(cov2);
-  kape::Ant a3{kape::Vector2d{0.04418, -0.00495}, kape::Vector2d{0.04418, -0.00495},
-               false};
+  kape::Ant a3{kape::Vector2d{0.04418, -0.00495},
+               kape::Vector2d{0.04418, -0.00495}, false};
   std::array<kape::Circle, 3> cov3;
   a3.calculateCirclesOfVision(cov3);
   kape::Ant a4{kape::Vector2d{0.05, -0.01}, kape::Vector2d{0.05, -0.01}, false};
@@ -24,7 +24,8 @@ TEST_CASE("Testing the Ants class")
   kape::Ant a5{kape::Vector2d{-0.01, 0.01}, kape::Vector2d{-0.01, 0.01}, false};
   std::array<kape::Circle, 3> cov5;
   a5.calculateCirclesOfVision(cov5);
-  kape::Ant a6{kape::Vector2d{-0.03, -0.025}, kape::Vector2d{-0.03, -0.025}, false};
+  kape::Ant a6{kape::Vector2d{-0.03, -0.025}, kape::Vector2d{-0.03, -0.025},
+               false};
   std::array<kape::Circle, 3> cov6;
   a6.calculateCirclesOfVision(cov6);
   kape::Ant a7{kape::Vector2d{-0.0082815, -0.0373046},
@@ -35,7 +36,7 @@ TEST_CASE("Testing the Ants class")
 
   kape::Rectangle r1{kape::Vector2d{0.02, 0.06}, 0.02, 0.03};
   kape::Rectangle r2{kape::Vector2d{0.05, -0.015}, 0.05, 0.04};
-  kape::Rectangle r3{kape::Vector2d{-0.05, -0.01}, 0.01 , 0.03};
+  kape::Rectangle r3{kape::Vector2d{-0.05, -0.01}, 0.01, 0.03};
   kape::Rectangle r4{kape::Vector2d{0., -0.03}, 0.02, 0.03};
   kape::Rectangle r5{kape::Vector2d{-0.04, -0.03}, 0.02, 0.03};
 
@@ -47,6 +48,7 @@ TEST_CASE("Testing the Ants class")
   obs.addObstacle(r5);
 
   kape::Circle c1{kape::Vector2d{0., 0.}, 1.};
+  kape::Circle c2{kape::Vector2d{1., 1.}, 1.};
   std::size_t n0{0};
   std::size_t n1{1};
   std::size_t n2{10};
@@ -95,6 +97,11 @@ TEST_CASE("Testing the Ants class")
     CHECK(ants.getNumberOfAnts() == 0);
     ants.addAntsAroundCircle(c1, n3);
     CHECK(ants.getNumberOfAnts() == 100);
-    CHECK((*(++(++(ants.begin())))).getPosition().x == doctest::Approx(-0.125333));
+    CHECK((*(++(++(ants.begin())))).getPosition().x
+          == doctest::Approx(-0.125333));
+    ants.addAntsAroundCircle(c2, n1);
+    CHECK((*(--(ants.end()))).getPosition().y == doctest::Approx(2.0));
+    ants.addAntsAroundCircle(c2, n2);
+    CHECK(ants.getNumberOfAnts() == 111);
   }
 }
