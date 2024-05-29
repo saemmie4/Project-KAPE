@@ -188,25 +188,99 @@ TEST_CASE("Testing Food class")
     }
     CHECK(food.isThereFoodLeft() == false);
   }
+  SUBCASE("Testing const iterators begin && end")
+  {
+    int number_of_food_particles{0};
+    for (auto food_it = food.begin(), food_end = food.end(); food_it != food_end; ++food_it) {
+      ++number_of_food_particles;
+    }
+    CHECK(number_of_food_particles == 50);
+    food.generateFoodInCircle(kape::Circle{kape::Vector2d{100., 43.}, 0.5}, 73,
+                              obstacles);
+    for (auto food_it = food.begin(), food_end = food.end(); food_it != food_end; ++food_it) {
+      ++number_of_food_particles;
+    }
+    CHECK(number_of_food_particles == 173);
+  }
 }
 
 TEST_CASE("Testing Iterator class")
 {
-//   kape::Food food;
-//   kape::Food::Iterator food_it(std::vector<kape::FoodParticle>::const_iterator const& food_particle_it,
-//     std::vector<CircleWithFood>::const_iterator const& circle_with_food_it,
-//     std::vector<kape::Food::CircleWithFood>::const_iterator const& circle_with_food_back_it);
+  kape::Food food;
+  kape::Obstacles obstacles;
+  obstacles.addObstacle(kape::Vector2d{1., 1.5}, 2., 0.5);
+  obstacles.addObstacle(kape::Vector2d{-3, 0}, 1.5, 1);
+  obstacles.addObstacle(kape::Rectangle{kape::Vector2d{-1., 3.}, 0.2, 3.});
+  obstacles.addObstacle(kape::Rectangle{kape::Vector2d{4., 1.}, 1., 4.});
+
   SUBCASE("Testing operator++")
   {
-    // ++kape::Food::Iterator::food_particle_it;
+    int food_particles_counter{0};
+    for (auto food_it = food.begin(), food_end = food.end();
+         food_it != food_end; ++food_it) {
+      ++food_particles_counter;
+    }
+    CHECK(food_particles_counter == 0);
+    food.generateFoodInCircle(kape::Circle{kape::Vector2d{1., -1.}, 1.}, 50,
+                              obstacles);
+    food.generateFoodInCircle(kape::Circle{kape::Vector2d{3, 2.}, 1.4}, 100,
+                              obstacles);
+    food.generateFoodInCircle(kape::Circle{kape::Vector2d{3.5, -3.5}, 0.708},
+                              25, obstacles);
+    for (auto food_it = food.begin(), food_end = food.end();
+         food_it != food_end; ++food_it) {
+      ++food_particles_counter;
+    }
+    CHECK(food_particles_counter == 50);
   }
   SUBCASE("Testing operator*")
-  {}
+  {
+    kape::Circle expected_circle{kape::Vector2d{1., -1.}, 1.};
+    bool is_food_in_circle{false};
+    for (auto food_it = food.begin(), food_end = food.end();
+         food_it != food_end; ++food_it) {
+      if (expected_circle.isInside((*food_it).getPosition())) {
+        is_food_in_circle = true;
+        break;
+      }
+    }
+    CHECK(is_food_in_circle == false);
+    food.generateFoodInCircle(kape::Circle{kape::Vector2d{1., -1.}, 1.}, 50,
+                              obstacles);
+    for (auto food_it = food.begin(), food_end = food.end();
+         food_it != food_end; ++food_it) {
+      if (expected_circle.isInside((*food_it).getPosition())) {
+        is_food_in_circle = true;
+        break;
+      }
+    }
+    CHECK(is_food_in_circle == true);
+  }
   SUBCASE("Testing operator==")
-  {}
+  {
+    food.generateFoodInCircle(kape::Circle{kape::Vector2d{1., -1.}, 1.}, 50,
+                              obstacles);
+    kape::Food::Iterator food_it1{food.begin()};
+    kape::Food::Iterator food_it2{++food_it1};
+    kape::Food::Iterator food_it3{++food_it2};
+    CHECK((food_it1 == food_it2) == false);
+    CHECK((++food_it2 == (++food_it2)) == true);
+    CHECK((food_it3 == food_it3) == true);
+    CHECK((++food_it2 == food_it1) == false);
+  }
   SUBCASE("Testing operator!=")
-  {}
-  // test iterators as well, but in food not here
+  {
+    food.generateFoodInCircle(kape::Circle{kape::Vector2d{1., -1.}, 1.}, 50,
+                              obstacles);
+    kape::Food::Iterator food_it1{food.begin()};
+    kape::Food::Iterator food_it2{++food_it1};
+    kape::Food::Iterator food_it3{++food_it2};
+    CHECK((food_it1 != food_it2) == true);
+    CHECK((food_it2 != food_it2) == false);
+    CHECK((food.begin() != food_it2) == true);
+    CHECK((food.end() != food_it3) == true);
+    CHECK((++food_it3 != ++food_it3) == false);
+  }
 }
 
 TEST_CASE("Testing Pheromones class")
