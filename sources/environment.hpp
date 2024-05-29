@@ -1,14 +1,18 @@
 #ifndef ENVIRONMENT_HPP
 #define ENVIRONMENT_HPP
+#include "ants.hpp"     //for Ant::ANT_LENGTH
 #include "geometry.hpp" //for Vector2d
+#include <bitset>
+#include <iterator>
 #include <random>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
-
-#include <iterator>
 // TODO:
 //  - check if adding things to a vector can cause exceptions
 //  - Anthill::loadFromFile() should check if it intersects any obstacles
+//  - SquareCoordinate KeyToSquareCoordinate(std::bitset<32> const& key) const;
+//  - Vector2d SquareCoordinateToWorldPosition(SquareCoordinate const& coord) const;
 namespace kape {
 class Obstacles
 {
@@ -162,11 +166,27 @@ class Pheromones
  private:
   // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 1
   // intensity levels
-  static double constexpr PERIOD_BETWEEN_EVAPORATION_UPDATE_{.5};
+  inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{.5};
+  inline static double const SQUARE_LENGTH{1.5 * Ant::ANT_LENGTH};
 
-  std::vector<PheromoneParticle> pheromones_vec_;
+  // std::vector<PheromoneParticle> pheromones_vec_;
+  std::unordered_map<std::bitset<32>, std::vector<PheromoneParticle>>
+      pheromones_squares_;
   const Type type_;
   double time_since_last_evaporation_;
+
+  struct SquareCoordinate
+  {
+    int16_t x;
+    int16_t y;
+  };
+
+  SquareCoordinate WorldPositionToSquareCoordinate(Vector2d const& position) const;
+  std::bitset<32> SquareCoordinateToKey(SquareCoordinate const& coord) const;
+  
+  SquareCoordinate KeyToSquareCoordinate(std::bitset<32> const& key) const;
+  Vector2d SquareCoordinateToWorldPosition(SquareCoordinate const& coord) const;
+
 
  public:
   explicit Pheromones(Type type);

@@ -2,7 +2,7 @@
 #include "geometry.hpp"
 #include "logger.hpp"
 #include <algorithm> //for find_if and remove_if any_of
-#include <cmath>
+#include <cmath>     //for std::ceil and something else
 #include <fstream>
 #include <numeric>   //for accumulate
 #include <stdexcept> //invalid_argument
@@ -531,14 +531,84 @@ Food::Iterator Food::end() const
 // }
 
 // Pheromones class implementation ------------------------------
+std::bitset<32>
+Pheromones::SquareCoordinateToKey(SquareCoordinate const& coord) const
+{
+  std::bitset<32> result{static_cast<long long unsigned int>(coord.x)};
+  result = result << 16;
+  std::bitset<16> y_16{static_cast<long long unsigned int>(coord.y)};
+
+  for (int i = 0; i < 16; ++i) {
+    result[i] = y_16[i];
+  }
+  return result;
+}
+
+Pheromones::SquareCoordinate
+Pheromones::WorldPositionToSquareCoordinate(Vector2d const& position) const
+{
+  SquareCoordinate coord;
+  coord.x = static_cast<int16_t>(std::ceil(position.x / SQUARE_LENGTH)) - 1;
+  coord.y = static_cast<int16_t>(std::ceil(position.y / SQUARE_LENGTH));
+  return coord;
+}
+
+Pheromones::SquareCoordinate
+Pheromones::KeyToSquareCoordinate(std::bitset<32> const& key) const
+{
+  //...
+}
+
+Vector2d
+Pheromones::SquareCoordinateToWorldPosition(SquareCoordinate const& coord) const
+{
+  //...
+}
+
 Pheromones::Pheromones(Type type)
-    : pheromones_vec_{}
+    : pheromones_squares_{}
     , type_{type}
     , time_since_last_evaporation_{0.}
 {}
 
 int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
 {
+  SquareCoordinate center_square_coordinate{
+      WorldPositionToSquareCoordinate(circle.getCircleCenter())};
+
+  // get all existing neighbouring squares
+  using map_iterator =
+      std::unordered_map<std::bitset<32>,
+                         std::vector<PheromoneParticle>>::const_iterator;
+  std::vector<map_iterator> neighbouring_squares;
+
+  for (int16_t delta_x = -1; delta_x <= 1; ++delta_x) {
+    for (int16_t delta_y = -1; delta_y <= 1; ++delta_y) {
+      SquareCoordinate square_coordinate{center_square_coordinate.x + delta_x,
+                                         center_square_coordinate.y + delta_y};
+      auto square_it{
+          pheromones_squares_.find(SquareCoordinateToKey(square_coordinate))};
+
+      if (square_it != pheromones_squares_.end()) {
+        neighbouring_squares.push_back(square_it);
+      }
+    }
+  }
+
+  if (neighbouring_squares.empty()) {
+    return 0.;
+  }
+
+  // remove all squares that don't intersect the circle
+  neighbouring_squares.erase(
+      std::remove_if(neighbouring_squares.begin(), neighbouring_squares.end(),
+                     [&circle](map_iterator square) {
+                       square->first;
+                       Rectangle square_rect{};
+                       return !doShapesIntersect(circle, square_rect);
+                     }),
+      neighbouring_squares.end());
+
   return std::accumulate(
       pheromones_vec_.begin(), pheromones_vec_.end(), 0,
       [&circle](int sum, PheromoneParticle const& pheromone) {
@@ -555,7 +625,11 @@ Pheromones::Type Pheromones::getPheromonesType() const
 }
 std::size_t Pheromones::getNumberOfPheromones() const
 {
-  return pheromones_vec_.size();
+  return std::accumulate(pheromones_squares_.begin(), pheromones_squares_.end(),
+                         0UL,
+                         [](std::size_t sum, auto const& pheromones_square) {
+                           return sum + pheromones_square.second.size();
+                         });
 }
 
 void Pheromones::addPheromoneParticle(Vector2d const& position, int intensity)
