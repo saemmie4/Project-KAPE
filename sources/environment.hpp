@@ -182,9 +182,9 @@ class Pheromones
   };
 
   SquareCoordinate WorldPositionToSquareCoordinate(Vector2d const& position) const;
-  std::bitset<32> SquareCoordinateToKey(SquareCoordinate const& coord) const;
+  uint32_t SquareCoordinateToKey(SquareCoordinate const& coord) const;
   
-  SquareCoordinate KeyToSquareCoordinate(std::bitset<32> const& key) const;
+  SquareCoordinate KeyToSquareCoordinate(uint32_t key) const;
   Vector2d SquareCoordinateToWorldPosition(SquareCoordinate const& coord) const;
 
 

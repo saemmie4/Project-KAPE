@@ -7,6 +7,7 @@
 #include <numeric>   //for accumulate
 #include <stdexcept> //invalid_argument
 #include <vector>
+#include <cstring>
 
 #include <cassert>
 // TODO:
@@ -531,16 +532,20 @@ Food::Iterator Food::end() const
 // }
 
 // Pheromones class implementation ------------------------------
-std::bitset<32>
-Pheromones::SquareCoordinateToKey(SquareCoordinate const& coord) const
+uint32_t Pheromones::SquareCoordinateToKey(SquareCoordinate const& coord) const
 {
-  std::bitset<32> result{static_cast<long long unsigned int>(coord.x)};
-  result = result << 16;
-  std::bitset<16> y_16{static_cast<long long unsigned int>(coord.y)};
+  // std::bitset<32> result{static_cast<long long unsigned int>(coord.x)};
+  // result = result << 16;
+  // std::bitset<16> y_16{static_cast<long long unsigned int>(coord.y)};
 
-  for (int i = 0; i < 16; ++i) {
-    result[i] = y_16[i];
-  }
+  // for (int i = 0; i < 16; ++i) {
+  //   result[i] = y_16[i];
+  // }
+  // return result;
+
+  uint32_t result;
+  std::memcpy((uint8_t*)(&result), (uint8_t*)(&coord.x), sizeof(coord.x));
+  std::memcpy((uint8_t*)(&result) + sizeof(coord.x), (uint8_t*)(&coord.y), sizeof(coord.y));
   return result;
 }
 
@@ -554,9 +559,12 @@ Pheromones::WorldPositionToSquareCoordinate(Vector2d const& position) const
 }
 
 Pheromones::SquareCoordinate
-Pheromones::KeyToSquareCoordinate(std::bitset<32> const& key) const
+Pheromones::KeyToSquareCoordinate(uint32_t key) const
 {
-  //...
+  SquareCoordinate result;
+  std::memcpy((uint8_t*)(&result.x), (uint8_t*)(&key), sizeof(result.x));
+  std::memcpy((uint8_t*)(&result.y), (uint8_t*)(&key), sizeof(result.y));
+  return result;
 }
 
 Vector2d
@@ -578,7 +586,7 @@ int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
 
   // get all existing neighbouring squares
   using map_iterator =
-      std::unordered_map<std::bitset<32>,
+      std::unordered_map<uint32_t,
                          std::vector<PheromoneParticle>>::const_iterator;
   std::vector<map_iterator> neighbouring_squares;
 
