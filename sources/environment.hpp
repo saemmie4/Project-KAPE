@@ -160,9 +160,9 @@ class Pheromones
   };
 
  private:
-  // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 5
+  // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 1
   // intensity levels
-  static double constexpr PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
+  static double constexpr PERIOD_BETWEEN_EVAPORATION_UPDATE_{.5};
 
   std::vector<PheromoneParticle> pheromones_vec_;
   const Type type_;

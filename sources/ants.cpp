@@ -39,7 +39,11 @@ Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
     , position_{position}
     , velocity_{ANT_SPEED * desired_direction_}
     , has_food_{has_food}
-    , time_since_last_pheromone_release_{0.}
+
+    // small hack to have the ants put pheromones down immediatly, near the
+    // antill (the first was too far away and they missed the anthill)
+    , time_since_last_pheromone_release_{PERIOD_BETWEEN_PHEROMONE_RELEASE_
+                                         * 1.5}
     , current_frame_{current_frame}
 {
   if (norm2(desired_direction_) == 0.) {
@@ -258,8 +262,9 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   if (has_food_) {                     // has food
     if (anthill.isInside(position_)) { // inside anthill
       anthill.addFood();
-      has_food_          = false;
-      desired_direction_ = -1. * current_direction;
+      has_food_ = false;
+      velocity_ *= -1;
+      desired_direction_ = velocity_ / norm(velocity_);
     } else { // outside the anthill
       if (seesTheAnthill(circles_of_vision,
                          anthill)) // we see the anthill and we have food
@@ -275,6 +280,12 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     if (time_to_release_pheromone) {
       to_anthill_ph.addPheromoneParticle(position_);
     }
+
+    if (anthill.isInside(position_)) { // inside anthill
+      velocity_ *= -1;
+      desired_direction_ = velocity_ / norm(velocity_);
+    }
+
     // search for food in circles_of_vision
     for (auto const& cov : circles_of_vision) {
       if (food.removeOneFoodParticleInCircle(cov)) {
@@ -290,24 +301,46 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       circles_of_vision, obstacles, random_engine)};
 
   if (angle_to_avoid_obstacles != 0.) {
-    desired_direction_ = rotate(desired_direction_, angle_to_avoid_obstacles);
+    velocity_          = rotate(velocity_, angle_to_avoid_obstacles);
+    desired_direction_ = velocity_ / norm(velocity_);
     return;
   }
+
+  // follow pheromones
+  {
+    Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
+    int left_intensity{pheromone_to_follow.getPheromonesIntensityInCircle(
+        circles_of_vision[0])};
+    int forward_intensity{pheromone_to_follow.getPheromonesIntensityInCircle(
+        circles_of_vision[1])};
+    int right_intensity{pheromone_to_follow.getPheromonesIntensityInCircle(
+        circles_of_vision[2])};
+
+    if (forward_intensity >= std::max(left_intensity, right_intensity)) {
+    } else if (right_intensity > left_intensity) {
+      desired_direction_ = rotate(current_direction, -PI / 3);
+    } else if (left_intensity > right_intensity) {
+      desired_direction_ = rotate(current_direction, PI / 3);
+    }
+  }
+
+  // random turning
 
   {
     double wander_stenght = .04;
     std::uniform_real_distribution angle_dist{0., 2 * PI};
     Vector2d ex_desired_direction{desired_direction_};
-    desired_direction_ += wander_stenght * rotate(Vector2d{0., 1.}, angle_dist(random_engine));
+    desired_direction_ +=
+        wander_stenght * rotate(Vector2d{0., 1.}, angle_dist(random_engine));
     double norm_desired_direction{norm(desired_direction_)};
     if (norm_desired_direction != 0.) {
       desired_direction_ /= norm_desired_direction;
-    } else{
+    } else {
       desired_direction_ = ex_desired_direction;
     }
   }
+
   // follow appropriate pheromone + randomness
-  // Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
   // double angle_chosen{calculateAngleFromPheromones(
   //     circles_of_vision,
   //     pheromone_to_follow)}; // add random_engine as a third parameter if
