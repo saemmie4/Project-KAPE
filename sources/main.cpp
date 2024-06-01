@@ -65,7 +65,7 @@ int main()
     window.display();
 
     window.inputHandling();
-  
+
   }
   std::cout << ph_anthill.getNumberOfPheromones()
                    + ph_food.getNumberOfPheromones()
