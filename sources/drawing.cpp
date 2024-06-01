@@ -95,14 +95,17 @@ void Window::loadForDrawing(Pheromones const& pheromones)
   unsigned int window_width{window_.getSize().x};
   unsigned int window_height{window_.getSize().y};
 
+  double const max_pheromone_intensity{
+      Ant::MAX_PHEROMONE_RESERVE * Ant::PERCENTAGE_DECREASE_PHEROMONE_RELEASE};
+
   std::transform(
       pheromones.begin(), pheromones.end(), std::back_inserter(points_vector_),
-      [window_width, window_height, &color,
+      [window_width, window_height, &color, max_pheromone_intensity,
        this](PheromoneParticle const& pheromone_particle) {
         sf::Vertex pheromone_drawing{coord_conv_.worldToScreen(
             pheromone_particle.getPosition(), window_width, window_height)};
         color.a = static_cast<sf::Uint8>(
-            (pheromone_particle.getIntensity() / 100. * 255.));
+            (pheromone_particle.getIntensity() / max_pheromone_intensity * 255.));
         pheromone_drawing.color = color;
         return pheromone_drawing;
       });
@@ -298,19 +301,19 @@ void Window::draw(Ant const& ant)
   direction_lines[0] = sf::Vertex(ant_drawing.getPosition(), sf::Color::Green);
   direction_lines[1] = sf::Vertex(
       coord_conv_.worldToScreen(
-          ant.getPosition() + 4.* Ant::ANT_LENGTH * ant.getDesiredDirection(),
+          ant.getPosition() + 4. * Ant::ANT_LENGTH * ant.getDesiredDirection(),
           window_.getSize().x, window_.getSize().y),
       sf::Color::Green);
 
   direction_lines[2] = sf::Vertex(ant_drawing.getPosition(), sf::Color::Red);
   direction_lines[3] = sf::Vertex(
-      coord_conv_.worldToScreen(
-          ant.getPosition() + 4.* Ant::ANT_LENGTH * ant.getVelocity() / norm(ant.getVelocity()),
-          window_.getSize().x, window_.getSize().y),
+      coord_conv_.worldToScreen(ant.getPosition()
+                                    + 4. * Ant::ANT_LENGTH * ant.getVelocity()
+                                          / norm(ant.getVelocity()),
+                                window_.getSize().x, window_.getSize().y),
       sf::Color::Red);
 
   window_.draw(direction_lines.data(), direction_lines.size(), sf::LinesStrip);
-
 }
 
 void Window::draw(Ants const& ants)

@@ -120,9 +120,9 @@ double Ant::calculateAngleToAvoidObstacles(
 }
 
 double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
-                                         Pheromones const& ph_to_follow) const
+                                         Pheromones & ph_to_follow) const
 {
-  double const ANGLE_OF_ROTATION{PI / 6.};
+  double const ANGLE_OF_ROTATION{CIRCLE_OF_VISION_ANGLE};
 
   double left_intensity{
       ph_to_follow.getRandomMaxPheromoneIntensityInCircle(cov[0])};

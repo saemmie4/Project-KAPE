@@ -22,10 +22,6 @@ class Ant
   inline static double const PERIOD_BETWEEN_PHEROMONE_RELEASE_{.25};
   inline static double const PERIOD_BETWEEN_PHEROMONE_SEARCH_{.25};
 
-  inline static double const MAX_PHEROMONE_RESERVE{2000.};
-  //the ant's reserve decreases by 2% every time the ant releases a pheromone
-  inline static double const PERCENTAGE_DECREASE_PHEROMONE_RELEASE{0.02}; 
-  inline static double const MIN_PHEROMONE_RESERVE_TO_RELEASE{0.02}; 
 
   Vector2d desired_direction_;
   Vector2d position_;
@@ -48,6 +44,12 @@ class Ant
   inline static double const CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
   inline static double const CIRCLE_OF_VISION_ANGLE{PI / 3.};
 
+
+  inline static double const MAX_PHEROMONE_RESERVE{2000.};
+  //the ant's reserve decreases by 2% every time the ant releases a pheromone
+  inline static double const PERCENTAGE_DECREASE_PHEROMONE_RELEASE{0.02}; 
+  inline static double const MIN_PHEROMONE_RESERVE_TO_RELEASE{1.}; 
+
   inline static int const ANIMATION_TOTAL_NUMBER_OF_FRAMES{4};
 
   double calculateAngleToAvoidObstacles(
@@ -55,7 +57,7 @@ class Ant
       std::default_random_engine& random_engine) const;
 
   double calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
-                                      Pheromones const& ph_to_follow) const;
+                                      Pheromones & ph_to_follow) const;
 
   double
   calculateRandomTurning(std::default_random_engine& random_engine) const;
