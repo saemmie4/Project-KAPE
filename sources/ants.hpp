@@ -19,18 +19,26 @@ class Ant
 {
  private:
   // every PERIOD_BETWEEN_PHEROMONE_RELEASE_ the ant releases a pheromone
-  static double constexpr PERIOD_BETWEEN_PHEROMONE_RELEASE_{.25};
+  inline static double const PERIOD_BETWEEN_PHEROMONE_RELEASE_{.25};
+  inline static double const PERIOD_BETWEEN_PHEROMONE_SEARCH_{.25};
+
+  inline static double const MAX_PHEROMONE_RESERVE{2000.};
+  //the ant's reserve decreases by 2% every time the ant releases a pheromone
+  inline static double const PERCENTAGE_DECREASE_PHEROMONE_RELEASE{0.02}; 
+  inline static double const MIN_PHEROMONE_RESERVE_TO_RELEASE{0.02}; 
 
   Vector2d desired_direction_;
   Vector2d position_;
   Vector2d velocity_;
   bool has_food_;
+  double pheromone_reserve_;
   double time_since_last_pheromone_release_;
-
+  double time_since_last_pheromone_search_;
   int current_frame_;
 
  public:
   void calculateCirclesOfVision(std::array<Circle, 3>& circles_of_vision) const;
+
   inline static double const ANT_LENGTH{0.005}; // 0.5 cm
   inline static double const ANT_MASS{5.e-6}; // 5 milligrams
   inline static double const ANT_SPEED{0.05};   // 5 cm/s
@@ -51,15 +59,13 @@ class Ant
 
   double
   calculateRandomTurning(std::default_random_engine& random_engine) const;
-  /*double calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
-                                      Pheromones const& ph_to_follow,
-     std::default_random_engine& random_engine) const;*/
 
   // may throw std::invalid_argument if direction is null
   // may throw std::invalid_argument if current_frame isn't in
   //     [0, ANIMATION_TOTAL_NUMBER_OF_FRAMES)
+  // may throw std::invalid_argument if pheromone_reserve <= 0.
   explicit Ant(Vector2d const& position, Vector2d const& direction,
-               int current_frame, bool has_food = false);
+               int current_frame, bool has_food = false, double pheromone_reserve = MAX_PHEROMONE_RESERVE);
 
   Vector2d const& getPosition() const;
   Vector2d const& getVelocity() const;
