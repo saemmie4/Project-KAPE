@@ -31,7 +31,9 @@ void Ant::calculateCirclesOfVision(
 // may throw std::invalid_argument if current_frame isn't in
 //     [0, ANIMATION_TOTAL_NUMBER_OF_FRAMES)
 // may throw std::invalid_argument if pheromone_reserve <= 0.
+// may throw std::invalid_argument if pheromone_reserve <= 0.
 Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
+         bool has_food, double pheromone_reserve)
          bool has_food, double pheromone_reserve)
     // if norm(direction) == 0. we would be dividing by 0.
     // before checking if norm(direction)==0
@@ -41,10 +43,12 @@ Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
     , velocity_{ANT_SPEED * desired_direction_}
     , has_food_{has_food}
     , pheromone_reserve_{pheromone_reserve}
+    , pheromone_reserve_{pheromone_reserve}
     // small hack to have the ants put pheromones down immediatly, near the
     // antill (the first was too far away and they missed the anthill)
     , time_since_last_pheromone_release_{PERIOD_BETWEEN_PHEROMONE_RELEASE_
                                          * 1.5}
+    , time_since_last_pheromone_search_{0.}
     , time_since_last_pheromone_search_{0.}
     , current_frame_{current_frame}
 {
@@ -55,6 +59,11 @@ Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
   if (current_frame_ < 0 || current_frame_ > ANIMATION_TOTAL_NUMBER_OF_FRAMES) {
     throw std::invalid_argument{"the current frame must be in [0, "
                                 "ANT::ANIMATION_TOTAL_NUMBER_OF_FRAMES)"};
+  }
+
+  if (pheromone_reserve_ <= 0.) {
+    throw std::invalid_argument{
+        "the ant's phermone reserve can't be negative or null"};
   }
 
   if (pheromone_reserve_ <= 0.) {
@@ -155,6 +164,18 @@ Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
   //   desired_direction_ = ex_desired_direction;
   // }
   std::normal_distribution angle_randomizer{0., PI / 24.};
+  //   double wander_stenght = .04;
+  // std::uniform_real_distribution angle_dist{0., 2 * PI};
+  // Vector2d ex_desired_direction{desired_direction_};
+  // desired_direction_ +=
+  //     wander_stenght * rotate(Vector2d{0., 1.}, angle_dist(random_engine));
+  // double norm_desired_direction{norm(desired_direction_)};
+  // if (norm_desired_direction != 0.) {
+  //   desired_direction_ /= norm_desired_direction;
+  // } else {
+  //   desired_direction_ = ex_desired_direction;
+  // }
+  std::normal_distribution angle_randomizer{0., PI / 24.};
 
   return angle_randomizer(random_engine);
 }
@@ -195,6 +216,12 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     time_to_release_pheromone = true;
   }
 
+  time_since_last_pheromone_search_ += delta_t;
+  bool time_to_search_pheromones{false};
+  if (time_since_last_pheromone_search_ > PERIOD_BETWEEN_PHEROMONE_SEARCH_) {
+    time_since_last_pheromone_search_ -= PERIOD_BETWEEN_PHEROMONE_SEARCH_;
+    time_to_search_pheromones = true;
+  }
   time_since_last_pheromone_search_ += delta_t;
   bool time_to_search_pheromones{false};
   if (time_since_last_pheromone_search_ > PERIOD_BETWEEN_PHEROMONE_SEARCH_) {
@@ -295,7 +322,6 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
         calculateAngleFromPheromones(circles_of_vision, pheromone_to_follow)
             + calculateRandomTurning(random_engine));
   }
-
 }
 
 int Ant::getCurrentFrame() const
