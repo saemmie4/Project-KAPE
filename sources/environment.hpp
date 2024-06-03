@@ -63,7 +63,7 @@ class PheromoneParticle
 
   // may throw std::invalid_argument if decrease_percentage_amount isn't in [0,
   // 1)
-  void decreaseIntensity(double decrease_percentage_amount = 0.005);
+  void decreaseIntensity(double decrease_percentage_amount = 0.001);
   // returns true if the Pheromone's intensity is <= MIN_PHEROMONE_INTENSITY
   bool hasEvaporated() const;
 };
