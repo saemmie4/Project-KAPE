@@ -552,9 +552,9 @@ Pheromones::getRandomMaxPheromoneParticleInCircle(Circle const& circle)
         max_intensity_particle = pheromone_particle;
       }
 
-      // if (distr(random_engine_) < probability_of_returning_early) {
-      //   return max_intensity;
-      // }
+      if (distr(random_engine_) < probability_of_returning_early) {
+        return max_intensity_particle;
+      }
     }
   }
 

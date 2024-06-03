@@ -166,8 +166,6 @@ void Ant::applyRandomTurning(std::default_random_engine& random_engine)
   //   desired_direction_ = ex_desired_direction;
   // }
 
-  return;
-
   std::normal_distribution angle_randomizer{0., PI / 24.};
 
   desired_direction_ =
@@ -279,7 +277,7 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       if (food.removeOneFoodParticleInCircle(cov)) {
         has_food_          = true;
         pheromone_reserve_ = MAX_PHEROMONE_RESERVE;
-        desired_direction_ = -1. * current_direction;
+        velocity_ *= -1.;
         return;
       }
     }
