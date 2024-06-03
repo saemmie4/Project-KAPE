@@ -171,7 +171,8 @@ class Pheromones
  public:
   explicit Pheromones(Type type, unsigned int seed = 31415u);
   double getPheromonesIntensityInCircle(Circle const& circle) const;
-  double getRandomMaxPheromoneIntensityInCircle(Circle const& circle);
+  //returns end() if there were no pheromones in the circle
+  std::vector<PheromoneParticle>::const_iterator getRandomMaxPheromoneParticleInCircle(Circle const& circle);
   Pheromones::Type getPheromonesType() const;
   std::size_t getNumberOfPheromones() const;
   // may throw std::invalid_argument if intensity is <= 0.

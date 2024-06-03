@@ -31,13 +31,14 @@ int main()
   std::vector<long long int> t_count;
 
   while (window.isOpen()) {
+    auto start{std::chrono::high_resolution_clock::now()};
+
     ants.update(food, ph_anthill, ph_food, anthill, obs, 0.01);
     ph_anthill.updateParticlesEvaporation(0.01);
     ph_food.updateParticlesEvaporation(0.01);
 
     window.clear(sf::Color(184, 139, 74));
 
-    auto start{std::chrono::high_resolution_clock::now()};
     // window.loadForDrawing(ph_anthill);
     // window.loadForDrawing(ph_food);
 
@@ -46,9 +47,6 @@ int main()
 
     window.draw(food, ph_anthill, ph_food);
 
-    t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
-                          std::chrono::high_resolution_clock::now() - start)
-                          .count());
     window.draw(ants);
 
     for (auto const& ant : ants) {
@@ -66,6 +64,9 @@ int main()
 
     window.inputHandling();
 
+    t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
+                          std::chrono::high_resolution_clock::now() - start)
+                          .count());
   }
   std::cout << ph_anthill.getNumberOfPheromones()
                    + ph_food.getNumberOfPheromones()

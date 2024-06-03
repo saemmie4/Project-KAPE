@@ -125,29 +125,34 @@ double Ant::calculateAngleToAvoidObstacles(
   return rotate_by_angle;
 }
 
-double Ant::calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
-                                         Pheromones & ph_to_follow) const
+void Ant::applyPheromonesInfluence(std::array<Circle, 3> const& cov,
+                                   Pheromones& ph_to_follow)
 {
-  double const ANGLE_OF_ROTATION{CIRCLE_OF_VISION_ANGLE};
-
-  double left_intensity{
-      ph_to_follow.getRandomMaxPheromoneIntensityInCircle(cov[0])};
-  double center_intensity{
-      ph_to_follow.getRandomMaxPheromoneIntensityInCircle(cov[1])};
-  double right_intensity{
-      ph_to_follow.getRandomMaxPheromoneIntensityInCircle(cov[2])};
-
-  if (center_intensity >= std::max(left_intensity, right_intensity)) {
-    return 0.;
-  } else if (left_intensity >= right_intensity) {
-    return -ANGLE_OF_ROTATION;
-  } else {
-    return ANGLE_OF_ROTATION;
+  std::vector<std::vector<PheromoneParticle>::const_iterator> valid_pheromones;
+  for (auto const& circle_of_vision : cov) {
+    auto max_intensity_particle_in_circle{
+        ph_to_follow.getRandomMaxPheromoneParticleInCircle(circle_of_vision)};
+    if (max_intensity_particle_in_circle != ph_to_follow.end()) {
+      valid_pheromones.push_back(max_intensity_particle_in_circle);
+    }
   }
-}
 
-double
-Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
+  if (valid_pheromones.empty()) {
+    return;
+  }
+
+  auto max_pheromone{
+      std::max_element(valid_pheromones.begin(), valid_pheromones.end(),
+                       [](auto const& lhs, auto const& rhs) {
+                         return lhs->getIntensity() < rhs->getIntensity();
+                       })};
+
+  desired_direction_ = (*max_pheromone)->getPosition() - position_;
+  desired_direction_ /=
+      norm(desired_direction_); // norm can't be null because the circles of
+                                // vision are not on the ant
+}
+void Ant::applyRandomTurning(std::default_random_engine& random_engine)
 {
   //   double wander_stenght = .04;
   // std::uniform_real_distribution angle_dist{0., 2 * PI};
@@ -160,20 +165,13 @@ Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
   // } else {
   //   desired_direction_ = ex_desired_direction;
   // }
-  std::normal_distribution angle_randomizer{0., PI / 80.};
-  //   double wander_stenght = .04;
-  // std::uniform_real_distribution angle_dist{0., 2 * PI};
-  // Vector2d ex_desired_direction{desired_direction_};
-  // desired_direction_ +=
-  //     wander_stenght * rotate(Vector2d{0., 1.}, angle_dist(random_engine));
-  // double norm_desired_direction{norm(desired_direction_)};
-  // if (norm_desired_direction != 0.) {
-  //   desired_direction_ /= norm_desired_direction;
-  // } else {
-  //   desired_direction_ = ex_desired_direction;
-  // }
 
-  return angle_randomizer(random_engine);
+  return;
+
+  std::normal_distribution angle_randomizer{0., PI / 24.};
+
+  desired_direction_ =
+      rotate(desired_direction_, angle_randomizer(random_engine));
 }
 
 bool seesTheAnthill(std::array<Circle, 3> const& cov, Anthill const& anthill)
@@ -252,23 +250,6 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   std::array<Circle, 3> circles_of_vision;
   calculateCirclesOfVision(circles_of_vision);
 
-  // deal with anthill
-  if (seesTheAnthill(circles_of_vision, anthill)
-      && has_food_) { // we see the anthill and we have food
-    desired_direction_ = (anthill.getCenter() - position_)
-                       / norm(anthill.getCenter() - position_);
-  }
-  if (anthill.isInside(position_)) { // inside anthill
-    pheromone_reserve_ = MAX_PHEROMONE_RESERVE;
-
-    if (has_food_) {
-      anthill.addFood();
-      has_food_ = false;
-      velocity_ *= -1;
-      desired_direction_ = velocity_ / norm(velocity_);
-    }
-  }
-
   // release pheromones
   if (time_to_release_pheromone) {
     if (pheromone_reserve_ > MIN_PHEROMONE_RESERVE_TO_RELEASE) {
@@ -283,6 +264,15 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     }
   }
 
+  // avoid obstacles
+  double angle_to_avoid_obstacles{calculateAngleToAvoidObstacles(
+      circles_of_vision, obstacles, random_engine)};
+  if (angle_to_avoid_obstacles != 0.) {
+    velocity_          = rotate(velocity_, angle_to_avoid_obstacles);
+    desired_direction_ = velocity_ / norm(velocity_);
+    return;
+  }
+
   // search for food in circles_of_vision
   if (!has_food_) {
     for (auto const& cov : circles_of_vision) {
@@ -295,22 +285,29 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     }
   }
 
-  // avoid obstacles
-  double angle_to_avoid_obstacles{calculateAngleToAvoidObstacles(
-      circles_of_vision, obstacles, random_engine)};
-  if (angle_to_avoid_obstacles != 0.) {
-    velocity_          = rotate(velocity_, angle_to_avoid_obstacles);
-    desired_direction_ = velocity_ / norm(velocity_);
+  // deal with anthill
+  if (anthill.isInside(position_)) { // inside anthill
+    pheromone_reserve_ = MAX_PHEROMONE_RESERVE;
+
+    if (has_food_) {
+      anthill.addFood();
+      has_food_ = false;
+      velocity_ *= -1;
+      desired_direction_ = velocity_ / norm(velocity_);
+      return;
+    }
+  } else if (seesTheAnthill(circles_of_vision, anthill)
+             && has_food_) { // we see the anthill and we have food
+    desired_direction_ = (anthill.getCenter() - position_)
+                       / norm(anthill.getCenter() - position_);
     return;
   }
 
   // follow pheromones
   if (time_to_search_pheromones) {
-    Pheromones& pheromone_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
-    desired_direction_ = rotate(
-        desired_direction_,
-        calculateAngleFromPheromones(circles_of_vision, pheromone_to_follow)
-            + calculateRandomTurning(random_engine));
+    Pheromones& pheromones_to_follow{has_food_ ? to_anthill_ph : to_food_ph};
+    applyPheromonesInfluence(circles_of_vision, pheromones_to_follow);
+    applyRandomTurning(random_engine);
   }
 }
 

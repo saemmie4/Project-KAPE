@@ -19,7 +19,7 @@ class Ant
 {
  private:
   // every PERIOD_BETWEEN_PHEROMONE_RELEASE_ the ant releases a pheromone
-  inline static double const PERIOD_BETWEEN_PHEROMONE_RELEASE_{.25};
+  inline static double const PERIOD_BETWEEN_PHEROMONE_RELEASE_{.1};
   inline static double const PERIOD_BETWEEN_PHEROMONE_SEARCH_{.25};
 
 
@@ -40,9 +40,9 @@ class Ant
   inline static double const ANT_SPEED{0.05};   // 5 cm/s
   inline static double const ANT_FORCE_MAX{1.e-6}; //0.00005 N
 
-  inline static double const CIRCLE_OF_VISION_RADIUS{ANT_LENGTH / 2.};
-  inline static double const CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH / 2.};
-  inline static double const CIRCLE_OF_VISION_ANGLE{PI / 6.};
+  inline static double const CIRCLE_OF_VISION_RADIUS{ANT_LENGTH/1.3};
+  inline static double const CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
+  inline static double const CIRCLE_OF_VISION_ANGLE{PI / 3.};
 
 
   inline static double const MAX_PHEROMONE_RESERVE{2000.};
@@ -56,11 +56,10 @@ class Ant
       std::array<Circle, 3> const& cov, Obstacles obs,
       std::default_random_engine& random_engine) const;
 
-  double calculateAngleFromPheromones(std::array<Circle, 3> const& cov,
-                                      Pheromones & ph_to_follow) const;
+  void applyPheromonesInfluence(std::array<Circle, 3> const& cov,
+                                      Pheromones & ph_to_follow);
 
-  double
-  calculateRandomTurning(std::default_random_engine& random_engine) const;
+void applyRandomTurning(std::default_random_engine& random_engine);
 
   // may throw std::invalid_argument if direction is null
   // may throw std::invalid_argument if current_frame isn't in
