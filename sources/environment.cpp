@@ -553,7 +553,7 @@ void Pheromones::fillWithNeighbouringPheromonesSquares(
 
 Pheromones::Pheromones(Type type, double ant_circle_of_vision_diameter,
                        unsigned int seed)
-    : SQUARE_LENGTH_{20. * ant_circle_of_vision_diameter}
+    : SQUARE_LENGTH_{1.1 * ant_circle_of_vision_diameter}
     , pheromones_squares_{}
     , type_{type}
     , random_engine_{seed}
