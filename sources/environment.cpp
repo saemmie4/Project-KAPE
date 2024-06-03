@@ -2,13 +2,13 @@
 #include "geometry.hpp"
 #include "logger.hpp"
 #include <algorithm> //for find_if and remove_if any_of
+#include <cassert>
 #include <cmath>
 #include <fstream>
-#include <numeric>   //for accumulate
+#include <numeric> //for accumulate
+#include <random>
 #include <stdexcept> //invalid_argument
 #include <vector>
-#include <random>
-#include <cassert>
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
 
@@ -530,27 +530,35 @@ double Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
       });
 }
 
-double
-Pheromones::getRandomMaxPheromoneIntensityInCircle(Circle const& circle) 
+//returns end() if there were no pheromones in the circle
+std::vector<PheromoneParticle>::const_iterator
+Pheromones::getRandomMaxPheromoneParticleInCircle(Circle const& circle)
 {
   // for each pheromone we have a 0.1% chance of returning the max of previous
   // intensities (up to that point)
+
   double probability_of_returning_early{0.001};
-  double max_intensity{0.};
+  std::vector<PheromoneParticle>::const_iterator max_intensity_particle{
+      pheromones_vec_.end()};
   std::uniform_real_distribution<double> distr(0., 1.);
-  for (auto pheromone_particle : pheromones_vec_) {
-    if (circle.isInside(pheromone_particle.getPosition())) {
-      if (pheromone_particle.getIntensity() > max_intensity) {
-        max_intensity = pheromone_particle.getIntensity();
+
+  for (auto pheromone_particle{pheromones_vec_.begin()};
+       pheromone_particle != pheromones_vec_.end(); ++pheromone_particle) {
+    if (circle.isInside(pheromone_particle->getPosition())) {
+      if (max_intensity_particle == pheromones_vec_.end()) {
+        max_intensity_particle = pheromone_particle;
+      } else if (pheromone_particle->getIntensity()
+                 > max_intensity_particle->getIntensity()) {
+        max_intensity_particle = pheromone_particle;
       }
 
-      if (distr(random_engine_) < probability_of_returning_early) {
-        return max_intensity;
-      }
+      // if (distr(random_engine_) < probability_of_returning_early) {
+      //   return max_intensity;
+      // }
     }
   }
 
-  return max_intensity;
+  return max_intensity_particle;
 }
 
 Pheromones::Type Pheromones::getPheromonesType() const
