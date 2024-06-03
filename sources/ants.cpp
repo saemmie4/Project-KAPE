@@ -128,7 +128,7 @@ double Ant::calculateAngleToAvoidObstacles(
 void Ant::applyPheromonesInfluence(std::array<Circle, 3> const& cov,
                                    Pheromones& ph_to_follow)
 {
-  std::vector<std::vector<PheromoneParticle>::const_iterator> valid_pheromones;
+  std::vector<Pheromones::Iterator> valid_pheromones;
   for (auto const& circle_of_vision : cov) {
     auto max_intensity_particle_in_circle{
         ph_to_follow.getRandomMaxPheromoneParticleInCircle(circle_of_vision)};

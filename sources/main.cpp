@@ -18,8 +18,10 @@ int main()
 
   kape::Anthill anthill{};
   kape::Ants ants{};
-  kape::Pheromones ph_anthill{kape::Pheromones::Type::TO_ANTHILL};
-  kape::Pheromones ph_food{kape::Pheromones::Type::TO_FOOD};
+  kape::Pheromones ph_anthill{kape::Pheromones::Type::TO_ANTHILL,
+                              kape::Ant::CIRCLE_OF_VISION_RADIUS * 2.};
+  kape::Pheromones ph_food{kape::Pheromones::Type::TO_FOOD,
+                           kape::Ant::CIRCLE_OF_VISION_RADIUS * 2.};
   kape::Obstacles obs{};
   kape::Food food{};
 
@@ -31,16 +33,15 @@ int main()
   std::vector<long long int> t_count;
 
   while (window.isOpen()) {
-
-
     auto start{std::chrono::high_resolution_clock::now()};
+
     ants.update(food, ph_anthill, ph_food, anthill, obs, 0.01);
+    
     t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
                           std::chrono::high_resolution_clock::now() - start)
                           .count());
     ph_anthill.updateParticlesEvaporation(0.01);
     ph_food.updateParticlesEvaporation(0.01);
-
 
     window.clear(sf::Color(184, 139, 74));
 
@@ -49,7 +50,6 @@ int main()
 
     // window.loadForDrawing(food);
     // window.drawLoaded();
-
 
     window.draw(ants);
 
@@ -68,7 +68,6 @@ int main()
     window.display();
 
     window.inputHandling();
-
   }
   std::cout << ph_anthill.getNumberOfPheromones()
                    + ph_food.getNumberOfPheromones()
