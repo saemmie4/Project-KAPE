@@ -52,22 +52,24 @@ class FoodParticle
 class PheromoneParticle
 {
  private:
+  // below this threshold the pheromone is considered to have evaporated
+  inline static double const MIN_PHEROMONE_INTENSITY{0.02};
+
   Vector2d position_;
-  int intensity_;
+  double intensity_;
 
  public:
-  // may throw std::invalid_argument if intensity isn't in [0,100]
-  PheromoneParticle(Vector2d const& position, int intensity = 100);
+  // may throw std::invalid_argument if intensity <= 0.
+  PheromoneParticle(Vector2d const& position, double intensity);
   // PheromoneParticle(PheromoneParticle const& pheromone_particle);
   Vector2d const& getPosition() const;
-  // returns the intensity as a number in the interval [0, 100]
-  int getIntensity() const;
+  double getIntensity() const;
 
-  // may throw std::invalid_argument if amount < 0
-  void decreaseIntensity(int amount = 1);
-  // returns true if the Pheromone's intensity is 0
+  // may throw std::invalid_argument if decrease_percentage_amount isn't in [0,
+  // 1)
+  void decreaseIntensity(double decrease_percentage_amount = 0.001);
+  // returns true if the Pheromone's intensity is <= MIN_PHEROMONE_INTENSITY
   bool hasEvaporated() const;
-  // PheromoneParticle& operator=(PheromoneParticle const& rhs);
 };
 
 class Food
@@ -150,8 +152,6 @@ class Food
 
   Iterator begin() const;
   Iterator end() const;
-  // std::vector<FoodParticle>::const_iterator begin() const;
-  // std::vector<FoodParticle>::const_iterator end() const;
 };
 
 class Pheromones
@@ -173,6 +173,7 @@ class Pheromones
   std::unordered_map<std::bitset<32>, std::vector<PheromoneParticle>>
       pheromones_squares_;
   const Type type_;
+  std::default_random_engine random_engine_;
   double time_since_last_evaporation_;
 
   struct SquareCoordinate
@@ -189,12 +190,14 @@ class Pheromones
 
 
  public:
-  explicit Pheromones(Type type);
-  int getPheromonesIntensityInCircle(Circle const& circle) const;
+  explicit Pheromones(Type type, unsigned int seed = 31415u);
+  double getPheromonesIntensityInCircle(Circle const& circle) const;
+  //returns end() if there were no pheromones in the circle
+  std::vector<PheromoneParticle>::const_iterator getRandomMaxPheromoneParticleInCircle(Circle const& circle);
   Pheromones::Type getPheromonesType() const;
   std::size_t getNumberOfPheromones() const;
-  // may throw std::invalid_argument if intensity isn't in [0,100]
-  void addPheromoneParticle(Vector2d const& position, int intensity = 100);
+  // may throw std::invalid_argument if intensity is <= 0.
+  void addPheromoneParticle(Vector2d const& position, double intensity);
   void addPheromoneParticle(PheromoneParticle const& particle);
   // may throw std::invalid_argument if delta_t<0.
   void updateParticlesEvaporation(double delta_t = 0.01);

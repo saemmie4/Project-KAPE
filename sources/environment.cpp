@@ -2,14 +2,15 @@
 #include "geometry.hpp"
 #include "logger.hpp"
 #include <algorithm> //for find_if and remove_if any_of
+#include <cassert>
 #include <cmath>     //for std::ceil and something else
 #include <fstream>
-#include <numeric>   //for accumulate
+#include <numeric> //for accumulate
+#include <random>
 #include <stdexcept> //invalid_argument
 #include <vector>
 #include <cstring>
 
-#include <cassert>
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
 
@@ -152,57 +153,46 @@ Vector2d const& FoodParticle::getPosition() const
 // }
 
 // PheromoneParticle class Implementation--------------------------
-PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
+// may throw std::invalid_argument if intensity <= 0.
+PheromoneParticle::PheromoneParticle(Vector2d const& position, double intensity)
     : position_{position}
     , intensity_{intensity}
 {
-  if (intensity_ < 0 || intensity_ > 100)
+  if (intensity_ <= 0.)
     throw std::invalid_argument{
-        "The pheromones intensity must be between 0 and 100"};
+        "The pheromone's intensity can't be negative or null "};
 }
-
-// PheromoneParticle::PheromoneParticle(
-//     PheromoneParticle const& pheromone_particle)
-//     : PheromoneParticle{pheromone_particle.getPosition(),
-//                         pheromone_particle.getIntensity()}
-// {}
 
 Vector2d const& PheromoneParticle::getPosition() const
 {
   return position_;
 }
 
-int PheromoneParticle::getIntensity() const
+double PheromoneParticle::getIntensity() const
 {
   return intensity_;
 }
 
-void PheromoneParticle::decreaseIntensity(int amount)
+// may throw std::invalid_argument if decrease_percentage_amount isn't in [0, 1)
+void PheromoneParticle::decreaseIntensity(double decrease_percentage_amount)
 {
-  if (amount < 0) {
-    throw std::invalid_argument{"The amount must be a positive number"};
+  if (decrease_percentage_amount < 0. || decrease_percentage_amount >= 1.) {
+    throw std::invalid_argument{
+        "The decrease_percentage_amount can't be outside [0,1)"};
   }
 
-  intensity_ -= amount;
-  if (intensity_ < 0) {
-    intensity_ = 0;
+  intensity_ *= (1. - decrease_percentage_amount);
+
+  // to avoid it going to 0 because of finite double precision
+  if (intensity_ < MIN_PHEROMONE_INTENSITY) {
+    intensity_ = MIN_PHEROMONE_INTENSITY;
   }
 }
 
 bool PheromoneParticle::hasEvaporated() const
 {
-  return intensity_ == 0;
+  return intensity_ <= MIN_PHEROMONE_INTENSITY;
 }
-
-// PheromoneParticle& PheromoneParticle::operator=(PheromoneParticle const& rhs)
-// {
-//   if (&rhs != this) {
-//     position_  = rhs.position_;
-//     intensity_ = rhs.intensity_;
-//   }
-
-//   return *this;
-// }
 
 // Food Class implementation -----------------------------------
 
@@ -522,15 +512,6 @@ Food::Iterator Food::end() const
                         circles_with_food_vec_.end() - 1};
 }
 
-// std::vector<FoodParticle>::const_iterator Food::begin() const
-// {
-//   return food_vec_.cbegin();
-// }
-// std::vector<FoodParticle>::const_iterator Food::end() const
-// {
-//   return food_vec_.cend();
-// }
-
 // Pheromones class implementation ------------------------------
 uint32_t Pheromones::SquareCoordinateToKey(SquareCoordinate const& coord) const
 {
@@ -573,13 +554,14 @@ Pheromones::SquareCoordinateToWorldPosition(SquareCoordinate const& coord) const
   //...
 }
 
-Pheromones::Pheromones(Type type)
+Pheromones::Pheromones(Type type, unsigned int seed)
     : pheromones_squares_{}
     , type_{type}
+    , random_engine_{seed}
     , time_since_last_evaporation_{0.}
 {}
 
-int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
+double Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
 {
   SquareCoordinate center_square_coordinate{
       WorldPositionToSquareCoordinate(circle.getCircleCenter())};
@@ -618,13 +600,44 @@ int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
       neighbouring_squares.end());
 
   return std::accumulate(
-      pheromones_vec_.begin(), pheromones_vec_.end(), 0,
-      [&circle](int sum, PheromoneParticle const& pheromone) {
+      pheromones_vec_.begin(), pheromones_vec_.end(), 0.,
+      [&circle](double sum, PheromoneParticle const& pheromone) {
         return sum
              + (circle.isInside(pheromone.getPosition())
                     ? pheromone.getIntensity()
-                    : 0);
+                    : 0.);
       });
+}
+
+//returns end() if there were no pheromones in the circle
+std::vector<PheromoneParticle>::const_iterator
+Pheromones::getRandomMaxPheromoneParticleInCircle(Circle const& circle)
+{
+  // for each pheromone we have a 0.1% chance of returning the max of previous
+  // intensities (up to that point)
+
+  double probability_of_returning_early{0.001};
+  std::vector<PheromoneParticle>::const_iterator max_intensity_particle{
+      pheromones_vec_.end()};
+  std::uniform_real_distribution<double> distr(0., 1.);
+
+  for (auto pheromone_particle{pheromones_vec_.begin()};
+       pheromone_particle != pheromones_vec_.end(); ++pheromone_particle) {
+    if (circle.isInside(pheromone_particle->getPosition())) {
+      if (max_intensity_particle == pheromones_vec_.end()) {
+        max_intensity_particle = pheromone_particle;
+      } else if (pheromone_particle->getIntensity()
+                 > max_intensity_particle->getIntensity()) {
+        max_intensity_particle = pheromone_particle;
+      }
+
+      if (distr(random_engine_) < probability_of_returning_early) {
+        return max_intensity_particle;
+      }
+    }
+  }
+
+  return max_intensity_particle;
 }
 
 Pheromones::Type Pheromones::getPheromonesType() const
