@@ -34,7 +34,6 @@ void Ant::calculateCirclesOfVision(
 // may throw std::invalid_argument if pheromone_reserve <= 0.
 Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
          bool has_food, double pheromone_reserve)
-         bool has_food, double pheromone_reserve)
     // if norm(direction) == 0. we would be dividing by 0.
     // before checking if norm(direction)==0
     : desired_direction_{norm2(direction) == 0. ? direction
@@ -43,12 +42,10 @@ Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
     , velocity_{ANT_SPEED * desired_direction_}
     , has_food_{has_food}
     , pheromone_reserve_{pheromone_reserve}
-    , pheromone_reserve_{pheromone_reserve}
     // small hack to have the ants put pheromones down immediatly, near the
     // antill (the first was too far away and they missed the anthill)
     , time_since_last_pheromone_release_{PERIOD_BETWEEN_PHEROMONE_RELEASE_
                                          * 1.5}
-    , time_since_last_pheromone_search_{0.}
     , time_since_last_pheromone_search_{0.}
     , current_frame_{current_frame}
 {
@@ -163,7 +160,7 @@ Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
   // } else {
   //   desired_direction_ = ex_desired_direction;
   // }
-  std::normal_distribution angle_randomizer{0., PI / 24.};
+  std::normal_distribution angle_randomizer{0., PI / 80.};
   //   double wander_stenght = .04;
   // std::uniform_real_distribution angle_dist{0., 2 * PI};
   // Vector2d ex_desired_direction{desired_direction_};
@@ -175,7 +172,6 @@ Ant::calculateRandomTurning(std::default_random_engine& random_engine) const
   // } else {
   //   desired_direction_ = ex_desired_direction;
   // }
-  std::normal_distribution angle_randomizer{0., PI / 24.};
 
   return angle_randomizer(random_engine);
 }
@@ -222,13 +218,7 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     time_since_last_pheromone_search_ -= PERIOD_BETWEEN_PHEROMONE_SEARCH_;
     time_to_search_pheromones = true;
   }
-  time_since_last_pheromone_search_ += delta_t;
-  bool time_to_search_pheromones{false};
-  if (time_since_last_pheromone_search_ > PERIOD_BETWEEN_PHEROMONE_SEARCH_) {
-    time_since_last_pheromone_search_ -= PERIOD_BETWEEN_PHEROMONE_SEARCH_;
-    time_to_search_pheromones = true;
-  }
-  // we  consider the ant as a bar long ANTS::ANT_LENGHT that rotates along its
+  // we  consider the ant as a bar long        position_ + CIRCLE_OF_VISION_DISTANCE * rotate(facing_dir, angle)); ANTS::ANT_LENGHT that rotates along its
   // center; this rotation is considered a consequence from two forces, one at
   // the top and on at the bottom of the ant, that cooperatively try to rotate
   // its velocity_ vector to align it to the desired_direction_. To try and not
