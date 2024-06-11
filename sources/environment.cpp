@@ -1,14 +1,17 @@
 #include "environment.hpp"
+#include "drawing.hpp"
 #include "geometry.hpp"
 #include "logger.hpp"
 #include <algorithm> //for find_if and remove_if any_of
-#include <cmath>
+#include <cassert>
+#include <cmath> //for std::ceil and something else
+#include <cstring>
 #include <fstream>
-#include <numeric>   //for accumulate
+#include <numeric> //for accumulate
+#include <random>
 #include <stdexcept> //invalid_argument
 #include <vector>
 
-#include <cassert>
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
 
@@ -151,57 +154,46 @@ Vector2d const& FoodParticle::getPosition() const
 // }
 
 // PheromoneParticle class Implementation--------------------------
-PheromoneParticle::PheromoneParticle(Vector2d const& position, int intensity)
+// may throw std::invalid_argument if intensity <= 0.
+PheromoneParticle::PheromoneParticle(Vector2d const& position, double intensity)
     : position_{position}
     , intensity_{intensity}
 {
-  if (intensity_ < 0 || intensity_ > 100)
+  if (intensity_ <= 0.)
     throw std::invalid_argument{
-        "The pheromones intensity must be between 0 and 100"};
+        "The pheromone's intensity can't be negative or null "};
 }
-
-// PheromoneParticle::PheromoneParticle(
-//     PheromoneParticle const& pheromone_particle)
-//     : PheromoneParticle{pheromone_particle.getPosition(),
-//                         pheromone_particle.getIntensity()}
-// {}
 
 Vector2d const& PheromoneParticle::getPosition() const
 {
   return position_;
 }
 
-int PheromoneParticle::getIntensity() const
+double PheromoneParticle::getIntensity() const
 {
   return intensity_;
 }
 
-void PheromoneParticle::decreaseIntensity(int amount)
+// may throw std::invalid_argument if decrease_percentage_amount isn't in [0, 1)
+void PheromoneParticle::decreaseIntensity(double decrease_percentage_amount)
 {
-  if (amount < 0) {
-    throw std::invalid_argument{"The amount must be a positive number"};
+  if (decrease_percentage_amount < 0. || decrease_percentage_amount >= 1.) {
+    throw std::invalid_argument{
+        "The decrease_percentage_amount can't be outside [0,1)"};
   }
 
-  intensity_ -= amount;
-  if (intensity_ < 0) {
-    intensity_ = 0;
+  intensity_ *= (1. - decrease_percentage_amount);
+
+  // to avoid it going to 0 because of finite double precision
+  if (intensity_ < MIN_PHEROMONE_INTENSITY) {
+    intensity_ = MIN_PHEROMONE_INTENSITY;
   }
 }
 
 bool PheromoneParticle::hasEvaporated() const
 {
-  return intensity_ == 0;
+  return intensity_ <= MIN_PHEROMONE_INTENSITY;
 }
-
-// PheromoneParticle& PheromoneParticle::operator=(PheromoneParticle const& rhs)
-// {
-//   if (&rhs != this) {
-//     position_  = rhs.position_;
-//     intensity_ = rhs.intensity_;
-//   }
-
-//   return *this;
-// }
 
 // Food Class implementation -----------------------------------
 
@@ -498,7 +490,7 @@ bool operator!=(Food::Iterator const& lhs, Food::Iterator const& rhs)
 Food::Iterator Food::begin() const
 {
   if (circles_with_food_vec_.empty()) {
-    return Food::Iterator{std::vector<FoodParticle>::iterator{},
+    return Food::Iterator{std::vector<FoodParticle>::const_iterator{},
                           circles_with_food_vec_.end(),
                           circles_with_food_vec_.end()};
   }
@@ -521,32 +513,177 @@ Food::Iterator Food::end() const
                         circles_with_food_vec_.end() - 1};
 }
 
-// std::vector<FoodParticle>::const_iterator Food::begin() const
-// {
-//   return food_vec_.cbegin();
-// }
-// std::vector<FoodParticle>::const_iterator Food::end() const
-// {
-//   return food_vec_.cend();
-// }
-
 // Pheromones class implementation ------------------------------
-Pheromones::Pheromones(Type type)
-    : pheromones_vec_{}
-    , type_{type}
-    , time_since_last_evaporation_{0.}
-{}
 
-int Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
+PheromonesSquareCoordinate
+Pheromones::positionToPheromonesSquareCoordinate(Vector2d const& position) const
 {
+  PheromonesSquareCoordinate coord;
+  coord.x = static_cast<int16_t>(std::ceil(position.x / SQUARE_LENGTH_)) - 1;
+  coord.y = static_cast<int16_t>(std::ceil(position.y / SQUARE_LENGTH_));
+  return coord;
+}
+
+// returns the position of the top left corner of the square
+Vector2d Pheromones::pheromonesSquareCoordinateToPosition(
+    PheromonesSquareCoordinate const& coord) const
+{
+  Vector2d top_left_corner{static_cast<double>(coord.x),
+                           static_cast<double>(coord.y)};
+  return SQUARE_LENGTH_ * top_left_corner;
+}
+
+void Pheromones::fillWithNeighbouringPheromonesSquares(
+    std::vector<map_const_it>& neighbouring_squares,
+    PheromonesSquareCoordinate const& center_square_coordinate) const
+{
+  int center_x = center_square_coordinate.x;
+  int center_y = center_square_coordinate.y;
+
+  for (int delta_x = -1; delta_x <= 1; ++delta_x) {
+    for (int delta_y = -1; delta_y <= 1; ++delta_y) {
+      map_const_it square_it{pheromones_squares_.find(
+          PheromonesSquareCoordinate{center_x + delta_x, center_y + delta_y})};
+
+      if (square_it != pheromones_squares_.end()) {
+        assert(!square_it->second.empty());
+        neighbouring_squares.push_back(square_it);
+      }
+    }
+  }
+}
+
+Pheromones::Pheromones(Type type, double ant_circle_of_vision_diameter,
+                       unsigned int seed)
+    : SQUARE_LENGTH_{1.1 * ant_circle_of_vision_diameter}
+    , pheromones_squares_{}
+    , type_{type}
+    , random_engine_{seed}
+    , time_since_last_evaporation_{0.}
+{
+  if (SQUARE_LENGTH_ <= 0.) {
+    throw std::invalid_argument{"the ant's circle of vision diameter, passed "
+                                "to Pheromones, can't be negative or null"};
+  }
+}
+
+double Pheromones::getPheromonesIntensityInCircle(Circle const& circle) const
+{
+  PheromonesSquareCoordinate center_square_coordinate{
+      positionToPheromonesSquareCoordinate(circle.getCircleCenter())};
+
+  // get all existing neighbouring squares (the center is also inside
+  // neighbouring squares)
+  std::vector<map_const_it> neighbouring_squares;
+  fillWithNeighbouringPheromonesSquares(neighbouring_squares,
+                                        center_square_coordinate);
+
+  if (neighbouring_squares.empty()) {
+    return 0.;
+  }
+
+  // remove all squares that don't intersect the circle
+  neighbouring_squares.erase(
+      std::remove_if(neighbouring_squares.begin(), neighbouring_squares.end(),
+                     [&circle, this](map_const_it square) {
+                       Rectangle square_rect{
+                           pheromonesSquareCoordinateToPosition(square->first),
+                           SQUARE_LENGTH_, SQUARE_LENGTH_};
+                       return !doShapesIntersect(circle, square_rect);
+                     }),
+      neighbouring_squares.end());
+
+  if (neighbouring_squares.empty()) {
+    return 0.;
+  }
+
+  // sum of the sums of the particles inside the squares
   return std::accumulate(
-      pheromones_vec_.begin(), pheromones_vec_.end(), 0,
-      [&circle](int sum, PheromoneParticle const& pheromone) {
-        return sum
-             + (circle.isInside(pheromone.getPosition())
-                    ? pheromone.getIntensity()
-                    : 0);
+      neighbouring_squares.begin(), neighbouring_squares.end(), 0.,
+      [&circle](double total_sum, map_const_it square_it) {
+        return total_sum
+             + std::accumulate(
+                   square_it->second.begin(), square_it->second.end(), 0.,
+                   [&circle](double square_sum,
+                             PheromoneParticle const& pheromone) {
+                     return square_sum
+                          + (circle.isInside(pheromone.getPosition())
+                                 ? pheromone.getIntensity()
+                                 : 0.);
+                   });
       });
+}
+
+// returns end() if there were no pheromones in the circle
+Pheromones::Iterator
+Pheromones::getRandomMaxPheromoneParticleInCircle(Circle const& circle)
+{
+  PheromonesSquareCoordinate center_square_coordinate{
+      positionToPheromonesSquareCoordinate(circle.getCircleCenter())};
+
+  // get all existing neighbouring squares (the center is also inside
+  // neighbouring squares)
+  std::vector<map_const_it> neighbouring_squares;
+  fillWithNeighbouringPheromonesSquares(neighbouring_squares,
+                                        center_square_coordinate);
+
+  if (neighbouring_squares.empty()) {
+    return end();
+  }
+
+  // remove all squares that don't intersect the circle
+  neighbouring_squares.erase(
+      std::remove_if(neighbouring_squares.begin(), neighbouring_squares.end(),
+                     [&circle, this](map_const_it square) {
+                       Rectangle square_rect{
+                           pheromonesSquareCoordinateToPosition(square->first),
+                           SQUARE_LENGTH_, SQUARE_LENGTH_};
+                       return !doShapesIntersect(circle, square_rect);
+                     }),
+      neighbouring_squares.end());
+
+  if (neighbouring_squares.empty()) {
+    return end();
+  }
+
+  // for each pheromone we have a 0.1% chance of returning the max of previous
+  // intensities (up to that point)
+  double probability_of_returning_early{0.001};
+  std::uniform_real_distribution<double> distr(0., 1.);
+
+  // i am extreamly sorry for this monstruosity
+  // basically we search the pheromone with the highest intensity, but, each
+  // time we find a pheromone inside the circle, there's a
+  // probability_of_returning_early and returning the max found so far
+  Pheromones::Iterator max_intensity_particle{end()};
+  for (auto pheromone_square_it{neighbouring_squares.begin()};
+       pheromone_square_it != neighbouring_squares.end();
+       ++pheromone_square_it) {
+    // neighbouring squares should never be empty for class invariant
+    assert(!(*pheromone_square_it)->second.empty());
+    for (auto pheromone_particle_it{(*pheromone_square_it)->second.begin()};
+         pheromone_particle_it != (*pheromone_square_it)->second.end();
+         ++pheromone_particle_it) {
+      if (circle.isInside(pheromone_particle_it->getPosition())) {
+        if (max_intensity_particle == end()) {
+          max_intensity_particle =
+              Iterator{pheromone_particle_it, *pheromone_square_it,
+                       pheromones_squares_.end()};
+        } else if (pheromone_particle_it->getIntensity()
+                   > (*max_intensity_particle).getIntensity()) {
+          max_intensity_particle =
+              Iterator{pheromone_particle_it, *pheromone_square_it,
+                       pheromones_squares_.end()};
+        }
+
+        if (distr(random_engine_) < probability_of_returning_early) {
+          return max_intensity_particle;
+        }
+      }
+    }
+  }
+
+  return max_intensity_particle;
 }
 
 Pheromones::Type Pheromones::getPheromonesType() const
@@ -555,17 +692,33 @@ Pheromones::Type Pheromones::getPheromonesType() const
 }
 std::size_t Pheromones::getNumberOfPheromones() const
 {
-  return pheromones_vec_.size();
+  return std::accumulate(pheromones_squares_.begin(), pheromones_squares_.end(),
+                         0UL,
+                         [](std::size_t sum, auto const& pheromones_square) {
+                           return sum + pheromones_square.second.size();
+                         });
 }
 
-void Pheromones::addPheromoneParticle(Vector2d const& position, int intensity)
+double Pheromones::getMaxPheromoneIntensity() const
 {
-  pheromones_vec_.push_back(PheromoneParticle{position, intensity});
+  return Ant::MAX_PHEROMONE_RESERVE
+       * Ant::PERCENTAGE_DECREASE_PHEROMONE_RELEASE;
+}
+
+void Pheromones::addPheromoneParticle(Vector2d const& position,
+                                      double intensity)
+{
+  PheromonesSquareCoordinate square_coord{
+      positionToPheromonesSquareCoordinate(position)};
+  // pheromones_squares_[square_coord].reserve(400);
+  pheromones_squares_[square_coord].emplace_back(position, intensity);
 }
 
 void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
 {
-  pheromones_vec_.push_back(particle);
+  PheromonesSquareCoordinate square_coord{
+      positionToPheromonesSquareCoordinate(particle.getPosition())};
+  pheromones_squares_[square_coord].push_back(particle);
 }
 
 // may throw std::invalid_argument if delta_t<0.
@@ -581,26 +734,100 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
   }
   time_since_last_evaporation_ -= PERIOD_BETWEEN_EVAPORATION_UPDATE_;
 
-  for (auto& pheromone : pheromones_vec_) {
-    pheromone.decreaseIntensity();
+  for (auto& pheromone_square : pheromones_squares_) {
+    for (auto& pheromone_particle : pheromone_square.second) {
+      pheromone_particle.decreaseIntensity();
+    }
   }
 
-  // remove phermones that have evaporated
-  pheromones_vec_.erase(std::remove_if(pheromones_vec_.begin(),
-                                       pheromones_vec_.end(),
-                                       [](PheromoneParticle const& particle) {
-                                         return particle.hasEvaporated();
-                                       }),
-                        pheromones_vec_.end());
+  // remove phermones that have evaporated from the pheromones squares
+  for (auto& pheromone_square : pheromones_squares_) {
+    pheromone_square.second.remove_if([](PheromoneParticle const& particle) {
+      return particle.hasEvaporated();
+    });
+  }
+
+  // remove empty pheromones squares (it's a remove_if)
+  for (auto pheromone_square{pheromones_squares_.begin()};
+       pheromone_square != pheromones_squares_.end();) {
+    if (pheromone_square->second.empty()) {
+      pheromone_square = pheromones_squares_.erase(pheromone_square);
+    } else {
+      ++pheromone_square;
+    }
+  }
 }
 
-std::vector<PheromoneParticle>::const_iterator Pheromones::begin() const
+Pheromones::Iterator::Iterator(
+    std::list<PheromoneParticle>::const_iterator const& pheromone_particle_it,
+    map_const_it const& pheromones_square_it,
+    map_const_it const& pheromones_square_end_it)
+    : pheromone_particle_it_{pheromone_particle_it}
+    , pheromones_square_it_{pheromones_square_it}
+    , pheromones_square_end_it_{pheromones_square_end_it}
+{}
+
+Pheromones::Iterator& Pheromones::Iterator::operator++() // prefix ++
 {
-  return pheromones_vec_.cbegin();
+  ++pheromone_particle_it_;
+
+  // check if we are not at the end of the current square
+  if (pheromone_particle_it_ != pheromones_square_it_->second.end()) {
+    return *this;
+  }
+
+  // we're at the end of the current square
+  ++pheromones_square_it_;
+  if (pheromones_square_it_
+      == pheromones_square_end_it_) { // i.e. we're at the end() of all
+                                      // pheromones
+    return *this;
+  }
+
+  // we're at the end of the current square BUT it wasn't the last square
+  pheromone_particle_it_ = pheromones_square_it_->second.begin();
+  return *this;
 }
-std::vector<PheromoneParticle>::const_iterator Pheromones::end() const
+
+PheromoneParticle const& Pheromones::Iterator::operator*() const
 {
-  return pheromones_vec_.cend();
+  return *pheromone_particle_it_;
+}
+
+PheromoneParticle const* Pheromones::Iterator::operator->() const
+{
+  return &(*pheromone_particle_it_);
+}
+
+bool operator==(Pheromones::Iterator const& lhs,
+                Pheromones::Iterator const& rhs)
+{
+  // are they pointing to the same thing OR are they both end()?
+  return lhs.pheromone_particle_it_ == rhs.pheromone_particle_it_
+      || (lhs.pheromones_square_it_ == lhs.pheromones_square_end_it_
+          && rhs.pheromones_square_it_ == rhs.pheromones_square_end_it_);
+}
+bool operator!=(Pheromones::Iterator const& lhs,
+                Pheromones::Iterator const& rhs)
+{
+  return !(lhs == rhs);
+}
+
+Pheromones::Iterator Pheromones::begin() const
+{
+  if (pheromones_squares_.empty()) {
+    return end();
+  }
+
+  return Pheromones::Iterator{pheromones_squares_.begin()->second.begin(),
+                              pheromones_squares_.begin(),
+                              pheromones_squares_.end()};
+}
+Pheromones::Iterator Pheromones::end() const
+{
+  return Pheromones::Iterator{std::list<PheromoneParticle>::iterator{},
+                              pheromones_squares_.end(),
+                              pheromones_squares_.end()};
 }
 
 // implementation of class Anthill

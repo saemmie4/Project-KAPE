@@ -1,6 +1,7 @@
 #ifndef DRAWING_HPP
 #define DRAWING_HPP
 #include "ants.hpp"
+#include "environment.hpp"
 #include "geometry.hpp"
 #include <SFML/Graphics.hpp>
 #include <string>

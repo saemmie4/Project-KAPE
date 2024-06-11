@@ -46,6 +46,13 @@ double norm(Vector2d const& vec);
 // rotate the vector by "angle" radians
 Vector2d rotate(Vector2d const& vec, double angle);
 
+// return the angle of rotation in respect to the +x axis, in the range [-PI,
+// +PI] if vec == {0.,0.} instead of the angle it returns 0.
+double angle(Vector2d const& vec);
+
+// all vectors are in 2d, so the result will be the z component of vec1 X vec2
+double cross_product(Vector2d const& vec1, Vector2d const& vec2);
+
 class Circle
 {
   Vector2d center_;
@@ -53,7 +60,8 @@ class Circle
 
  public:
   // may throw std::invalid_argument if radius <= 0
-  explicit Circle(Vector2d const& center = Vector2d{0., 0.}, double radius = 1.);
+  explicit Circle(Vector2d const& center = Vector2d{0., 0.},
+                  double radius          = 1.);
   Vector2d const& getCircleCenter() const;
   double getCircleRadius() const;
   void setCircleCenter(Vector2d const& center);
@@ -69,7 +77,8 @@ class Rectangle
 
  public:
   // may throw std::invalid_argument if width or height <= 0
-  explicit Rectangle(Vector2d const& top_left_corner, double width, double height);
+  explicit Rectangle(Vector2d const& top_left_corner, double width,
+                     double height);
   Vector2d const& getRectangleTopLeftCorner() const;
   double getRectangleWidth() const;
   double getRectangleHeight() const;

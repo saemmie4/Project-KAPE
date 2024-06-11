@@ -1,15 +1,23 @@
 #ifndef ENVIRONMENT_HPP
 #define ENVIRONMENT_HPP
 #include "geometry.hpp" //for Vector2d
+#include <SFML/Graphics.hpp>
+#include <bitset>
+#include <iterator>
+#include <list>
 #include <random>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
-
-#include <iterator>
 // TODO:
 //  - check if adding things to a vector can cause exceptions
 //  - Anthill::loadFromFile() should check if it intersects any obstacles
+//  - SquareCoordinate KeyToSquareCoordinate(std::bitset<32> const& key) const;
+//  - Vector2d SquareCoordinateToWorldPosition(SquareCoordinate const& coord)
+//  const;
+
 namespace kape {
+
 class Obstacles
 {
   std::vector<Rectangle> obstacles_vec_;
@@ -48,22 +56,24 @@ class FoodParticle
 class PheromoneParticle
 {
  private:
+  // below this threshold the pheromone is considered to have evaporated
+  inline static double const MIN_PHEROMONE_INTENSITY{0.02};
+
   Vector2d position_;
-  int intensity_;
+  double intensity_;
 
  public:
-  // may throw std::invalid_argument if intensity isn't in [0,100]
-  PheromoneParticle(Vector2d const& position, int intensity = 100);
+  // may throw std::invalid_argument if intensity <= 0.
+  PheromoneParticle(Vector2d const& position, double intensity);
   // PheromoneParticle(PheromoneParticle const& pheromone_particle);
   Vector2d const& getPosition() const;
-  // returns the intensity as a number in the interval [0, 100]
-  int getIntensity() const;
+  double getIntensity() const;
 
-  // may throw std::invalid_argument if amount < 0
-  void decreaseIntensity(int amount = 1);
-  // returns true if the Pheromone's intensity is 0
+  // may throw std::invalid_argument if decrease_percentage_amount isn't in [0,
+  // 1)
+  void decreaseIntensity(double decrease_percentage_amount = 0.005);
+  // returns true if the Pheromone's intensity is <= MIN_PHEROMONE_INTENSITY
   bool hasEvaporated() const;
-  // PheromoneParticle& operator=(PheromoneParticle const& rhs);
 };
 
 class Food
@@ -146,10 +156,37 @@ class Food
 
   Iterator begin() const;
   Iterator end() const;
-  // std::vector<FoodParticle>::const_iterator begin() const;
-  // std::vector<FoodParticle>::const_iterator end() const;
 };
 
+// for the pheromone
+struct PheromonesSquareCoordinate
+{
+  int x;
+  int y;
+  friend bool operator==(PheromonesSquareCoordinate const& lhs,
+                         PheromonesSquareCoordinate const& rhs)
+  {
+    return lhs.x == rhs.x && lhs.y == rhs.y;
+  }
+};
+
+// closing temporarily for hash function
+} // namespace kape
+
+template<>
+struct std::hash<kape::PheromonesSquareCoordinate>
+{
+  std::size_t
+  operator()(const kape::PheromonesSquareCoordinate& coordinate) const noexcept
+  {
+    std::size_t hash_x = std::hash<int>{}(coordinate.x);
+    std::size_t hash_y = std::hash<int>{}(coordinate.y);
+    return hash_x ^ (hash_y << 1);
+  }
+};
+
+// reopening
+namespace kape {
 class Pheromones
 {
  public:
@@ -160,27 +197,114 @@ class Pheromones
   };
 
  private:
-  // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 5
-  // intensity levels
-  static double constexpr PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
+  PheromonesSquareCoordinate
+  positionToPheromonesSquareCoordinate(Vector2d const& position) const;
+  // returns the position of the top left corner of the square
+  Vector2d pheromonesSquareCoordinateToPosition(
+      PheromonesSquareCoordinate const& coord) const;
 
-  std::vector<PheromoneParticle> pheromones_vec_;
+ private:
+  // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 1
+  // intensity levels
+  inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
+
+  // has to be > than an ant's circle of vision diameter
+  double const SQUARE_LENGTH_;
+  // std::vector<PheromoneParticle> pheromones_vec_;
+  std::unordered_map<PheromonesSquareCoordinate, std::list<PheromoneParticle>>
+      pheromones_squares_;
   const Type type_;
+  std::default_random_engine random_engine_;
   double time_since_last_evaporation_;
 
+  using map_const_it =
+      std::unordered_map<PheromonesSquareCoordinate,
+                         std::list<PheromoneParticle>>::const_iterator;
+  void fillWithNeighbouringPheromonesSquares(
+      std::vector<map_const_it>& neighbouring_squares,
+      PheromonesSquareCoordinate const& center_square_coordinate) const;
+
  public:
-  explicit Pheromones(Type type);
-  int getPheromonesIntensityInCircle(Circle const& circle) const;
+  class Iterator
+  {
+   private:
+    std::list<PheromoneParticle>::const_iterator pheromone_particle_it_;
+    map_const_it pheromones_square_it_;
+    map_const_it pheromones_square_end_it_;
+
+   public:
+    explicit Iterator(std::list<PheromoneParticle>::const_iterator const&
+                          pheromone_particle_it,
+                      map_const_it const& pheromones_square_it_,
+                      map_const_it const& pheromones_square_end_it);
+    Iterator& operator++(); // prefix ++
+    PheromoneParticle const& operator*() const;
+    PheromoneParticle const* operator->() const;
+    friend bool operator==(Iterator const& lhs, Iterator const& rhs);
+    friend bool operator!=(Iterator const& lhs, Iterator const& rhs);
+  };
+
+  // Pheromone members------------------------
+
+  // may throw if ant_circle_of_vision_diameter<=0.
+  explicit Pheromones(Type type, double ant_circle_of_vision_diameter,
+                      unsigned int seed = 31415u);
+  double getPheromonesIntensityInCircle(Circle const& circle) const;
+  // returns end() if there were no pheromones in the circle
+  Iterator getRandomMaxPheromoneParticleInCircle(Circle const& circle);
   Pheromones::Type getPheromonesType() const;
   std::size_t getNumberOfPheromones() const;
-  // may throw std::invalid_argument if intensity isn't in [0,100]
-  void addPheromoneParticle(Vector2d const& position, int intensity = 100);
+  double getMaxPheromoneIntensity() const;
+  // may throw std::invalid_argument if intensity is <= 0.
+  void addPheromoneParticle(Vector2d const& position, double intensity);
   void addPheromoneParticle(PheromoneParticle const& particle);
   // may throw std::invalid_argument if delta_t<0.
   void updateParticlesEvaporation(double delta_t = 0.01);
 
-  std::vector<PheromoneParticle>::const_iterator begin() const;
-  std::vector<PheromoneParticle>::const_iterator end() const;
+  // renders the pheromones into the supplied std::vector<sf::Vertex>
+  // pheromone_to_vertex_pos must be callable as a void function that takes a
+  // PheromoneParticle const& and a sf::Vector2f & and puts the
+  // PheromoneParticle position on the screen into the Vector2f
+  template<class PhToVertexPos>
+  void friend renderInto(std::vector<sf::Vertex>& vertices,
+                         Pheromones const& pheromones,
+                         PhToVertexPos pheromone_to_vertex_pos)
+  {
+    sf::Color color{pheromones.getPheromonesType()
+                            == Pheromones::Type::TO_ANTHILL
+                        ? sf::Color::Blue
+                        : sf::Color::Red};
+
+    double const max_pheromone_intensity{pheromones.getMaxPheromoneIntensity()};
+
+    sf::Vector2f position;
+    for (auto const& square : pheromones.pheromones_squares_) {
+      // if (!square.second.empty()) {
+      //   auto max_pheromone_particle{square.second.back()};
+      //       // *std::max_element(square.second.begin(), square.second.end(),
+      //       //                  [](PheromoneParticle const& pheromone_particle_max,
+      //       //                     PheromoneParticle const& pheromone_particle) {
+      //       //                    return pheromone_particle.getIntensity()
+      //       //                         > pheromone_particle_max.getIntensity();
+      //       //                  })};
+      //   color.a = static_cast<sf::Uint8>((max_pheromone_particle.getIntensity()
+      //                                     / max_pheromone_intensity * 255.));
+      //   pheromone_to_vertex_pos(max_pheromone_particle, position);
+      //   vertices.emplace_back(position, color);
+      // }
+      for (auto const& pheromone_particle : square.second) {
+        color.a = static_cast<sf::Uint8>((pheromone_particle.getIntensity()
+                                          / max_pheromone_intensity * 255.));
+        pheromone_to_vertex_pos(pheromone_particle, position);
+        vertices.emplace_back(position, color);
+      }
+      // std::transform(square.second.begin(), square.second.end(),
+      //                std::back_inserter(vertices), pheromone_to_vertex);
+    }
+  }
+
+  Iterator begin() const;
+  Iterator end() const;
 };
 
 class Anthill

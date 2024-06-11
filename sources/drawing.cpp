@@ -88,24 +88,30 @@ void Window::loadForDrawing(Food const& food)
 
 void Window::loadForDrawing(Pheromones const& pheromones)
 {
-  sf::Color color{pheromones.getPheromonesType() == Pheromones::Type::TO_ANTHILL
-                      ? sf::Color::Blue
-                      : sf::Color::Red};
-
   unsigned int window_width{window_.getSize().x};
   unsigned int window_height{window_.getSize().y};
 
-  std::transform(
-      pheromones.begin(), pheromones.end(), std::back_inserter(points_vector_),
-      [window_width, window_height, &color,
-       this](PheromoneParticle const& pheromone_particle) {
-        sf::Vertex pheromone_drawing{coord_conv_.worldToScreen(
-            pheromone_particle.getPosition(), window_width, window_height)};
-        color.a = static_cast<sf::Uint8>(
-            (pheromone_particle.getIntensity() / 100. * 255.));
-        pheromone_drawing.color = color;
-        return pheromone_drawing;
+  renderInto(
+      points_vector_, pheromones,
+      [window_width, window_height, this](
+          PheromoneParticle const& pheromone_particle, sf::Vector2f& position) {
+        position = coord_conv_.worldToScreen(pheromone_particle.getPosition(),
+                                             window_width, window_height);
       });
+
+  // std::transform(
+  //     pheromones.begin(), pheromones.end(),
+  //     std::back_inserter(points_vector_), [window_width, window_height,
+  //     &color, max_pheromone_intensity,
+  //      this](PheromoneParticle const& pheromone_particle) {
+  //       sf::Vertex pheromone_drawing{coord_conv_.worldToScreen(
+  //           pheromone_particle.getPosition(), window_width, window_height)};
+  //       color.a = static_cast<sf::Uint8>(
+  //           (pheromone_particle.getIntensity() / max_pheromone_intensity *
+  //           255.));
+  //       pheromone_drawing.color = color;
+  //       return pheromone_drawing;
+  //     });
 }
 
 void Window::drawLoaded()
@@ -260,6 +266,7 @@ void Window::draw(Ant const& ant)
   }
 
   std::size_t current_frame{static_cast<std::size_t>(ant.getCurrentFrame())};
+  std::size_t current_frame{static_cast<std::size_t>(ant.getCurrentFrame())};
   if (current_frame >= ants_animation_frames_.size()) {
     throw std::runtime_error{"tried to draw a frame [frame "
                              + std::to_string(current_frame)
@@ -267,17 +274,19 @@ void Window::draw(Ant const& ant)
   }
 
   sf::Sprite ant_drawing;
-  ant_drawing.setTexture(ants_animation_frames_.at(static_cast<std::size_t>(ant.getCurrentFrame())));
+  ant_drawing.setTexture(ants_animation_frames_.at(current_frame));
+  float texture_width{
+      static_cast<float>(ant_drawing.getTexture()->getSize().x)};
+  float texture_height{
+      static_cast<float>(ant_drawing.getTexture()->getSize().y)};
   ant_drawing.setOrigin(
-      sf::Vector2f{ant_drawing.getTexture()->getSize().x / 2.f,
-                   ant_drawing.getTexture()->getSize().y / 2.f});
+      sf::Vector2f{texture_width / 2.f, texture_height / 2.f});
 
   // scaling the ant_drawing to make it the correct size on the screen
   float ant_drawing_length{coord_conv_.metersToPixels(Ant::ANT_LENGTH)};
   float ant_drawing_width{ant_drawing_length / 2.f};
-  sf::Vector2f scale_factor{
-      ant_drawing_width / ant_drawing.getTexture()->getSize().x,
-      ant_drawing_length / ant_drawing.getTexture()->getSize().y};
+  sf::Vector2f scale_factor{ant_drawing_width / texture_width,
+                            ant_drawing_length / texture_height};
   ant_drawing.setScale(scale_factor);
 
   ant_drawing.setPosition(coord_conv_.worldToScreen(
@@ -286,9 +295,32 @@ void Window::draw(Ant const& ant)
   ant_drawing.setRotation(
       coord_conv_.worldToScreenRotation(ant.getFacingAngle()));
 
-  // ant_drawing.setColor((ant.hasFood() ? sf::Color::Green : sf::Color::White));
+  // ant_drawing.setColor((ant.hasFood() ? sf::Color::Green :
+  // sf::Color::White));
 
   window_.draw(ant_drawing);
+
+  // std::array<sf::Vertex, 4> direction_lines;
+
+  // direction_lines[0] = sf::Vertex(ant_drawing.getPosition(),
+  // sf::Color::Green); direction_lines[1] = sf::Vertex(
+  //     coord_conv_.worldToScreen(
+  //         ant.getPosition() + 4. * Ant::ANT_LENGTH *
+  //         ant.getDesiredDirection(), window_.getSize().x,
+  //         window_.getSize().y),
+  //     sf::Color::Green);
+
+  // direction_lines[2] = sf::Vertex(ant_drawing.getPosition(), sf::Color::Red);
+  // direction_lines[3] = sf::Vertex(
+  //     coord_conv_.worldToScreen(ant.getPosition()
+  //                                   + 4. * Ant::ANT_LENGTH *
+  //                                   ant.getVelocity()
+  //                                         / norm(ant.getVelocity()),
+  //                               window_.getSize().x, window_.getSize().y),
+  //     sf::Color::Red);
+
+  // window_.draw(direction_lines.data(), direction_lines.size(),
+  // sf::LinesStrip);
 }
 
 void Window::draw(Ants const& ants)
