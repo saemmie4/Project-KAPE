@@ -266,7 +266,6 @@ void Window::draw(Ant const& ant)
   }
 
   std::size_t current_frame{static_cast<std::size_t>(ant.getCurrentFrame())};
-  std::size_t current_frame{static_cast<std::size_t>(ant.getCurrentFrame())};
   if (current_frame >= ants_animation_frames_.size()) {
     throw std::runtime_error{"tried to draw a frame [frame "
                              + std::to_string(current_frame)

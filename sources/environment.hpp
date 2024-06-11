@@ -204,10 +204,12 @@ class Pheromones
   Vector2d pheromonesSquareCoordinateToPosition(
       PheromonesSquareCoordinate const& coord) const;
 
- private:
+//set to public for tests
+public:
   // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 1
   // intensity levels
   inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
+ private:
 
   // has to be > than an ant's circle of vision diameter
   double const SQUARE_LENGTH_;

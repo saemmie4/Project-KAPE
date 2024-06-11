@@ -191,13 +191,15 @@ TEST_CASE("Testing Food class")
   SUBCASE("Testing const iterators begin && end")
   {
     int number_of_food_particles{0};
-    for (auto food_it = food.begin(), food_end = food.end(); food_it != food_end; ++food_it) {
+    for (auto food_it = food.begin(), food_end = food.end();
+         food_it != food_end; ++food_it) {
       ++number_of_food_particles;
     }
     CHECK(number_of_food_particles == 50);
     food.generateFoodInCircle(kape::Circle{kape::Vector2d{100., 43.}, 0.5}, 73,
                               obstacles);
-    for (auto food_it = food.begin(), food_end = food.end(); food_it != food_end; ++food_it) {
+    for (auto food_it = food.begin(), food_end = food.end();
+         food_it != food_end; ++food_it) {
       ++number_of_food_particles;
     }
     CHECK(number_of_food_particles == 173);
@@ -285,8 +287,10 @@ TEST_CASE("Testing Iterator class")
 
 TEST_CASE("Testing Pheromones class")
 {
-  kape::Pheromones ph_anthill(kape::Pheromones::Type::TO_ANTHILL);
-  kape::Pheromones ph_food(kape::Pheromones::Type::TO_FOOD);
+  // the ant's ant_circle_of_vision_diameter is set to 1. in these tests because
+  // it's not used
+  kape::Pheromones ph_anthill(kape::Pheromones::Type::TO_ANTHILL, 1.);
+  kape::Pheromones ph_food(kape::Pheromones::Type::TO_FOOD, 1.);
   SUBCASE("Testing getPheromonesType function")
   {
     CHECK(ph_anthill.getPheromonesType() == kape::Pheromones::Type::TO_ANTHILL);
