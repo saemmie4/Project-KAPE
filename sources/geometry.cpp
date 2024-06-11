@@ -100,19 +100,17 @@ Vector2d rotate(Vector2d const& vec, double angle)
                   vec.x * std::sin(angle) + vec.y * std::cos(angle)};
 }
 
-// return the angle of rotation in respect to the +x axis, in the range [-PI, +PI]
-// if vec == {0.,0.} instead of the angle it returns 0.
+// return the angle of rotation in respect to the +x axis, in the range [-PI,
+// +PI] if vec == {0.,0.} instead of the angle it returns 0.
 double angle(Vector2d const& vec)
 {
-  if(vec.x == 0. && vec.y==0.)
-  {
+  if (vec.x == 0. && vec.y == 0.) {
     return 0.;
   }
 
   // computes the angle in [-pi, +pi]
   return atan2(vec.y, vec.x);
 }
-
 
 // all vectors are in 2d, so the result will be the z component of vec1 X vec2
 //
@@ -125,9 +123,6 @@ double cross_product(Vector2d const& vec1, Vector2d const& vec2)
 {
   return vec1.x * vec2.y - vec1.y * vec2.x;
 }
-
-
-
 
 // Circle implementation----------------------------------
 
@@ -172,7 +167,7 @@ bool Circle::isInside(Vector2d const& position) const
 
 // Rectangle Implementation-----------------------------------
 
-  // may throw std::invalid_argument if width or height <= 0
+// may throw std::invalid_argument if width or height <= 0
 Rectangle::Rectangle(Vector2d const& top_left_corner, double width,
                      double height)
     : top_left_corner_{top_left_corner}

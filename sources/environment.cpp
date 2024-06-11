@@ -1,4 +1,5 @@
 #include "environment.hpp"
+#include "drawing.hpp"
 #include "geometry.hpp"
 #include "logger.hpp"
 #include <algorithm> //for find_if and remove_if any_of
@@ -545,6 +546,7 @@ void Pheromones::fillWithNeighbouringPheromonesSquares(
           PheromonesSquareCoordinate{center_x + delta_x, center_y + delta_y})};
 
       if (square_it != pheromones_squares_.end()) {
+        assert(!square_it->second.empty());
         neighbouring_squares.push_back(square_it);
       }
     }
@@ -654,23 +656,23 @@ Pheromones::getRandomMaxPheromoneParticleInCircle(Circle const& circle)
   // time we find a pheromone inside the circle, there's a
   // probability_of_returning_early and returning the max found so far
   Pheromones::Iterator max_intensity_particle{end()};
-  for (auto pheromone_square_it{pheromones_squares_.begin()};
-       pheromone_square_it != pheromones_squares_.end();
+  for (auto pheromone_square_it{neighbouring_squares.begin()};
+       pheromone_square_it != neighbouring_squares.end();
        ++pheromone_square_it) {
-    // for class invariant pheromones_squares should never be empty
-    assert(!pheromone_square_it->second.empty());
-    for (auto pheromone_particle_it{pheromone_square_it->second.begin()};
-         pheromone_particle_it != pheromone_square_it->second.end();
+    // neighbouring squares should never be empty for class invariant
+    assert(!(*pheromone_square_it)->second.empty());
+    for (auto pheromone_particle_it{(*pheromone_square_it)->second.begin()};
+         pheromone_particle_it != (*pheromone_square_it)->second.end();
          ++pheromone_particle_it) {
       if (circle.isInside(pheromone_particle_it->getPosition())) {
         if (max_intensity_particle == end()) {
           max_intensity_particle =
-              Iterator{pheromone_particle_it, pheromone_square_it,
+              Iterator{pheromone_particle_it, *pheromone_square_it,
                        pheromones_squares_.end()};
         } else if (pheromone_particle_it->getIntensity()
                    > (*max_intensity_particle).getIntensity()) {
           max_intensity_particle =
-              Iterator{pheromone_particle_it, pheromone_square_it,
+              Iterator{pheromone_particle_it, *pheromone_square_it,
                        pheromones_squares_.end()};
         }
 
@@ -697,14 +699,19 @@ std::size_t Pheromones::getNumberOfPheromones() const
                          });
 }
 
+double Pheromones::getMaxPheromoneIntensity() const
+{
+  return Ant::MAX_PHEROMONE_RESERVE
+       * Ant::PERCENTAGE_DECREASE_PHEROMONE_RELEASE;
+}
+
 void Pheromones::addPheromoneParticle(Vector2d const& position,
                                       double intensity)
 {
   PheromonesSquareCoordinate square_coord{
       positionToPheromonesSquareCoordinate(position)};
-  pheromones_squares_[square_coord].reserve(400);
-  pheromones_squares_[square_coord].push_back(
-      PheromoneParticle{position, intensity});
+  // pheromones_squares_[square_coord].reserve(400);
+  pheromones_squares_[square_coord].emplace_back(position, intensity);
 }
 
 void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
@@ -735,13 +742,9 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
 
   // remove phermones that have evaporated from the pheromones squares
   for (auto& pheromone_square : pheromones_squares_) {
-    pheromone_square.second.erase(
-        std::remove_if(pheromone_square.second.begin(),
-                       pheromone_square.second.end(),
-                       [](PheromoneParticle const& particle) {
-                         return particle.hasEvaporated();
-                       }),
-        pheromone_square.second.end());
+    pheromone_square.second.remove_if([](PheromoneParticle const& particle) {
+      return particle.hasEvaporated();
+    });
   }
 
   // remove empty pheromones squares (it's a remove_if)
@@ -756,7 +759,7 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
 }
 
 Pheromones::Iterator::Iterator(
-    std::vector<PheromoneParticle>::const_iterator const& pheromone_particle_it,
+    std::list<PheromoneParticle>::const_iterator const& pheromone_particle_it,
     map_const_it const& pheromones_square_it,
     map_const_it const& pheromones_square_end_it)
     : pheromone_particle_it_{pheromone_particle_it}
@@ -796,8 +799,6 @@ PheromoneParticle const* Pheromones::Iterator::operator->() const
   return &(*pheromone_particle_it_);
 }
 
-
-
 bool operator==(Pheromones::Iterator const& lhs,
                 Pheromones::Iterator const& rhs)
 {
@@ -824,7 +825,7 @@ Pheromones::Iterator Pheromones::begin() const
 }
 Pheromones::Iterator Pheromones::end() const
 {
-  return Pheromones::Iterator{std::vector<PheromoneParticle>::iterator{},
+  return Pheromones::Iterator{std::list<PheromoneParticle>::iterator{},
                               pheromones_squares_.end(),
                               pheromones_squares_.end()};
 }

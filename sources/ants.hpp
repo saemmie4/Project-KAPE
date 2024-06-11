@@ -101,7 +101,7 @@ class Ants
   inline static std::string const DEFAULT_FILEPATH_{"./assets/ants/ants.dat"};
 
   // NOTE: it's in "simulation" time, not real time
-  inline static double const ANIMATION_TIME_BETWEEN_FRAMES{0.1};
+  inline static double const ANIMATION_TIME_BETWEEN_FRAMES{0.03};
 
   explicit Ants(unsigned int seed = 44444444u);
   void addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants);
