@@ -31,9 +31,6 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(norm2(v2) == doctest::Approx(25.0));
   }
 
-  SUBCASE("testing rotate function")
-  {}
-
   SUBCASE("testing operator +")
   {
     CHECK((v1 + v2).x == doctest::Approx(1.));
@@ -166,6 +163,16 @@ TEST_CASE("Testing Circle class")
   kape::Vector2d v1{-1., 0.};
   kape::Vector2d v2{1., 1.};
   kape::Vector2d v3{0., 1.};
+  SUBCASE("Testing the exception in the constructor")
+  {
+    CHECK_THROWS(kape::Circle{kape::Vector2d{5.7, 4.3}, -0.3});
+    CHECK_THROWS(kape::Circle{kape::Vector2d{10.5, 7.9}, 0.});
+  }
+  SUBCASE("Testing the exception in setCircleRadius function")
+  {
+    CHECK_THROWS(c1.setCircleRadius(0.));
+    CHECK_THROWS(c1.setCircleRadius(-3.2));
+  }
   SUBCASE("testing isInside function")
   {
     CHECK(c1.isInside(v1) == false);
@@ -174,7 +181,15 @@ TEST_CASE("Testing Circle class")
   }
 }
 
-TEST_CASE("Testing doShapesIntersect")
+TEST_CASE("Testing Rectangle class")
+{
+  CHECK_THROWS(kape::Rectangle{kape::Vector2d{1.5, 2.7}, 0., 3.1});
+  CHECK_THROWS(kape::Rectangle{kape::Vector2d{1.8, 5.9}, 7.2, 0.});
+  CHECK_THROWS(kape::Rectangle{kape::Vector2d{3.6, 4.5}, -3.7, 9.5});
+  CHECK_THROWS(kape::Rectangle{kape::Vector2d{3.6, 4.5}, 6.8, -5.2});
+}
+
+TEST_CASE("Testing doShapesIntersect function")
 {
   kape::Vector2d v1{-3., 1.5};
   kape::Vector2d v2{0.5, 3.};

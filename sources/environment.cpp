@@ -22,6 +22,10 @@ namespace kape {
 Obstacles::Obstacles()
 {}
 
+std::size_t Obstacles::getNumberOfObstacles() const
+{
+  return obstacles_vec_.size();
+}
 void Obstacles::addObstacle(Vector2d const& top_left_corner, double width,
                             double height)
 {

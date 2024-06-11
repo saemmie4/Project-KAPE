@@ -27,6 +27,7 @@ class Obstacles
       "./assets/obstacles/obstacles.dat"};
 
   explicit Obstacles();
+  std::size_t getNumberOfObstacles() const;
   void addObstacle(Vector2d const& top_left_corner, double width,
                    double height);
   void addObstacle(Rectangle const& obstacle);
