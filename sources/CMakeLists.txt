@@ -28,7 +28,7 @@ string(APPEND CMAKE_CXX_FLAGS "-pg")
 #   le dipendenze vengono identificate automaticamente
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
-add_executable(project-kape main.cpp geometry.cpp environment.cpp ants.cpp  drawing.cpp logger.cpp)
+add_executable(project-kape main.cpp geometry.cpp environment.cpp ants.cpp  drawing.cpp simulation.cpp logger.cpp)
 target_link_libraries(project-kape PRIVATE sfml-graphics)
 
 # se il testing e' abilitato...

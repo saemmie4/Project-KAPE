@@ -1,81 +1,16 @@
-#include "ants.hpp"
-#include "drawing.hpp"
-#include <SFML/Graphics.hpp>
-
-// for testing, to be removed
-#include <array>
-#include <chrono>
-#include <cmath>
+#include "simulation.hpp"
 #include <iostream>
-#include <numeric>
-#include <random>
 
 int main()
 {
-  kape::Window window{700u, 600u, 1000.f};
-  window.loadAntAnimationFrames("./assets/ants/",
-                                kape::Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES);
-
-  kape::Anthill anthill{};
-  kape::Ants ants{};
-  kape::Pheromones ph_anthill{kape::Pheromones::Type::TO_ANTHILL,
-                              kape::Ant::CIRCLE_OF_VISION_RADIUS * 2.};
-  kape::Pheromones ph_food{kape::Pheromones::Type::TO_FOOD,
-                           kape::Ant::CIRCLE_OF_VISION_RADIUS * 2.};
-  kape::Obstacles obs{};
-  kape::Food food{};
-
-  anthill.loadFromFile();
-  ants.loadFromFile(anthill);
-  obs.loadFromFile();
-  food.loadFromFile(obs);
-
-  std::vector<long long int> t_count;
-
-  while (window.isOpen()) {
-    auto start{std::chrono::high_resolution_clock::now()};
-
-    ants.update(food, ph_anthill, ph_food, anthill, obs, 0.01);
-    
-    t_count.push_back(std::chrono::duration_cast<std::chrono::microseconds>(
-                          std::chrono::high_resolution_clock::now() - start)
-                          .count());
-    ph_anthill.updateParticlesEvaporation(0.01);
-    ph_food.updateParticlesEvaporation(0.01);
-
-    window.clear(sf::Color(184, 139, 74));
-
-    // window.loadForDrawing(ph_anthill);
-    // window.loadForDrawing(ph_food);
-
-    // window.loadForDrawing(food);
-    // window.drawLoaded();
-
-    window.draw(ants);
-
-    window.draw(food, ph_anthill, ph_food);
-    // for (auto const& ant : ants) {
-    //   std::array<kape::Circle, 3> circles_of_vision;
-    //   ant.calculateCirclesOfVision(circles_of_vision);
-    //   window.draw(circles_of_vision[0], sf::Color::Blue);
-    //   window.draw(circles_of_vision[1], sf::Color::Blue);
-    //   window.draw(circles_of_vision[2], sf::Color::Blue);
-    // }
-    window.draw(anthill);
-
-    window.draw(obs, sf::Color::Yellow);
-
-    window.display();
-
-    window.inputHandling();
+  kape::Simulation sim;
+  if (!sim.chooseAndLoadSimulation()) {
+    std::cout << "[ERROR]: something went wrong loading the simulation, please "
+                 "refer to the logs at ./log/log.txt";
+    return 1;
   }
-  std::cout << ph_anthill.getNumberOfPheromones()
-                   + ph_food.getNumberOfPheromones()
-            << '\n';
 
-  std::cout << std::accumulate(t_count.begin(), t_count.end(), 0.)
-                   / t_count.size()
-            << "\n";
+  sim.run();
 
   return 0;
 }

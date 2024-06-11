@@ -878,11 +878,9 @@ void Anthill::addFood(int amount)
   food_counter_ += amount;
 }
 
-bool Anthill::loadFromFile(std::string const& filepath)
+bool Anthill::loadFromFile(Obstacles const& obstacles,
+                           std::string const& filepath)
 {
-  Circle initial_circle{circle_};
-  int initial_food_counter{food_counter_};
-
   std::ifstream file_in{filepath, std::ios::in};
 
   // failed to open the file
@@ -901,22 +899,47 @@ bool Anthill::loadFromFile(std::string const& filepath)
   file_in >> circle_center_x >> circle_center_y >> circle_radius
       >> food_counter;
 
-  circle_.setCircleCenter(Vector2d{circle_center_x, circle_center_y});
-  circle_.setCircleRadius(circle_radius);
-  food_counter_ = food_counter;
+  Circle circle_in;
+  circle_in.setCircleCenter(Vector2d{circle_center_x, circle_center_y});
+  circle_in.setCircleRadius(circle_radius);
 
   std::string end_check;
   file_in >> end_check;
 
   // reached the eof too early or too late->the read failed
   if (end_check != "END") {
-    circle_       = initial_circle;
-    food_counter_ = initial_food_counter;
     kape::log << "[ERROR]:\tfrom Anthill::loadFromFile(std::string const& "
                  "filepath):\n\t\t\tTried to load from \""
               << filepath << "\" but it was badly formatted\n";
     return false;
   }
+
+  if (food_counter < 0) {
+    kape::log
+        << "[ERROR]:\tfrom Anthill::loadFromFile(std::string const& "
+           "filepath):\n\t\t\tTried to load from \""
+        << filepath
+        << "\" but the food counter read was a negative number [food counter = "
+        << food_counter << "] \n";
+    return false;
+  }
+
+  //check there are no intersections with the obstacles
+  if (std::any_of(obstacles.begin(), obstacles.end(),
+                  [&circle_in](kape::Rectangle const& obstacle) {
+                    return doShapesIntersect(circle_in, obstacle);
+                  })) {
+    kape::log
+        << "[ERROR]:\tfrom Anthill::loadFromFile(std::string const& "
+           "filepath):\n\t\t\tTried to load from \""
+        << filepath
+        << "\" but the anthill would intersect with at least one obstacle \n";
+    return false;
+  }
+
+  //all valid
+  circle_ = circle_in;
+  food_counter_ = food_counter;
   return true;
 }
 

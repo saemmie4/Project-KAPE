@@ -120,16 +120,53 @@ void Window::drawLoaded()
     window_.draw(points_vector_.data(), points_vector_.size(), sf::Points);
   }
 }
+void Window::createWindow()
+{
+  if (isOpen()) {
+    close();
+  }
+
+  window_.create(sf::VideoMode::getDesktopMode(), "Project-KAPE",
+                 sf::Style::Fullscreen);
+  is_fullscreen_ = true;
+}
+
+void Window::createWindow(unsigned int window_width, unsigned int window_height)
+{
+  if (isOpen()) {
+    close();
+  }
+
+  window_.create(sf::VideoMode(window_width, window_height), "Project-KAPE",
+                 sf::Style::Titlebar | sf::Style::Resize | sf::Style::Close);
+
+  is_fullscreen_ = false;
+}
+
+Window::Window(float meter_to_pixel)
+{
+  createWindow();
+  coord_conv_.setMeterToPixels(meter_to_pixel);
+
+  if (!window_.isOpen()) {
+    throw std::runtime_error{
+        "[ERROR]: from Window::Window(unsigned int window_width, unsigned int "
+        "window_height, float meter_to_pixel):"
+        "\n\t\t\tFailed to open the window "};
+  }
+}
 
 Window::Window(unsigned int window_width, unsigned int window_height,
                float meter_to_pixel)
 {
-  window_.create(sf::VideoMode(window_width, window_height), "Project-KAPE",
-                 sf::Style::Resize | sf::Style::Close);
+  createWindow(window_width, window_height);
   coord_conv_.setMeterToPixels(meter_to_pixel);
 
   if (!window_.isOpen()) {
-    throw std::runtime_error{"failed to open the window"};
+    throw std::runtime_error{
+        "[ERROR]: from Window::Window(unsigned int window_width, unsigned int "
+        "window_height, float meter_to_pixel):"
+        "\n\t\t\tFailed to open the window "};
   }
 }
 
@@ -146,31 +183,60 @@ void Window::inputHandling()
 
   sf::Event event;
   while (window_.pollEvent(event)) {
-    if (event.type == sf::Event::Closed) {
+    switch (event.type) {
+    case sf::Event::Closed:
       close();
-    }
-    // catch the resize events
-    else if (event.type == sf::Event::Resized) {
-      // update the view to the new size of the window
+      break;
+    case sf::Event::Resized: // update the view to the new size of the window
+    {
       sf::FloatRect visible_area{0.f, 0.f, static_cast<float>(event.size.width),
                                  static_cast<float>(event.size.height)};
       window_.setView(sf::View(visible_area));
-    } else if (event.type == sf::Event::MouseWheelScrolled) {
+    } break;
+    case sf::Event::MouseWheelScrolled: // zoom / dezoom
+    {
       float delta{event.mouseWheelScroll.delta};
       // MacBooks send 0.f if the scolling is very small both in the zoom and
-      // unzoom direction, and therefore we can't know if we should zoom or not
+      // unzoom direction, and therefore we can't know if we should zoom or
+      // not
       if (delta != 0.f) {
         float multiplier{delta < 0.f ? 0.8f : 1.2f};
         coord_conv_.setMeterToPixels(coord_conv_.getMeterToPixels()
                                      * multiplier);
       }
+    } break;
+
+    case sf::Event::KeyReleased:
+      switch (event.key.code) {
+      case sf::Keyboard::Escape:
+        if (is_fullscreen_) {
+          createWindow(sf::VideoMode::getDesktopMode().width,
+                       sf::VideoMode::getDesktopMode().height);
+        }
+        break;
+      case sf::Keyboard::F11:
+        if (is_fullscreen_) {
+          createWindow(sf::VideoMode::getDesktopMode().width,
+                       sf::VideoMode::getDesktopMode().height);
+        }else{
+          createWindow();
+        }
+        break;
+
+      default:
+        break;
+      }
+      break;
+
+    default:
+      break;
     }
   }
 }
 
 // Note: the first frame, if frames_naming_convention is left as is, would be
-// Ant_frame_0.png won't do anything if it fails to load from the path may throw
-// std::invalid argument if "[X]" isn't part of frames_naming_convention
+// Ant_frame_0.png won't do anything if it fails to load from the path may
+// throw std::invalid argument if "[X]" isn't part of frames_naming_convention
 bool Window::loadAntAnimationFrames(
     std::string const& animation_frames_filepath,
     std::size_t number_of_animation_frames,
@@ -309,8 +375,8 @@ void Window::draw(Ant const& ant)
   //         window_.getSize().y),
   //     sf::Color::Green);
 
-  // direction_lines[2] = sf::Vertex(ant_drawing.getPosition(), sf::Color::Red);
-  // direction_lines[3] = sf::Vertex(
+  // direction_lines[2] = sf::Vertex(ant_drawing.getPosition(),
+  // sf::Color::Red); direction_lines[3] = sf::Vertex(
   //     coord_conv_.worldToScreen(ant.getPosition()
   //                                   + 4. * Ant::ANT_LENGTH *
   //                                   ant.getVelocity()

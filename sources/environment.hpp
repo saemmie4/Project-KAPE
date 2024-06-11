@@ -317,9 +317,6 @@ class Anthill
   int food_counter_;
 
  public:
-  inline static std::string const DEFAULT_FILEPATH_{
-      "./assets/anthill/anthill.dat"};
-
   // may throw std::invalid_argument if radius<=0 or food_counter < 0
   explicit Anthill(Vector2d center = Vector2d{0., 0.}, double radius = 1.,
                    int food_counter = 0);
@@ -333,8 +330,8 @@ class Anthill
   void addFood(int amount = 1);
 
   // if the function fails it leaves anthill as it was before the call
-  bool loadFromFile(std::string const& filepath = DEFAULT_FILEPATH_);
-  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_);
+  bool loadFromFile(Obstacles const& obstacles, std::string const& filepath);
+  bool saveToFile(std::string const& filepath);
 };
 
 } // namespace kape
