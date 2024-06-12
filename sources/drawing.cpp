@@ -3,6 +3,8 @@
 #include "geometry.hpp"
 #include "logger.hpp"
 #include <algorithm> //for transform
+#include <cassert>
+#include <cmath>     //for std::round
 #include <stdexcept> //for std::invalid_argument, std::runtime_error
 // TODO
 //  - the implementation of the Window constructor is a bit bad
@@ -143,6 +145,33 @@ void Window::createWindow(unsigned int window_width, unsigned int window_height)
   is_fullscreen_ = false;
 }
 
+void Window::draw(sf::RectangleShape const& rectangle, sf::Text text,
+                  sf::Color const& rectangle_color)
+{
+  sf::RectangleShape rectangle_drawing{rectangle};
+  rectangle_drawing.setFillColor(rectangle_color);
+  window_.draw(rectangle_drawing);
+
+  std::size_t num_char{text.getString().getSize()};
+  if (num_char * text.getCharacterSize()
+      > rectangle_drawing.getSize().x * 3 / 4) {
+    text.setCharacterSize(rectangle_drawing.getSize().x * 3 / 4 / num_char);
+  }
+
+  sf::Vector2f center = {text.getGlobalBounds().width / 2.f,
+                         text.getGlobalBounds().height / 2.f};
+  sf::Vector2f localBounds =
+      center
+      + sf::Vector2f{text.getLocalBounds().left, text.getLocalBounds().top};
+  sf::Vector2f rounded{std::round(localBounds.x), std::round(localBounds.y)};
+  text.setOrigin(rounded);
+
+  text.setPosition(
+      rectangle_drawing.getPosition().x + rectangle_drawing.getSize().x / 2.f,
+      rectangle_drawing.getPosition().y + rectangle_drawing.getSize().y / 2.f);
+
+  window_.draw(text);
+}
 Window::Window(float meter_to_pixel)
 {
   createWindow();
@@ -218,7 +247,7 @@ void Window::inputHandling()
         if (is_fullscreen_) {
           createWindow(sf::VideoMode::getDesktopMode().width,
                        sf::VideoMode::getDesktopMode().height);
-        }else{
+        } else {
           createWindow();
         }
         break;
@@ -429,6 +458,102 @@ void Window::close()
   if (isOpen()) {
     window_.close();
   }
+}
+
+// may throw std::runtime_error if the window is not open when the function is
+// called
+std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
+{
+  if (!isOpen()) {
+    throw std::runtime_error{
+        "called Window::chooseOneOption(std::vector<std::string> const& "
+        "options) "
+        "while the window is not open"};
+  };
+
+  sf::Font font;
+  std::string font_filepath{"assets/font/courier-prime.regular.ttf"};
+  if (!font.loadFromFile(font_filepath)) {
+    throw std::runtime_error{
+        "Window::chooseOneOption(std::vector<std::string> const& "
+        "options) "
+        "could not find the font at \""
+        + font_filepath + "\""};
+  }
+
+  float window_width{window_.getSize().x};
+  float window_height{window_.getSize().y};
+  float button_spacing{window_height / (options.size() + 1)};
+  std::vector<std::pair<sf::RectangleShape, sf::Text>> buttons;
+
+  int rectangle_index{0};
+  for (auto const& option : options) {
+    sf::RectangleShape rect{
+        sf::Vector2f{3.f * button_spacing, button_spacing * 0.8f}};
+    rect.setPosition(sf::Vector2f{0.01f * window_width,
+                                  (rectangle_index + 0.5) * button_spacing});
+
+    sf::Text text;
+    text.setFont(font);
+    text.setString(option);
+    kape::log << option << '\n';
+    text.setCharacterSize(24);
+    text.setFillColor(sf::Color::White);
+
+    buttons.push_back(std::make_pair(rect, text));
+    ++rectangle_index;
+  }
+
+
+  bool chosen{false};
+  std::size_t chosen_option{0};
+  while (!chosen) {
+    sf::Event event;
+    while (window_.pollEvent(event)) {
+      switch (event.type) {
+      case sf::Event::KeyPressed:
+        switch (event.key.code) {
+        case sf::Keyboard::Right:
+        case sf::Keyboard::Down:
+          if (chosen_option >= buttons.size() - 1) {
+            chosen_option = 0;
+          } else {
+            ++chosen_option;
+          }
+          break;
+        case sf::Keyboard::Left:
+        case sf::Keyboard::Up:
+          if (chosen_option == 0) {
+            chosen_option = options.size() - 1;
+          } else {
+            --chosen_option;
+          }
+          break;
+        case sf::Keyboard::Enter:
+          chosen = true;
+          break;
+        default:
+          break;
+        }
+        break;
+      default:
+        break;
+      }
+    }
+
+    clear(sf::Color::Black);
+    int index{0};
+    for (auto const& button : buttons) {
+      draw(button.first, button.second,
+           index == chosen_option ? sf::Color::Green : sf::Color::Red);
+      ++index;
+    }
+    display();
+  }
+
+  assert(chosen == true);
+  sf::sleep(sf::seconds(10));
+  return 0;
 }
 
 Window::~Window()

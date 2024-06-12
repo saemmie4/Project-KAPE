@@ -3,6 +3,8 @@
 #include "drawing.hpp"
 #include "environment.hpp"
 #include "logger.hpp"
+#include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <string>
 // TODO:
@@ -10,11 +12,12 @@
 
 namespace kape {
 
-bool Simulation::loadSimulation(std::string const& simulation_name,
-                                std::string const& simulations_folder_path)
+bool Simulation::loadSimulation(
+    std::filesystem::directory_entry const& simulation_folder_path)
 {
-  std::string simulation_path{simulations_folder_path + '/' + simulation_name
-                              + '/'};
+  // note: if the simulation_folder_path is badly formatted the calls to
+  // loadFromFile will fail on their own
+  std::string simulation_path{simulation_folder_path.path().c_str() + '/'};
 
   return obstacles_.loadFromFile(simulation_path + "obstacles/obstacles.dat")
       && anthill_.loadFromFile(obstacles_,
@@ -40,29 +43,94 @@ Simulation::Simulation()
 
 bool Simulation::chooseAndLoadSimulation()
 {
-  std::string simulation_folder_path;
-  std::string chosen_simulation;
+  std::string simulations_folder_path_string{DEFAULT_SIMULATIONS_FOLDER_PATH_};
+
+  std::filesystem::directory_entry simulations_folder{
+      simulations_folder_path_string};
+  if (!simulations_folder.is_directory()) {
+    log << "[ERROR]: from Simulation::chooseAndLoadSimulation(): "
+           "\n\t\t\tThe simulation folder path at \""
+        << simulations_folder_path_string
+        << "\" isn't a directory/doesn't exist\n";
+    ready_to_run_ = false;
+    return false;
+  }
+
+  std::vector<std::filesystem::directory_entry>
+      available_simulations_directories;
+  std::vector<std::string> available_simulations_names;
+  for (auto const& sub_dir :
+       std::filesystem::directory_iterator{simulations_folder}) {
+    if (sub_dir.is_directory()) {
+      available_simulations_directories.push_back(sub_dir);
+
+      available_simulations_names.push_back(sub_dir.path().string());
+      bool is_string_correctly_parsed{false};
+      while (!is_string_correctly_parsed) {
+        auto& str{available_simulations_names.back()};
+        std::size_t last_slash_char{str.find_last_of('/')};
+        if (last_slash_char == str.npos) { // maybe using '\' (?)
+          last_slash_char = str.find_last_of('\\');
+        }
+
+        // we want to get the characters after the last '/', which should be the
+        // name of the simulation
+        if (last_slash_char != str.npos && last_slash_char != str.size() - 1) {
+          str = str.substr(last_slash_char + 1); // from there to the end
+          assert(!str.empty());
+          assert(str.find('/') == str.npos);
+          assert(str.find('\\') == str.npos);
+          is_string_correctly_parsed = true;
+        } else if (last_slash_char
+                   == str.size() - 1) { // slash at the end of the string?
+          str.pop_back(); // try removing and repeating the parsing
+        } else {
+          assert(!str.empty());
+          assert(str.find('/') == str.npos);
+          assert(str.find('\\') == str.npos);
+          is_string_correctly_parsed = true;
+        }
+      }
+    }
+  }
+
+  if (available_simulations_directories.empty()) {
+    log << "[ERROR]: from Simulation::chooseAndLoadSimulation(): "
+           "\n\t\t\tThe simulations folder path at \""
+        << simulations_folder_path_string << "\" contains no simulations\n";
+    ready_to_run_ = false;
+    return false;
+  }
+
+  std::size_t chosen_simulation_index{0};
+  if (window_.isOpen()) { 
+    chosen_simulation_index =
+        window_.chooseOneOption(available_simulations_names);
+  }
+  assert(available_simulations_directories.size() == available_simulations_names.size());
+  assert(chosen_simulation_index < available_simulations_directories.size());
 
   // ...
   // something to actually choose a simulation
   // ...
-  simulation_folder_path = DEFAULT_SIMULATIONS_FOLDER_PATH_;
-  chosen_simulation      = DEFAULT_SIMULATION_NAME_;
   // ...
   // ...
-  // ...
+  // // ...
 
-  if (loadSimulation(chosen_simulation, simulation_folder_path)) {
-    ready_to_run_ = true;
-  } else {
-    kape::log << "[ERROR]:\tfrom Simulation::loadSimulation(std::string const& "
-                 "simulation_name, std::string const& simulations_folder_path):"
-                 "\n\t\t\tTried to load the simulation \""
-              << chosen_simulation << "\" from \"" << simulation_folder_path
-              << " but failed to do so.\n";
+  // if (loadSimulation(chosen_simulation, simulation_folder_path)) {
+  //   ready_to_run_ = true;
+  // } else {
+  //   kape::log << "[ERROR]:\tfrom Simulation::loadSimulation(std::string
+  //   const& "
+  //                "simulation_name, std::string const&
+  //                simulations_folder_path):"
+  //                "\n\t\t\tTried to load the simulation \""
+  //             << chosen_simulation << "\" from \"" <<
+  //             simulation_folder_path
+  //             << " but failed to do so.\n";
 
-    ready_to_run_ = false;
-  }
+  //   ready_to_run_ = false;
+  // }
 
   return ready_to_run_;
 }

@@ -10,6 +10,7 @@
 #include "drawing.hpp"
 #include "environment.hpp"
 #include <string>
+#include <filesystem>
 
 namespace kape {
 class Simulation
@@ -20,7 +21,7 @@ class Simulation
       "./assets/simulations"};
   // name of the simulation to be loaded by default
   inline static std::string const DEFAULT_SIMULATION_NAME_{"default"};
-  //as a default the time between simulation updates is 0.01s
+  // as a default the time between simulation updates is 0.01s
   inline static double const DEFAULT_DELTA_T_{0.01};
 
   Obstacles obstacles_;
@@ -29,15 +30,14 @@ class Simulation
   Ants ants_;
   Pheromones to_anthill_ph_;
   Pheromones to_food_ph_;
-  double delta_t_; 
+  double delta_t_;
   bool ready_to_run_;
   Window window_;
 
   // returns true if all the objects have been loaded properly, false if at
   // least one failed
   bool loadSimulation(
-      std::string const& simulation_name    = DEFAULT_SIMULATION_NAME_,
-      std::string const& simulations_folder = DEFAULT_SIMULATIONS_FOLDER_PATH_);
+      std::filesystem::directory_entry const& simulation_folder_path);
 
  public:
   explicit Simulation();

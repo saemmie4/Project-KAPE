@@ -52,11 +52,12 @@ class Window
   void loadForDrawing(Food const& food);
   void loadForDrawing(Pheromones const& pheromones);
   void drawLoaded();
-  //creates/recreates the window, making it fullscreen
+  // creates/recreates the window, making it fullscreen
   void createWindow();
-  //creates/recreates the window with the specified dimensions
+  // creates/recreates the window with the specified dimensions
   void createWindow(unsigned int window_width, unsigned int window_height);
-
+  void draw(sf::RectangleShape const& rectangle, sf::Text text,
+            sf::Color const& rectangle_color);
  public:
   // creates the window with size as big as possible
   // may throw std::invalid_argument if meter_to_pixel <= 0
@@ -79,6 +80,8 @@ class Window
   void draw(Circle const& circle, sf::Color const& color,
             std::size_t point_count = 30U);
   void draw(Rectangle const& rectangle, sf::Color const& color);
+
+
   void draw(Ant const& ant);
   void draw(Ants const& ants);
   void draw(Anthill const& anthill);
@@ -87,6 +90,10 @@ class Window
             Pheromones const& pheromone2);
   void display();
   void close();
+
+  // may throw std::runtime_error if the window is not open when the function is
+  // called
+  std::size_t chooseOneOption(std::vector<std::string> const& options);
 
   ~Window();
 };
