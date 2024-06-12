@@ -23,7 +23,6 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined -fno-o
 
 #for analysis
 string(APPEND CMAKE_CXX_FLAGS "-pg")
-      
 # richiedi il componente graphics della libreria SFML, versione 2.5
 #   le dipendenze vengono identificate automaticamente
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
@@ -39,6 +38,9 @@ if (BUILD_TESTING)
 add_executable(geometry_test.t geometry.t.cpp geometry.cpp)
 add_executable(environment_test.t geometry.cpp environment.t.cpp environment.cpp logger.cpp)
 add_executable(ant_test.t ants.t.cpp ants.cpp geometry.cpp environment.cpp logger.cpp)
+target_link_libraries(geometry_test.t PRIVATE sfml-graphics)
+target_link_libraries(environment_test.t PRIVATE sfml-graphics)
+target_link_libraries(ant_test.t PRIVATE sfml-graphics)
   # aggiungi l'eseguibile all.t alla lista dei test
   add_test(NAME geometry_test.t COMMAND geometry_test.t)
   add_test(NAME environment_test.t COMMAND environment_test.t)

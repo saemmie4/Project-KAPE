@@ -348,14 +348,13 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
   }
 
   ants_vec_.reserve(number_of_ants);
-  double const delta_angle{2. * PI / static_cast<double>(number_of_ants)};
   int counter{0};
   std::uniform_real_distribution dist(0., 2*PI);
   std::uniform_int_distribution starting_frame_generator{
       0, Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES - 1};
   std::generate_n(
       std::back_inserter(ants_vec_), number_of_ants,
-      [&circle, &counter, delta_angle, &starting_frame_generator, this, &dist]() {
+      [&circle, &counter, &starting_frame_generator, this, &dist]() {
         Vector2d facing_direction{
             rotate(Vector2d{0., 1.}, counter * (dist(random_engine_)))};
         ++counter;
