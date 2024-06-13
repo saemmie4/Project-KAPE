@@ -153,9 +153,14 @@ void Window::draw(sf::RectangleShape const& rectangle, sf::Text text,
   window_.draw(rectangle_drawing);
 
   std::size_t num_char{text.getString().getSize()};
+  // size_t * size_t or size_t * uint becomes a float on its own, the static
+  // cast is to avoid the warning
   if (num_char * text.getCharacterSize()
-      > rectangle_drawing.getSize().x * 3 / 4) {
-    text.setCharacterSize(rectangle_drawing.getSize().x * 3 / 4 / num_char);
+      > static_cast<std::size_t>(std::round(rectangle_drawing.getSize().x)) * 9
+            / 10) {
+    text.setCharacterSize(static_cast<unsigned int>(
+        static_cast<size_t>(rectangle_drawing.getSize().x) * 9 / 10
+        / num_char));
   }
 
   sf::Vector2f center = {text.getGlobalBounds().width / 2.f,
@@ -481,9 +486,9 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
         + font_filepath + "\""};
   }
 
-  float window_width{window_.getSize().x};
-  float window_height{window_.getSize().y};
-  float button_spacing{window_height / (options.size() + 1)};
+  float window_width{static_cast<float>(window_.getSize().x)};
+  float window_height{static_cast<float>(window_.getSize().y)};
+  float button_spacing{window_height / static_cast<float>(options.size() + 1)};
   std::vector<std::pair<sf::RectangleShape, sf::Text>> buttons;
 
   int rectangle_index{0};
@@ -491,7 +496,8 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
     sf::RectangleShape rect{
         sf::Vector2f{3.f * button_spacing, button_spacing * 0.8f}};
     rect.setPosition(sf::Vector2f{0.01f * window_width,
-                                  (rectangle_index + 0.5) * button_spacing});
+                                  (static_cast<float>(rectangle_index) + 0.5f)
+                                      * button_spacing});
 
     sf::Text text;
     text.setFont(font);
@@ -503,7 +509,6 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
     buttons.push_back(std::make_pair(rect, text));
     ++rectangle_index;
   }
-
 
   bool chosen{false};
   std::size_t chosen_option{0};
@@ -542,7 +547,7 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
     }
 
     clear(sf::Color::Black);
-    int index{0};
+    std::size_t index{0};
     for (auto const& button : buttons) {
       draw(button.first, button.second,
            index == chosen_option ? sf::Color::Green : sf::Color::Red);
