@@ -11,7 +11,7 @@
 //    calculateRandomTurning temporarily made public to run tests, should be
 //    private
 
-namespace kape{
+namespace kape {
 
 double constexpr E = 2.71828182845904523536;
 
@@ -104,7 +104,7 @@ class Ants
   inline static double const ANIMATION_TIME_BETWEEN_FRAMES{0.03};
 
   explicit Ants(unsigned int seed = 44444444u);
-  size_t getNumberOfAnts();
+  size_t getNumberOfAnts() const;
   void addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants);
   // may throw std::invalid_argument if to_anthill_ph isn't of type
   // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
