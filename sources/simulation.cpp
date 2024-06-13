@@ -39,6 +39,8 @@ Simulation::Simulation()
     , delta_t_{DEFAULT_DELTA_T_}
     , ready_to_run_{false}
     , window_{}
+    , time_since_last_ants_position_check_{}
+    , average_ants_distance_from_line_{}
 {}
 
 bool Simulation::chooseAndLoadSimulation()
@@ -103,11 +105,12 @@ bool Simulation::chooseAndLoadSimulation()
   }
 
   std::size_t chosen_simulation_index{0};
-  if (window_.isOpen()) { 
+  if (window_.isOpen()) {
     chosen_simulation_index =
         window_.chooseOneOption(available_simulations_names);
   }
-  assert(available_simulations_directories.size() == available_simulations_names.size());
+  assert(available_simulations_directories.size()
+         == available_simulations_names.size());
   assert(chosen_simulation_index < available_simulations_directories.size());
 
   // ...
@@ -152,6 +155,15 @@ void Simulation::run()
     to_anthill_ph_.updateParticlesEvaporation(delta_t_);
     to_food_ph_.updateParticlesEvaporation(delta_t_);
 
+    time_since_last_ants_position_check_ += DEFAULT_DELTA_T_;
+    bool time_to_check_ants_position{false};
+    if (time_since_last_ants_position_check_ > 6000 * DEFAULT_DELTA_T_) {
+      time_since_last_ants_position_check_ -= 6000 * DEFAULT_DELTA_T_;
+      time_to_check_ants_position = true;
+    }
+    if (time_to_check_ants_position) {
+      AverageDistances(ants_, 0., 0., average_ants_distance_from_line_);
+    }
     window_.clear(sf::Color(184, 139, 74));
     window_.draw(ants_);
     window_.draw(food_, to_anthill_ph_, to_food_ph_);
@@ -168,5 +180,18 @@ void Simulation::run()
     window_.display();
     window_.inputHandling();
   }
+}
+
+void AverageDistances(Ants const& ants, double slope, double y_intercept,
+                      std::vector<double>& average_distances)
+{
+  double total_distance =
+      std::accumulate(ants.begin(), ants.end(), 0., [&](Ant& ant) {
+        return (std::abs(slope * ant.getPosition().x + y_intercept
+                         - ant.getPosition().y))
+             / std::sqrt(slope * slope + 1);
+      });
+  double avg_distance{total_distance / ants.getNumberOfAnts()};
+  average_distances.push_back(avg_distance);
 }
 } // namespace kape

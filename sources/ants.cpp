@@ -336,7 +336,7 @@ Ants::Ants(unsigned int seed)
     , time_since_last_frame_change{0.}
 {}
 
-std::size_t Ants::getNumberOfAnts() {
+std::size_t Ants::getNumberOfAnts() const{
   return ants_vec_.size();
 }
 

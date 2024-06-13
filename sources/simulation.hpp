@@ -33,6 +33,8 @@ class Simulation
   double delta_t_;
   bool ready_to_run_;
   Window window_;
+  double time_since_last_ants_position_check_;
+  std::vector<double> average_ants_distance_from_line_;
 
   // returns true if all the objects have been loaded properly, false if at
   // least one failed
