@@ -11,6 +11,7 @@
 #include <random>
 #include <stdexcept> //invalid_argument
 #include <vector>
+#include <deque>
 
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
@@ -559,7 +560,7 @@ void Pheromones::fillWithNeighbouringPheromonesSquares(
 
 Pheromones::Pheromones(Type type, double ant_circle_of_vision_diameter,
                        unsigned int seed)
-    : SQUARE_LENGTH_{1.1 * ant_circle_of_vision_diameter}
+    : SQUARE_LENGTH_{2. * ant_circle_of_vision_diameter}
     , pheromones_squares_{}
     , type_{type}
     , random_engine_{seed}
@@ -746,9 +747,17 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
 
   // remove phermones that have evaporated from the pheromones squares
   for (auto& pheromone_square : pheromones_squares_) {
-    pheromone_square.second.remove_if([](PheromoneParticle const& particle) {
-      return particle.hasEvaporated();
-    });
+    pheromone_square.second.erase(
+        std::remove_if(pheromone_square.second.begin(),
+                       pheromone_square.second.end(),
+                       [](PheromoneParticle const& particle) {
+                         return particle.hasEvaporated();
+                       }),
+        pheromone_square.second.end());
+    // pheromone_square.second.remove_if([](PheromoneParticle const& particle)
+    // {
+    //   return particle.hasEvaporated();
+    // });
   }
 
   // remove empty pheromones squares (it's a remove_if)
@@ -762,10 +771,9 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
   }
 }
 
-Pheromones::Iterator::Iterator(
-    std::list<PheromoneParticle>::const_iterator const& pheromone_particle_it,
-    map_const_it const& pheromones_square_it,
-    map_const_it const& pheromones_square_end_it)
+Pheromones::Iterator::Iterator(square_const_it const& pheromone_particle_it,
+                               map_const_it const& pheromones_square_it,
+                               map_const_it const& pheromones_square_end_it)
     : pheromone_particle_it_{pheromone_particle_it}
     , pheromones_square_it_{pheromones_square_it}
     , pheromones_square_end_it_{pheromones_square_end_it}
@@ -829,8 +837,7 @@ Pheromones::Iterator Pheromones::begin() const
 }
 Pheromones::Iterator Pheromones::end() const
 {
-  return Pheromones::Iterator{std::list<PheromoneParticle>::iterator{},
-                              pheromones_squares_.end(),
+  return Pheromones::Iterator{square_const_it{}, pheromones_squares_.end(),
                               pheromones_squares_.end()};
 }
 
@@ -915,16 +922,16 @@ bool Anthill::loadFromFile(Obstacles const& obstacles,
   }
 
   if (food_counter < 0) {
-    kape::log
-        << "[ERROR]:\tfrom Anthill::loadFromFile(std::string const& "
-           "filepath):\n\t\t\tTried to load from \""
-        << filepath
-        << "\" but the food counter read was a negative number [food counter = "
-        << food_counter << "] \n";
+    kape::log << "[ERROR]:\tfrom Anthill::loadFromFile(std::string const& "
+                 "filepath):\n\t\t\tTried to load from \""
+              << filepath
+              << "\" but the food counter read was a negative number [food "
+                 "counter = "
+              << food_counter << "] \n";
     return false;
   }
 
-  //check there are no intersections with the obstacles
+  // check there are no intersections with the obstacles
   if (std::any_of(obstacles.begin(), obstacles.end(),
                   [&circle_in](kape::Rectangle const& obstacle) {
                     return doShapesIntersect(circle_in, obstacle);
@@ -937,8 +944,8 @@ bool Anthill::loadFromFile(Obstacles const& obstacles,
     return false;
   }
 
-  //all valid
-  circle_ = circle_in;
+  // all valid
+  circle_       = circle_in;
   food_counter_ = food_counter;
   return true;
 }

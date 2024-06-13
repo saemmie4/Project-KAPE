@@ -8,6 +8,7 @@
 #include <random>
 #include <stdexcept>
 #include <unordered_map>
+#include <deque>
 #include <vector>
 // TODO:
 //  - check if adding things to a vector can cause exceptions
@@ -204,17 +205,17 @@ class Pheromones
   Vector2d pheromonesSquareCoordinateToPosition(
       PheromonesSquareCoordinate const& coord) const;
 
-//set to public for tests
-public:
+  // set to public for tests
+ public:
   // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 1
   // intensity levels
   inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
- private:
 
+ private:
   // has to be > than an ant's circle of vision diameter
   double const SQUARE_LENGTH_;
   // std::vector<PheromoneParticle> pheromones_vec_;
-  std::unordered_map<PheromonesSquareCoordinate, std::list<PheromoneParticle>>
+  std::unordered_map<PheromonesSquareCoordinate, std::deque<PheromoneParticle>>
       pheromones_squares_;
   const Type type_;
   std::default_random_engine random_engine_;
@@ -222,7 +223,9 @@ public:
 
   using map_const_it =
       std::unordered_map<PheromonesSquareCoordinate,
-                         std::list<PheromoneParticle>>::const_iterator;
+                         std::deque<PheromoneParticle>>::const_iterator;
+  using square_const_it = std::deque<PheromoneParticle>::const_iterator;
+
   void fillWithNeighbouringPheromonesSquares(
       std::vector<map_const_it>& neighbouring_squares,
       PheromonesSquareCoordinate const& center_square_coordinate) const;
@@ -231,13 +234,12 @@ public:
   class Iterator
   {
    private:
-    std::list<PheromoneParticle>::const_iterator pheromone_particle_it_;
+    square_const_it pheromone_particle_it_;
     map_const_it pheromones_square_it_;
     map_const_it pheromones_square_end_it_;
 
    public:
-    explicit Iterator(std::list<PheromoneParticle>::const_iterator const&
-                          pheromone_particle_it,
+    explicit Iterator(square_const_it const& pheromone_particle_it,
                       map_const_it const& pheromones_square_it_,
                       map_const_it const& pheromones_square_end_it);
     Iterator& operator++(); // prefix ++
@@ -285,12 +287,16 @@ public:
       // if (!square.second.empty()) {
       //   auto max_pheromone_particle{square.second.back()};
       //       // *std::max_element(square.second.begin(), square.second.end(),
-      //       //                  [](PheromoneParticle const& pheromone_particle_max,
-      //       //                     PheromoneParticle const& pheromone_particle) {
+      //       //                  [](PheromoneParticle const&
+      //       pheromone_particle_max,
+      //       //                     PheromoneParticle const&
+      //       pheromone_particle) {
       //       //                    return pheromone_particle.getIntensity()
-      //       //                         > pheromone_particle_max.getIntensity();
+      //       //                         >
+      //       pheromone_particle_max.getIntensity();
       //       //                  })};
-      //   color.a = static_cast<sf::Uint8>((max_pheromone_particle.getIntensity()
+      //   color.a =
+      //   static_cast<sf::Uint8>((max_pheromone_particle.getIntensity()
       //                                     / max_pheromone_intensity * 255.));
       //   pheromone_to_vertex_pos(max_pheromone_particle, position);
       //   vertices.emplace_back(position, color);

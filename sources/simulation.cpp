@@ -29,6 +29,23 @@ bool Simulation::loadSimulation(
           simulation_path + "ants/",
           kape::Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES);
 }
+
+bool Simulation::timeToRender()
+{
+  std::chrono::time_point<clock> now{clock::now()};
+
+  long int const microseconds_between_frames{1'000'000 / FRAMERATE};
+  if (std::chrono::duration_cast<std::chrono::microseconds>(
+          now - last_frame_update_)
+          .count()
+      > microseconds_between_frames) {
+    last_frame_update_ = now;
+    return true;
+  }
+
+  return false;
+}
+
 Simulation::Simulation()
     : obstacles_{}
     , anthill_{}
@@ -37,7 +54,8 @@ Simulation::Simulation()
     , to_anthill_ph_{Pheromones::Type::TO_ANTHILL,
                      2. * Ant::CIRCLE_OF_VISION_RADIUS}
     , to_food_ph_{Pheromones::Type::TO_FOOD, 2. * Ant::CIRCLE_OF_VISION_RADIUS}
-    , delta_t_{DEFAULT_DELTA_T_}
+    , simulation_delta_t_{SIMULATION_DELTA_T_}
+    , last_frame_update_{clock::now()}
     , ready_to_run_{false}
     , window_{}
 {}
@@ -161,25 +179,27 @@ void Simulation::run()
 
   while (window_.isOpen()) {
     ants_.update(food_, to_anthill_ph_, to_food_ph_, anthill_, obstacles_,
-                 delta_t_);
-    to_anthill_ph_.updateParticlesEvaporation(delta_t_);
-    to_food_ph_.updateParticlesEvaporation(delta_t_);
+                 simulation_delta_t_);
+    to_anthill_ph_.updateParticlesEvaporation(simulation_delta_t_);
+    to_food_ph_.updateParticlesEvaporation(simulation_delta_t_);
 
-    window_.clear(sf::Color(184, 139, 74));
-    window_.draw(ants_);
-    window_.draw(food_, to_anthill_ph_, to_food_ph_);
-    // for (auto const& ant : ants) {
-    //   std::array<kape::Circle, 3> circles_of_vision;
-    //   ant.calculateCirclesOfVision(circles_of_vision);
-    //   window.draw(circles_of_vision[0], sf::Color::Blue);
-    //   window.draw(circles_of_vision[1], sf::Color::Blue);
-    //   window.draw(circles_of_vision[2], sf::Color::Blue);
-    // }
-    window_.draw(anthill_);
-    window_.draw(obstacles_, sf::Color::Yellow);
+    if (timeToRender()) {
+      window_.clear(sf::Color(184, 139, 74));
+      window_.draw(ants_);
+      window_.draw(food_, to_anthill_ph_, to_food_ph_);
+      // for (auto const& ant : ants) {
+      //   std::array<kape::Circle, 3> circles_of_vision;
+      //   ant.calculateCirclesOfVision(circles_of_vision);
+      //   window.draw(circles_of_vision[0], sf::Color::Blue);
+      //   window.draw(circles_of_vision[1], sf::Color::Blue);
+      //   window.draw(circles_of_vision[2], sf::Color::Blue);
+      // }
+      window_.draw(anthill_);
+      window_.draw(obstacles_, sf::Color::Yellow);
 
-    window_.display();
-    window_.inputHandling();
+      window_.display();
+      window_.inputHandling();
+    }
   }
 }
 } // namespace kape
