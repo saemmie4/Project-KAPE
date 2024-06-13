@@ -9,6 +9,7 @@
 // TODO
 //  - the implementation of the Window constructor is a bit bad
 //  - loadAntAnimationFrames uses a for loop which is kinda bad
+//  - draw buttons glitches if text is too long
 
 namespace kape {
 CoordinateConverter::CoordinateConverter(float meter_to_pixels)
@@ -152,15 +153,16 @@ void Window::draw(sf::RectangleShape const& rectangle, sf::Text text,
   rectangle_drawing.setFillColor(rectangle_color);
   window_.draw(rectangle_drawing);
 
-  std::size_t num_char{text.getString().getSize()};
+  // std::size_t num_char{text.getString().getSize()};
   // size_t * size_t or size_t * uint becomes a float on its own, the static
   // cast is to avoid the warning
-  if (num_char * text.getCharacterSize()
-      > static_cast<std::size_t>(std::round(rectangle_drawing.getSize().x)) * 9
-            / 10) {
-    text.setCharacterSize(static_cast<unsigned int>(
-        static_cast<size_t>(rectangle_drawing.getSize().x) * 9 / 10
-        / num_char));
+  if (text.getGlobalBounds().width > 0.9f * rectangle_drawing.getSize().x) {
+    text.setScale(
+        0.9f * rectangle_drawing.getSize().x / text.getGlobalBounds().width,
+        0.9f * rectangle_drawing.getSize().x / text.getGlobalBounds().width);
+    //   text.setCharacterSize(static_cast<unsigned int>(
+    //       static_cast<size_t>(rectangle_drawing.getSize().x) * 9 / 10
+    //       / num_char));
   }
 
   sf::Vector2f center = {text.getGlobalBounds().width / 2.f,
@@ -394,9 +396,6 @@ void Window::draw(Ant const& ant)
   ant_drawing.setRotation(
       coord_conv_.worldToScreenRotation(ant.getFacingAngle()));
 
-  // ant_drawing.setColor((ant.hasFood() ? sf::Color::Green :
-  // sf::Color::White));
-
   window_.draw(ant_drawing);
 
   // std::array<sf::Vertex, 4> direction_lines;
@@ -502,7 +501,6 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
     sf::Text text;
     text.setFont(font);
     text.setString(option);
-    kape::log << option << '\n';
     text.setCharacterSize(24);
     text.setFillColor(sf::Color::White);
 
@@ -557,8 +555,8 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
   }
 
   assert(chosen == true);
-  sf::sleep(sf::seconds(10));
-  return 0;
+  assert(chosen_option < options.size());
+  return chosen_option;
 }
 
 Window::~Window()

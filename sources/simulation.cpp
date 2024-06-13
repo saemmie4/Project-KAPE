@@ -6,6 +6,7 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <string>
 // TODO:
 //  - actually let the user choose a simulation
@@ -17,7 +18,7 @@ bool Simulation::loadSimulation(
 {
   // note: if the simulation_folder_path is badly formatted the calls to
   // loadFromFile will fail on their own
-  std::string simulation_path{simulation_folder_path.path().c_str() + '/'};
+  std::string simulation_path{simulation_folder_path.path().string() + '/'};
 
   return obstacles_.loadFromFile(simulation_path + "obstacles/obstacles.dat")
       && anthill_.loadFromFile(obstacles_,
@@ -103,34 +104,46 @@ bool Simulation::chooseAndLoadSimulation()
   }
 
   std::size_t chosen_simulation_index{0};
-  if (window_.isOpen()) { 
+  if (window_.isOpen()) {
     chosen_simulation_index =
         window_.chooseOneOption(available_simulations_names);
+  } else {
+    std::cout << "Please choose one the following simulations, entering the "
+                 "corresponding number:\n";
+    int index{0};
+    for (auto const& simulation_name : available_simulations_names) {
+      std::cout << "\t[" << index << "] " << simulation_name << '\n';
+    }
+    std::cout << "\nInput [0-" << available_simulations_directories.size() - 1
+              << "]: ";
+    std::cin >> chosen_simulation_index;
+    if (chosen_simulation_index
+        > available_simulations_directories.size() - 1) {
+      log << "[ERROR]: from Simulation::chooseAndLoadSimulation(): "
+             "\n\t\t\tThe user's input was invalid.\n";
+      std::cout << "Bruh.\nThe given number [" << chosen_simulation_index
+                << "] doesn't correspond to a valid simulation.\n";
+      return false;
+    }
   }
-  assert(available_simulations_directories.size() == available_simulations_names.size());
+  assert(available_simulations_directories.size()
+         == available_simulations_names.size());
   assert(chosen_simulation_index < available_simulations_directories.size());
 
-  // ...
-  // something to actually choose a simulation
-  // ...
-  // ...
-  // ...
-  // // ...
+  if (loadSimulation(
+          available_simulations_directories.at(chosen_simulation_index))) {
+    ready_to_run_ = true;
+  } else {
+    kape::log << "[ERROR]:\tfrom Simulation::loadSimulation(std::string const& "
+                 "simulation_name, std::string const& simulations_folder_path):"
+                 "\n\t\t\tTried to load the simulation from \""
+              << available_simulations_directories.at(chosen_simulation_index)
+                     .path()
+                     .string()
+              << " but failed to do so.\n";
 
-  // if (loadSimulation(chosen_simulation, simulation_folder_path)) {
-  //   ready_to_run_ = true;
-  // } else {
-  //   kape::log << "[ERROR]:\tfrom Simulation::loadSimulation(std::string
-  //   const& "
-  //                "simulation_name, std::string const&
-  //                simulations_folder_path):"
-  //                "\n\t\t\tTried to load the simulation \""
-  //             << chosen_simulation << "\" from \"" <<
-  //             simulation_folder_path
-  //             << " but failed to do so.\n";
-
-  //   ready_to_run_ = false;
-  // }
+    ready_to_run_ = false;
+  }
 
   return ready_to_run_;
 }
