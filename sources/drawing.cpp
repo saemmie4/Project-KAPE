@@ -4,7 +4,8 @@
 #include "logger.hpp"
 #include <algorithm> //for transform
 #include <cassert>
-#include <cmath>     //for std::round
+#include <cmath> //for std::round
+#include <iostream>
 #include <stdexcept> //for std::invalid_argument, std::runtime_error
 // TODO
 //  - the implementation of the Window constructor is a bit bad
@@ -119,9 +120,7 @@ void Window::loadForDrawing(Pheromones const& pheromones)
 
 void Window::drawLoaded()
 {
-  if (!points_vector_.empty()) {
-    window_.draw(points_vector_.data(), points_vector_.size(), sf::Points);
-  }
+  draw(points_vector_);
 }
 void Window::createWindow()
 {
@@ -179,15 +178,33 @@ void Window::draw(sf::RectangleShape const& rectangle, sf::Text text,
 
   window_.draw(text);
 }
+
+sf::RectangleShape
+Window::kapeRectangleToScreenSfRectangleShape(Rectangle const& rectangle) const
+{
+  sf::RectangleShape rectangle_drawing{
+      sf::Vector2f(coord_conv_.metersToPixels(rectangle.getRectangleWidth()),
+                   coord_conv_.metersToPixels(rectangle.getRectangleHeight()))};
+
+  rectangle_drawing.setPosition(
+      coord_conv_.worldToScreen(rectangle.getRectangleTopLeftCorner(),
+                                window_.getSize().x, window_.getSize().y));
+  return rectangle_drawing;
+}
+
 Window::Window(float meter_to_pixel)
 {
   createWindow();
   coord_conv_.setMeterToPixels(meter_to_pixel);
 
+  if (!font_.loadFromFile(DEFAULT_FONT_FILEPATH)) {
+    throw std::runtime_error{"From Window::Window(float meter_to_pixel) "
+                             "could not find the font at \""
+                             + DEFAULT_FONT_FILEPATH + "\""};
+  }
   if (!window_.isOpen()) {
     throw std::runtime_error{
-        "[ERROR]: from Window::Window(unsigned int window_width, unsigned int "
-        "window_height, float meter_to_pixel):"
+        "[ERROR]: from Window::Window(float meter_to_pixel):"
         "\n\t\t\tFailed to open the window "};
   }
 }
@@ -198,12 +215,31 @@ Window::Window(unsigned int window_width, unsigned int window_height,
   createWindow(window_width, window_height);
   coord_conv_.setMeterToPixels(meter_to_pixel);
 
+  if (!font_.loadFromFile(DEFAULT_FONT_FILEPATH)) {
+    throw std::runtime_error{"From Window::Window(float meter_to_pixel) "
+                             "could not find the font at \""
+                             + DEFAULT_FONT_FILEPATH + "\""};
+  }
   if (!window_.isOpen()) {
     throw std::runtime_error{
         "[ERROR]: from Window::Window(unsigned int window_width, unsigned int "
         "window_height, float meter_to_pixel):"
         "\n\t\t\tFailed to open the window "};
   }
+}
+sf::Font const& Window::getFont() const
+{
+  return font_;
+}
+
+float Window::getMeterToPixels() const
+{
+  return coord_conv_.getMeterToPixels();
+}
+// may throw std::invalid_argument if pixel_to_meter <= 0
+void Window::setMeterToPixels(float meter_to_pixels)
+{
+  coord_conv_.setMeterToPixels(meter_to_pixels);
 }
 
 bool Window::isOpen() const
@@ -344,18 +380,18 @@ void Window::draw(Circle const& circle, sf::Color const& color,
   circle_drawing.setFillColor(color);
   window_.draw(circle_drawing);
 }
+
 void Window::draw(Rectangle const& rectangle, sf::Color const& color)
 {
   sf::RectangleShape rectangle_drawing{
-      sf::Vector2f(coord_conv_.metersToPixels(rectangle.getRectangleWidth()),
-                   coord_conv_.metersToPixels(rectangle.getRectangleHeight()))};
-
-  rectangle_drawing.setPosition(
-      coord_conv_.worldToScreen(rectangle.getRectangleTopLeftCorner(),
-                                window_.getSize().x, window_.getSize().y));
-
+      kapeRectangleToScreenSfRectangleShape(rectangle)};
   rectangle_drawing.setFillColor(color);
   window_.draw(rectangle_drawing);
+}
+void Window::draw(Rectangle const& rectangle, sf::Text text,
+                  sf::Color const& rectangle_color)
+{
+  draw(kapeRectangleToScreenSfRectangleShape(rectangle), text, rectangle_color);
 }
 
 // to be perfected, it's just to see something on the screen right now
@@ -450,6 +486,13 @@ void Window::draw(Food const& food, Pheromones const& pheromone1,
   drawLoaded();
 }
 
+void Window::draw(std::vector<sf::Vertex> const& points)
+{
+  if (!points.empty()) {
+    window_.draw(points.data(), points.size(), sf::Points);
+  }
+}
+
 void Window::display()
 {
   if (isOpen()) {
@@ -475,16 +518,6 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
         "while the window is not open"};
   };
 
-  sf::Font font;
-  std::string font_filepath{"assets/font/courier-prime.regular.ttf"};
-  if (!font.loadFromFile(font_filepath)) {
-    throw std::runtime_error{
-        "Window::chooseOneOption(std::vector<std::string> const& "
-        "options) "
-        "could not find the font at \""
-        + font_filepath + "\""};
-  }
-
   float window_width{static_cast<float>(window_.getSize().x)};
   float window_height{static_cast<float>(window_.getSize().y)};
   float button_spacing{window_height / static_cast<float>(options.size() + 1)};
@@ -499,7 +532,7 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
                                       * button_spacing});
 
     sf::Text text;
-    text.setFont(font);
+    text.setFont(font_);
     text.setString(option);
     text.setCharacterSize(24);
     text.setFillColor(sf::Color::White);
@@ -563,4 +596,81 @@ Window::~Window()
 {
   close();
 }
+
+void graphPoints(std::vector<double> const& points)
+{
+  if (points.empty()) {
+    return;
+  }
+
+  try {
+    Window window{};
+    window.setMeterToPixels(334.f);
+    double max_y{std::abs(*std::max_element(
+        points.begin(), points.end(), [](double largest, double rhs) {
+          return std::abs(rhs) > std::abs(largest);
+        }))};
+    double max_x{static_cast<double>(points.size() - 1)};
+
+    double x_offset = -1.;
+    double y_offset = -1.;
+
+    std::vector<Circle> points_drawing;
+    Rectangle x_axis{Vector2d{x_offset, y_offset}, 1.5, 0.01};
+    Rectangle y_axis{Vector2d{x_offset - 0.01, 1.5 + y_offset}, 0.01, 1.51};
+
+    Rectangle x_axis_title_box{
+        Vector2d{x_offset + 1.5 - 0.4, y_offset + 0.05 + 0.16}, 0.8, 0.4};
+    Rectangle y_axis_title_box{Vector2d{x_offset - 1.086, 1.5 + y_offset + 0.28},
+                               0.8, 0.4};
+    sf::Text x_axis_title;
+    sf::Text y_axis_title;
+    x_axis_title.setFont(window.getFont());
+    x_axis_title.setString(">\nIndice del tempo");
+    x_axis_title.setCharacterSize(400);
+    x_axis_title.setFillColor(sf::Color::Black);
+    y_axis_title.setFont(window.getFont());
+    y_axis_title.setString("Indice di distanza\n                  A");
+    y_axis_title.setCharacterSize(400);
+    y_axis_title.setFillColor(sf::Color::Black);
+
+    double x{0.};
+    for (auto y : points) {
+      points_drawing.emplace_back(
+          Vector2d{x / max_x + x_offset, y / max_y + y_offset},
+          1. / (2 * max_x));
+      ++x;
+    }
+
+    while (window.isOpen()) {
+      window.inputHandling();
+
+      window.clear(sf::Color::White);
+      for (auto const& point_drawing : points_drawing) {
+        window.draw(point_drawing, sf::Color::Black);
+      }
+
+
+      window.draw(x_axis_title_box, x_axis_title, sf::Color::White);
+      window.draw(y_axis_title_box, y_axis_title, sf::Color::White);
+      window.draw(x_axis, sf::Color::Black);
+      window.draw(y_axis, sf::Color::Black);
+      window.display();
+    }
+
+  } catch (std::runtime_error& error) {
+    log << error.what();
+    std::cout
+        << "[INFO]: Failed to open the window to display the results of the "
+           "optimization.\n\t\t\tIn lack of a better option, the points will "
+           "be saved in ./log/log.txt\n";
+    int index{0};
+    for (auto point : points) {
+      std::cout << "(" << index << ", " << point << ")\n";
+      ++index;
+    }
+    return;
+  }
+}
+
 } // namespace kape

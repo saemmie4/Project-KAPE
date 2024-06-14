@@ -23,7 +23,8 @@ class Simulation
   inline static std::string const DEFAULT_SIMULATION_NAME_{"default"};
   // as a default the time between simulation updates is 0.01s
   inline static double const SIMULATION_DELTA_T_{0.01};
-  inline static long int const FRAMERATE{45}; //frames per second for drawing
+  inline static long int const FRAMERATE{1}; //frames per second for drawing
+  inline static double const PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_{SIMULATION_DELTA_T_ * 100};
   using clock = std::chrono::steady_clock;
 
   Obstacles obstacles_;

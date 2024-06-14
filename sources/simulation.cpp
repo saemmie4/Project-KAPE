@@ -203,10 +203,11 @@ void Simulation::run()
 
     time_since_last_ants_position_check_ += simulation_delta_t_;
     bool time_to_check_ants_position{false};
-    if (time_since_last_ants_position_check_ > 6000 * simulation_delta_t_) {
-      time_since_last_ants_position_check_ -= 6000 * simulation_delta_t_;
+    if (time_since_last_ants_position_check_ > PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_) {
+      time_since_last_ants_position_check_ -=  PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_;
       time_to_check_ants_position = true;
     }
+
     if (time_to_check_ants_position) {
       AverageDistances(ants_, 0., 0., average_ants_distance_from_line_);
     }
@@ -228,6 +229,10 @@ void Simulation::run()
       window_.inputHandling();
     }
   }
+
+  graphPoints(average_ants_distance_from_line_);
+
+
 }
 
 } // namespace kape
