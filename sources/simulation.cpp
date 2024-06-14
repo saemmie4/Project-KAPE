@@ -58,6 +58,8 @@ Simulation::Simulation()
     , last_frame_update_{clock::now()}
     , ready_to_run_{false}
     , window_{}
+    , time_since_last_ants_position_check_{}
+    , average_ants_distance_from_line_{}
 {}
 
 bool Simulation::chooseAndLoadSimulation()
@@ -171,6 +173,22 @@ bool Simulation::isReadyToRun()
   return ready_to_run_;
 }
 
+void AverageDistances(Ants const& ants, double slope, double y_intercept,
+                      std::vector<double>& average_distances)
+{
+  double total_distance =
+      std::accumulate(ants.begin(), ants.end(), 0.,
+                      [slope, y_intercept](double sum, Ant const& ant) {
+                        return sum
+                             + (std::abs(slope * ant.getPosition().x
+                                         + y_intercept - ant.getPosition().y))
+                                   / std::sqrt(slope * slope + 1);
+                      });
+  double avg_distance{total_distance
+                      / static_cast<double>(ants.getNumberOfAnts())};
+  average_distances.push_back(avg_distance);
+}
+
 void Simulation::run()
 {
   if (!ready_to_run_) {
@@ -182,6 +200,16 @@ void Simulation::run()
                  simulation_delta_t_);
     to_anthill_ph_.updateParticlesEvaporation(simulation_delta_t_);
     to_food_ph_.updateParticlesEvaporation(simulation_delta_t_);
+
+    time_since_last_ants_position_check_ += simulation_delta_t_;
+    bool time_to_check_ants_position{false};
+    if (time_since_last_ants_position_check_ > 6000 * simulation_delta_t_) {
+      time_since_last_ants_position_check_ -= 6000 * simulation_delta_t_;
+      time_to_check_ants_position = true;
+    }
+    if (time_to_check_ants_position) {
+      AverageDistances(ants_, 0., 0., average_ants_distance_from_line_);
+    }
 
     if (timeToRender()) {
       window_.clear(sf::Color(184, 139, 74));
@@ -196,10 +224,10 @@ void Simulation::run()
       // }
       window_.draw(anthill_);
       window_.draw(obstacles_, sf::Color::Yellow);
-
       window_.display();
       window_.inputHandling();
     }
   }
 }
+
 } // namespace kape
