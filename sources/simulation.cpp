@@ -13,6 +13,47 @@
 
 namespace kape {
 
+bool Simulation::loadConfigFromFile(std::string const& filepath)
+{
+  std::ifstream file_in{filepath, std::ios::in};
+
+  // failed to open the file
+  if (!file_in.is_open()) {
+    kape::log << "[ERROR]:\tfrom Simulation::loadConfigFromFile(std::string "
+                 "const& filepath):\n\t\t\tCouldn't open file at \""
+              << filepath << "\"\n";
+    return false;
+  }
+
+  bool is_debug;
+  bool calculate_ants_average_distances;
+  double optimal_line_slope;
+  double optimal_line_intercept;
+
+  file_in >> is_debug >> calculate_ants_average_distances;
+  if (calculate_ants_average_distances) {
+    file_in >> optimal_line_slope >> optimal_line_intercept;
+  }
+
+  std::string end_check;
+  file_in >> end_check;
+
+  // reached the eof too early or too late->the read failed
+  if (end_check != "END") {
+    kape::log << "[ERROR]:\tfrom Simulation::loadConfigFromFile(std::string "
+                 "const& filepath):\n\t\t\tTried to load from \""
+              << filepath << "\" but it was badly formatted\n";
+    return false;
+  }
+
+  // all valid
+  is_debug_                         = is_debug;
+  calculate_ants_average_distances_ = calculate_ants_average_distances;
+  optimal_line_slope_               = optimal_line_slope;
+  optimal_line_intercept_           = optimal_line_intercept;
+  return true;
+}
+
 bool Simulation::loadSimulation(
     std::filesystem::directory_entry const& simulation_folder_path)
 {
@@ -27,7 +68,8 @@ bool Simulation::loadSimulation(
       && ants_.loadFromFile(anthill_, simulation_path + "ants/ants.dat")
       && window_.loadAntAnimationFrames(
           simulation_path + "ants/",
-          kape::Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES);
+          kape::Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES)
+      && loadConfigFromFile(simulation_path + "config.txt");
 }
 
 bool Simulation::timeToRender()
@@ -46,6 +88,19 @@ bool Simulation::timeToRender()
   return false;
 }
 
+bool Simulation::timeToCalculateAverageDistances()
+{
+  time_since_last_ants_average_distances_check_ += simulation_delta_t_;
+  if (time_since_last_ants_average_distances_check_
+      > PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_) {
+    time_since_last_ants_average_distances_check_ -=
+        PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_;
+    return true;
+  }
+
+  return false;
+}
+
 Simulation::Simulation()
     : obstacles_{}
     , anthill_{}
@@ -58,8 +113,12 @@ Simulation::Simulation()
     , last_frame_update_{clock::now()}
     , ready_to_run_{false}
     , window_{}
-    , time_since_last_ants_position_check_{}
+    , time_since_last_ants_average_distances_check_{}
     , average_ants_distance_from_line_{}
+    , is_debug_{}
+    , calculate_ants_average_distances_{}
+    , optimal_line_slope_{}
+    , optimal_line_intercept_{}
 {}
 
 bool Simulation::chooseAndLoadSimulation()
@@ -94,8 +153,8 @@ bool Simulation::chooseAndLoadSimulation()
           last_slash_char = str.find_last_of('\\');
         }
 
-        // we want to get the characters after the last '/', which should be the
-        // name of the simulation
+        // we want to get the characters after the last '/', which should be
+        // the name of the simulation
         if (last_slash_char != str.npos && last_slash_char != str.size() - 1) {
           str = str.substr(last_slash_char + 1); // from there to the end
           assert(!str.empty());
@@ -201,28 +260,17 @@ void Simulation::run()
     to_anthill_ph_.updateParticlesEvaporation(simulation_delta_t_);
     to_food_ph_.updateParticlesEvaporation(simulation_delta_t_);
 
-    time_since_last_ants_position_check_ += simulation_delta_t_;
-    bool time_to_check_ants_position{false};
-    if (time_since_last_ants_position_check_ > PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_) {
-      time_since_last_ants_position_check_ -=  PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_;
-      time_to_check_ants_position = true;
-    }
-
-    if (time_to_check_ants_position) {
-      AverageDistances(ants_, 0., 0., average_ants_distance_from_line_);
+    // only if it's a simulation where we know which is the optimal path
+    if (calculate_ants_average_distances_) {
+      if (timeToCalculateAverageDistances()) {
+        AverageDistances(ants_, 0., 0., average_ants_distance_from_line_);
+      }
     }
 
     if (timeToRender()) {
       window_.clear(sf::Color(184, 139, 74));
-      window_.draw(ants_);
+      window_.draw(ants_, is_debug_);
       window_.draw(food_, to_anthill_ph_, to_food_ph_);
-      // for (auto const& ant : ants) {
-      //   std::array<kape::Circle, 3> circles_of_vision;
-      //   ant.calculateCirclesOfVision(circles_of_vision);
-      //   window.draw(circles_of_vision[0], sf::Color::Blue);
-      //   window.draw(circles_of_vision[1], sf::Color::Blue);
-      //   window.draw(circles_of_vision[2], sf::Color::Blue);
-      // }
       window_.draw(anthill_);
       window_.draw(obstacles_, sf::Color::Yellow);
       window_.display();
@@ -230,9 +278,9 @@ void Simulation::run()
     }
   }
 
-  graphPoints(average_ants_distance_from_line_);
-
-
+  if (calculate_ants_average_distances_){
+    graphPoints(average_ants_distance_from_line_);
+  }
 }
 
 } // namespace kape

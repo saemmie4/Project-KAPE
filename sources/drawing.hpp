@@ -93,8 +93,8 @@ class Window
   void draw(Rectangle const& rectangle, sf::Color const& color);
   void draw(Rectangle const& rectangle, sf::Text text,
             sf::Color const& rectangle_color);
-  void draw(Ant const& ant);
-  void draw(Ants const& ants);
+  void draw(Ant const& ant, bool debug_mode = false);
+  void draw(Ants const& ants, bool debug_mode = false);
   void draw(Anthill const& anthill);
   void draw(Obstacles const& obstacles, sf::Color const& color);
   void draw(Food const& food, Pheromones const& pheromone1,

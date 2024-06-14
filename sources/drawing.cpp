@@ -397,7 +397,7 @@ void Window::draw(Rectangle const& rectangle, sf::Text text,
 // to be perfected, it's just to see something on the screen right now
 // may throw std::runtime_error if it tries to draw a frame that hasn't been
 // previously loaded
-void Window::draw(Ant const& ant)
+void Window::draw(Ant const& ant, bool debug_mode)
 {
   if (!isOpen()) {
     return;
@@ -434,33 +434,44 @@ void Window::draw(Ant const& ant)
 
   window_.draw(ant_drawing);
 
-  // std::array<sf::Vertex, 4> direction_lines;
+  if (debug_mode) {
 
-  // direction_lines[0] = sf::Vertex(ant_drawing.getPosition(),
-  // sf::Color::Green); direction_lines[1] = sf::Vertex(
-  //     coord_conv_.worldToScreen(
-  //         ant.getPosition() + 4. * Ant::ANT_LENGTH *
-  //         ant.getDesiredDirection(), window_.getSize().x,
-  //         window_.getSize().y),
-  //     sf::Color::Green);
+    //render the circles of vision
+    std::array<kape::Circle, 3> circles_of_vision;
+    ant.calculateCirclesOfVision(circles_of_vision);
+    draw(circles_of_vision[0], sf::Color::Blue);
+    draw(circles_of_vision[1], sf::Color::Blue);
+    draw(circles_of_vision[2], sf::Color::Blue);
 
-  // direction_lines[2] = sf::Vertex(ant_drawing.getPosition(),
-  // sf::Color::Red); direction_lines[3] = sf::Vertex(
-  //     coord_conv_.worldToScreen(ant.getPosition()
-  //                                   + 4. * Ant::ANT_LENGTH *
-  //                                   ant.getVelocity()
-  //                                         / norm(ant.getVelocity()),
-  //                               window_.getSize().x, window_.getSize().y),
-  //     sf::Color::Red);
 
-  // window_.draw(direction_lines.data(), direction_lines.size(),
-  // sf::LinesStrip);
+    //render in green the desired direction, in red the current direction
+    std::array<sf::Vertex, 4> direction_lines;
+    direction_lines[0] =
+        sf::Vertex(ant_drawing.getPosition(), sf::Color::Green);
+    direction_lines[1] =
+        sf::Vertex(coord_conv_.worldToScreen(
+                       ant.getPosition()
+                           + 4. * Ant::ANT_LENGTH * ant.getDesiredDirection(),
+                       window_.getSize().x, window_.getSize().y),
+                   sf::Color::Green);
+
+    direction_lines[2] = sf::Vertex(ant_drawing.getPosition(), sf::Color::Red);
+    direction_lines[3] = sf::Vertex(
+        coord_conv_.worldToScreen(ant.getPosition()
+                                      + 4. * Ant::ANT_LENGTH * ant.getVelocity()
+                                            / norm(ant.getVelocity()),
+                                  window_.getSize().x, window_.getSize().y),
+        sf::Color::Red);
+
+    window_.draw(direction_lines.data(), direction_lines.size(),
+                 sf::LinesStrip);
+  }
 }
 
-void Window::draw(Ants const& ants)
+void Window::draw(Ants const& ants, bool debug_mode)
 {
   for (auto const& ant : ants) {
-    draw(ant);
+    draw(ant, debug_mode);
   }
 }
 
@@ -621,8 +632,8 @@ void graphPoints(std::vector<double> const& points)
 
     Rectangle x_axis_title_box{
         Vector2d{x_offset + 1.5 - 0.4, y_offset + 0.05 + 0.16}, 0.8, 0.4};
-    Rectangle y_axis_title_box{Vector2d{x_offset - 1.086, 1.5 + y_offset + 0.28},
-                               0.8, 0.4};
+    Rectangle y_axis_title_box{
+        Vector2d{x_offset - 1.086, 1.5 + y_offset + 0.28}, 0.8, 0.4};
     sf::Text x_axis_title;
     sf::Text y_axis_title;
     x_axis_title.setFont(window.getFont());
@@ -649,7 +660,6 @@ void graphPoints(std::vector<double> const& points)
       for (auto const& point_drawing : points_drawing) {
         window.draw(point_drawing, sf::Color::Black);
       }
-
 
       window.draw(x_axis_title_box, x_axis_title, sf::Color::White);
       window.draw(y_axis_title_box, y_axis_title, sf::Color::White);

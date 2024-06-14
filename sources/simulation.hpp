@@ -9,9 +9,9 @@
 #include "ants.hpp"
 #include "drawing.hpp"
 #include "environment.hpp"
-#include <string>
-#include <filesystem>
 #include <chrono>
+#include <filesystem>
+#include <string>
 namespace kape {
 class Simulation
 {
@@ -23,8 +23,9 @@ class Simulation
   inline static std::string const DEFAULT_SIMULATION_NAME_{"default"};
   // as a default the time between simulation updates is 0.01s
   inline static double const SIMULATION_DELTA_T_{0.01};
-  inline static long int const FRAMERATE{1}; //frames per second for drawing
-  inline static double const PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_{SIMULATION_DELTA_T_ * 100};
+  inline static long int const FRAMERATE{60}; // frames per second for drawing
+  inline static double const PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_{
+      SIMULATION_DELTA_T_ * 100};
   using clock = std::chrono::steady_clock;
 
   Obstacles obstacles_;
@@ -36,18 +37,24 @@ class Simulation
   double const simulation_delta_t_;
   std::chrono::time_point<clock> last_frame_update_;
 
-
   bool ready_to_run_;
   Window window_;
-  double time_since_last_ants_position_check_;
+  double time_since_last_ants_average_distances_check_;
   std::vector<double> average_ants_distance_from_line_;
+  bool is_debug_;
+  bool calculate_ants_average_distances_;
+  double optimal_line_slope_;
+  double optimal_line_intercept_;
 
+  bool loadConfigFromFile(std::string const& filepath);
   // returns true if all the objects have been loaded properly, false if at
   // least one failed
   bool loadSimulation(
       std::filesystem::directory_entry const& simulation_folder_path);
 
   bool timeToRender();
+  bool timeToCalculateAverageDistances();
+
  public:
   explicit Simulation();
   // returns:
