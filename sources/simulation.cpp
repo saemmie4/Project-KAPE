@@ -263,7 +263,8 @@ void Simulation::run()
     // only if it's a simulation where we know which is the optimal path
     if (calculate_ants_average_distances_) {
       if (timeToCalculateAverageDistances()) {
-        AverageDistances(ants_, 0., 0., average_ants_distance_from_line_);
+        AverageDistances(ants_, optimal_line_slope_, optimal_line_intercept_,
+                         average_ants_distance_from_line_);
       }
     }
 
@@ -278,7 +279,7 @@ void Simulation::run()
     }
   }
 
-  if (calculate_ants_average_distances_){
+  if (calculate_ants_average_distances_) {
     graphPoints(average_ants_distance_from_line_);
   }
 }
