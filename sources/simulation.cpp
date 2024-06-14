@@ -143,6 +143,22 @@ bool Simulation::isReadyToRun()
   return ready_to_run_;
 }
 
+void AverageDistances(Ants const& ants, double slope, double y_intercept,
+                      std::vector<double>& average_distances)
+{
+  double total_distance =
+      std::accumulate(ants.begin(), ants.end(), 0.,
+                      [slope, y_intercept](double sum, Ant const& ant) {
+                        return sum
+                             + (std::abs(slope * ant.getPosition().x
+                                         + y_intercept - ant.getPosition().y))
+                                   / std::sqrt(slope * slope + 1);
+                      });
+  double avg_distance{total_distance
+                      / static_cast<double>(ants.getNumberOfAnts())};
+  average_distances.push_back(avg_distance);
+}
+
 void Simulation::run()
 {
   if (!ready_to_run_) {
@@ -164,6 +180,7 @@ void Simulation::run()
     if (time_to_check_ants_position) {
       AverageDistances(ants_, 0., 0., average_ants_distance_from_line_);
     }
+
     window_.clear(sf::Color(184, 139, 74));
     window_.draw(ants_);
     window_.draw(food_, to_anthill_ph_, to_food_ph_);
@@ -182,16 +199,4 @@ void Simulation::run()
   }
 }
 
-void AverageDistances(Ants const& ants, double slope, double y_intercept,
-                      std::vector<double>& average_distances)
-{
-  double total_distance =
-      std::accumulate(ants.begin(), ants.end(), 0., [&](Ant& ant) {
-        return (std::abs(slope * ant.getPosition().x + y_intercept
-                         - ant.getPosition().y))
-             / std::sqrt(slope * slope + 1);
-      });
-  double avg_distance{total_distance / ants.getNumberOfAnts()};
-  average_distances.push_back(avg_distance);
-}
 } // namespace kape
