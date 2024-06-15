@@ -152,18 +152,6 @@ void Window::draw(sf::RectangleShape const& rectangle, sf::Text text,
   rectangle_drawing.setFillColor(rectangle_color);
   window_.draw(rectangle_drawing);
 
-  // std::size_t num_char{text.getString().getSize()};
-  // size_t * size_t or size_t * uint becomes a float on its own, the static
-  // cast is to avoid the warning
-  if (text.getGlobalBounds().width > 0.9f * rectangle_drawing.getSize().x) {
-    text.setScale(
-        0.9f * rectangle_drawing.getSize().x / text.getGlobalBounds().width,
-        0.9f * rectangle_drawing.getSize().x / text.getGlobalBounds().width);
-    //   text.setCharacterSize(static_cast<unsigned int>(
-    //       static_cast<size_t>(rectangle_drawing.getSize().x) * 9 / 10
-    //       / num_char));
-  }
-
   sf::Vector2f center = {text.getGlobalBounds().width / 2.f,
                          text.getGlobalBounds().height / 2.f};
   sf::Vector2f localBounds =
@@ -175,6 +163,18 @@ void Window::draw(sf::RectangleShape const& rectangle, sf::Text text,
   text.setPosition(
       rectangle_drawing.getPosition().x + rectangle_drawing.getSize().x / 2.f,
       rectangle_drawing.getPosition().y + rectangle_drawing.getSize().y / 2.f);
+
+  // std::size_t num_char{text.getString().getSize()};
+  // size_t * size_t or size_t * uint becomes a float on its own, the static
+  // cast is to avoid the warning
+  if (text.getGlobalBounds().width > 0.9f * rectangle_drawing.getSize().x) {
+    text.setScale(
+        0.9f * rectangle_drawing.getSize().x / text.getGlobalBounds().width,
+        0.9f * rectangle_drawing.getSize().x / text.getGlobalBounds().width);
+    // text.setCharacterSize(static_cast<unsigned int>(
+    //     static_cast<size_t>(rectangle_drawing.getSize().x) * 9 / 10
+    //     / text.getString().getSize()));
+  }
 
   window_.draw(text);
 }
@@ -435,16 +435,14 @@ void Window::draw(Ant const& ant, bool debug_mode)
   window_.draw(ant_drawing);
 
   if (debug_mode) {
-
-    //render the circles of vision
+    // render the circles of vision
     std::array<kape::Circle, 3> circles_of_vision;
     ant.calculateCirclesOfVision(circles_of_vision);
     draw(circles_of_vision[0], sf::Color::Blue);
     draw(circles_of_vision[1], sf::Color::Blue);
     draw(circles_of_vision[2], sf::Color::Blue);
 
-
-    //render in green the desired direction, in red the current direction
+    // render in green the desired direction, in red the current direction
     std::array<sf::Vertex, 4> direction_lines;
     direction_lines[0] =
         sf::Vertex(ant_drawing.getPosition(), sf::Color::Green);
@@ -478,6 +476,17 @@ void Window::draw(Ants const& ants, bool debug_mode)
 void Window::draw(Anthill const& anthill)
 {
   draw(Circle{anthill.getCenter(), anthill.getRadius()}, sf::Color::Yellow);
+
+  double circle_r{anthill.getRadius()};
+  Rectangle text_box{anthill.getCenter()
+                         + circle_r * Vector2d{-sqrt(3.) / 2., 0.5},
+                     sqrt(3.) * circle_r, circle_r};
+  sf::Text food_counter;
+  food_counter.setCharacterSize(30);
+  food_counter.setFillColor(sf::Color::White);
+  food_counter.setFont(font_);
+  food_counter.setString(std::to_string(anthill.getFoodCounter()));
+  draw(text_box, food_counter, sf::Color{0, 0, 0, 0});
 }
 
 void Window::draw(Obstacles const& obstacles, sf::Color const& color)
@@ -631,9 +640,9 @@ void graphPoints(std::vector<double> const& points)
     Rectangle y_axis{Vector2d{x_offset - 0.01, 1.5 + y_offset}, 0.01, 1.51};
 
     Rectangle x_axis_title_box{
-        Vector2d{x_offset + 1.5 - 0.4, y_offset + 0.05 + 0.16}, 0.8, 0.4};
+        Vector2d{x_offset + 1.5 - 0.06, y_offset + 0.05 + 0.098}, 0.8, 0.4};
     Rectangle y_axis_title_box{
-        Vector2d{x_offset - 1.086, 1.5 + y_offset + 0.28}, 0.8, 0.4};
+        Vector2d{x_offset -0.745, y_offset + 1.5 + 0.23}, 0.8, 0.4};
     sf::Text x_axis_title;
     sf::Text y_axis_title;
     x_axis_title.setFont(window.getFont());
