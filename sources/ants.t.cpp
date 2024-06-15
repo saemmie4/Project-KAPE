@@ -79,7 +79,7 @@ TEST_CASE("Testing the Ants class")
   kape::Rectangle r1{kape::Vector2d{0.01, 0.0175}, 0.0075, 0.0075};
   kape::Rectangle r2{kape::Vector2d{0.01, -0.01}, 0.01, 0.01};
   kape::Rectangle r3{kape::Vector2d{0.006, -0.022}, 0.014, 0.014};
-  kape::Rectangle r4{kape::Vector2d{-0.006, -0.022}, 0.014, 0.014};
+  kape::Rectangle r4{kape::Vector2d{-0.02, -0.022}, 0.014, 0.014};
   kape::Rectangle r5{kape::Vector2d{-0.02, 0.01}, 0.01, 0.02};
 
   kape::Obstacles obs;
@@ -103,7 +103,7 @@ TEST_CASE("Testing the Ants class")
   };
   to_food_pheromones.addPheromoneParticle(part1);
   to_food_pheromones.addPheromoneParticle(part2);
-  to_food_pheromones.addPheromoneParticle(part3);
+  to_anthill_pheromones.addPheromoneParticle(part3);
   kape::Circle c1{kape::Vector2d{0., 0.}, 1.};
   kape::Circle c2{kape::Vector2d{1., 1.}, 1.};
   std::size_t n0{0};
@@ -125,47 +125,45 @@ TEST_CASE("Testing the Ants class")
     CHECK(cov1[0].getCircleCenter().x == doctest::Approx(0.00136207));
     CHECK(cov1[0].getCircleCenter().y == doctest::Approx(0.020894));
     CHECK(cov1[1].getCircleCenter().x == doctest::Approx(0.00878543));
-    CHECK(cov1[2].getCircleCenter().y == doctest::Approx(0.160695));
-    CHECK(cov6[1].getCircleCenter().y == doctest::Approx(-0.00225));
+    CHECK(cov1[2].getCircleCenter().y == doctest::Approx(0.0160695));
+    CHECK(cov6[1].getCircleCenter().y == doctest::Approx(-0.0225));
     CHECK(cov1[1].getCircleRadius() == doctest::Approx(0.003846));
   }
 
   SUBCASE("testing the calculateAngleToAvoidObstacles function")
   {
-    CHECK(a2.calculateAngleToAvoidObstacles(cov1, obs, eng)
+    CHECK(a1.calculateAngleToAvoidObstacles(cov1, obs, eng)
           == doctest::Approx(kape::PI / 6.));
-    CHECK(a1.calculateAngleToAvoidObstacles(cov3, obs, eng)
+    CHECK(a3.calculateAngleToAvoidObstacles(cov3, obs, eng)
           == doctest::Approx(-kape::PI / 6.));
     CHECK(a4.calculateAngleToAvoidObstacles(cov4, obs, eng)
-          == doctest::Approx(kape::PI / 3.));
-    CHECK(a7.calculateAngleToAvoidObstacles(cov5, obs, eng)
           == doctest::Approx(5 * kape::PI / 3.));
-    CHECK(a5.calculateAngleToAvoidObstacles(cov6, obs, eng)
+    CHECK(a5.calculateAngleToAvoidObstacles(cov5, obs, eng)
+          == doctest::Approx(5 * kape::PI / 3.));
+    CHECK(a6.calculateAngleToAvoidObstacles(cov6, obs, eng)
           == doctest::Approx(0.));
-    CHECK(a6.calculateAngleToAvoidObstacles(cov7, obs, eng)
+    CHECK(a7.calculateAngleToAvoidObstacles(cov7, obs, eng)
           == doctest::Approx(kape::PI));
   }
 
   SUBCASE("testing the applyPheromonesInfluence function")
   {
     a8.applyPheromonesInfluence(cov8, to_food_pheromones);
-    a8.applyPheromonesInfluence(cov8, to_anthill_pheromones);
     CHECK(a8.getDesiredDirection().x == doctest::Approx(0.274721));
     CHECK(a8.getDesiredDirection().y == doctest::Approx(0.961524));
-    a9.applyPheromonesInfluence(cov9, to_food_pheromones);
     a9.applyPheromonesInfluence(cov9, to_anthill_pheromones);
-    CHECK(a9.getDesiredDirection().x == doctest::Approx(-0.406139));
-    CHECK(a9.getDesiredDirection().y == doctest::Approx(0.913812));
+    CHECK(a9.getDesiredDirection().x == doctest::Approx(-0.986394));
+    CHECK(a9.getDesiredDirection().y == doctest::Approx(0.164399));
   }
-  
+
   SUBCASE("testing the addAntsAroundCircle function")
   {
     ants.addAntsAroundCircle(c1, n0);
     CHECK(ants.getNumberOfAnts() == 0);
     ants.addAntsAroundCircle(c1, n3);
     CHECK(ants.getNumberOfAnts() == 100);
-    CHECK((*(++(++(ants.begin())))).getPosition().x
-          == doctest::Approx(-0.125333));
+    CHECK((*(ants.begin())).getPosition().y
+          == doctest::Approx(1.));
     ants.addAntsAroundCircle(c2, n1);
     CHECK((*(--(ants.end()))).getPosition().y == doctest::Approx(2.0));
     ants.addAntsAroundCircle(c2, n2);
