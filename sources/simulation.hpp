@@ -27,8 +27,8 @@ class Simulation
   inline static long int const FRAMERATE{60}; // frames per second for drawing
   inline static double const PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_{
       SIMULATION_DELTA_T_ * 100};
-  inline static sf::Color const ANTHILL_COLOR_{247, 220, 185};
-  inline static sf::Color const BACKGROUND_COLOR_{222, 172, 128};
+  inline static sf::Color const ANTHILL_COLOR_{166, 75, 42};
+  inline static sf::Color const BACKGROUND_COLOR_{185, 148, 112};
   inline static sf::Color const OBSTACLES_COLOR_{111, 78, 55};
   inline static sf::Color const FOOD_COLOR_{95, 111, 82};
   inline static sf::Color const TO_FOOD_PHEROMONES_COLOR_{170, 86, 86};

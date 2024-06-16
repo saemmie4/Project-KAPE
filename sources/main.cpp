@@ -10,7 +10,7 @@ int main()
     return 1;
   }
 
-  // sim.run();
+  sim.run();
 
   return 0;
 }
