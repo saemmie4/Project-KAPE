@@ -327,7 +327,7 @@ void Ants::addAnt(Ant const& ant)
 Ants::Ants(unsigned int seed)
     : ants_vec_{}
     , random_engine_{seed}
-    , time_since_last_frame_change{0.}
+    , time_since_last_frame_change_{0.}
 {}
 
 std::size_t Ants::getNumberOfAnts() const{
@@ -356,6 +356,16 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
       });
 }
 
+bool Ants::timeToChangeFrames(double delta_t)
+{
+  time_since_last_frame_change_ += delta_t;
+  if (time_since_last_frame_change_ >= ANIMATION_TIME_BETWEEN_FRAMES_) {
+    time_since_last_frame_change_ -= ANIMATION_TIME_BETWEEN_FRAMES_;
+    return true;
+  }
+  return false;
+}
+
 // may throw std::invalid_argument if to_anthill_ph isn't of type
 // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
 // Pheromones::Type::TO_FOOD
@@ -363,12 +373,7 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
 void Ants::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
                   Anthill& anthill, Obstacles const& obstacles, double delta_t)
 {
-  bool change_frame{false};
-  time_since_last_frame_change += delta_t;
-  if (time_since_last_frame_change >= ANIMATION_TIME_BETWEEN_FRAMES) {
-    time_since_last_frame_change -= ANIMATION_TIME_BETWEEN_FRAMES;
-    change_frame = true;
-  }
+  bool change_frame{timeToChangeFrames(delta_t)};
 
   for (auto& ant : ants_vec_) {
     ant.update(food, to_anthill_ph, to_food_ph, anthill, obstacles,

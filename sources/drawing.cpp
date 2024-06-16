@@ -80,17 +80,19 @@ void Window::loadForDrawing(Food const& food, sf::Color const& food_color)
   unsigned int window_width{window_.getSize().x};
   unsigned int window_height{window_.getSize().y};
 
-  std::transform(
-      food.begin(), food.end(), std::back_inserter(points_vector_),
-      [window_width, window_height, &food_color, this](FoodParticle const& food_particle) {
-        sf::Vertex food_drawing{coord_conv_.worldToScreen(
-            food_particle.getPosition(), window_width, window_height)};
-        food_drawing.color = food_color;
-        return food_drawing;
-      });
+  std::transform(food.begin(), food.end(), std::back_inserter(points_vector_),
+                 [window_width, window_height, &food_color,
+                  this](FoodParticle const& food_particle) {
+                   sf::Vertex food_drawing{
+                       coord_conv_.worldToScreen(food_particle.getPosition(),
+                                                 window_width, window_height)};
+                   food_drawing.color = food_color;
+                   return food_drawing;
+                 });
 }
 
-void Window::loadForDrawing(Pheromones const& pheromones, sf::Color const& pheromones_color)
+void Window::loadForDrawing(Pheromones const& pheromones,
+                            sf::Color const& pheromones_color)
 {
   unsigned int window_width{window_.getSize().x};
   unsigned int window_height{window_.getSize().y};
@@ -101,7 +103,8 @@ void Window::loadForDrawing(Pheromones const& pheromones, sf::Color const& phero
           PheromoneParticle const& pheromone_particle, sf::Vector2f& position) {
         position = coord_conv_.worldToScreen(pheromone_particle.getPosition(),
                                              window_width, window_height);
-      }, pheromones_color);
+      },
+      pheromones_color);
 
   // std::transform(
   //     pheromones.begin(), pheromones.end(),
@@ -497,9 +500,10 @@ void Window::draw(Obstacles const& obstacles, sf::Color const& color)
 }
 
 void Window::draw(Food const& food, Pheromones const& to_anthill_pheromones,
-          Pheromones const& to_food_pheromones, sf::Color const& food_color,
-          sf::Color const& to_anthill_pheromones_color,
-          sf::Color const& to_food_pheromones_color)
+                  Pheromones const& to_food_pheromones,
+                  sf::Color const& food_color,
+                  sf::Color const& to_anthill_pheromones_color,
+                  sf::Color const& to_food_pheromones_color)
 {
   loadForDrawing(food, food_color);
   loadForDrawing(to_anthill_pheromones, to_anthill_pheromones_color);
@@ -531,7 +535,11 @@ void Window::close()
 
 // may throw std::runtime_error if the window is not open when the function is
 // called
-std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
+std::size_t Window::chooseOneOption(std::vector<std::string> const& options,
+                                    sf::Color const& default_button_color,
+                                    sf::Color const& chosen_button_color,
+                                    sf::Color const& background_color,
+                                    std::string const& filepath)
 {
   if (!isOpen()) {
     throw std::runtime_error{
@@ -540,7 +548,24 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
         "while the window is not open"};
   };
 
-  struct RectangleText{
+  sf::Texture background_texture;
+  sf::Sprite background_sprite;
+  bool loaded_background_correctly{false};
+  if (!background_texture.loadFromFile(filepath)) {
+    log << "[ERROR]: \tFrom Window::chooseOneOption(...): failed to "
+           "load the background texture at \""
+        << filepath << "\"\n";
+  } else {
+    background_texture.setRepeated(true);
+    background_sprite.setTexture(background_texture);
+    background_sprite.setTextureRect(
+        sf::IntRect(0, 0, static_cast<int>(window_.getSize().x),
+                    static_cast<int>(window_.getSize().y)));
+    loaded_background_correctly = true;
+  }
+
+  struct RectangleText
+  {
     sf::RectangleShape box;
     sf::Text text;
   };
@@ -604,12 +629,16 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
       }
     }
 
-    
-    clear(sf::Color::Black);
+    clear(background_color);
+    // check if the background was loaded correctly. if yes: draw it
+    if (loaded_background_correctly) {
+      window_.draw(background_sprite);
+    }
+
     std::size_t index{0};
     for (auto const& button : buttons) {
       draw(button.box, button.text,
-           index == chosen_option ? sf::Color::Green : sf::Color::Red);
+           index == chosen_option ? chosen_button_color : default_button_color);
       ++index;
     }
     display();

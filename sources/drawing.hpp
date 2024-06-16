@@ -107,10 +107,15 @@ class Window
 
   // may throw std::runtime_error if the window is not open when the function is
   // called
-  std::size_t chooseOneOption(std::vector<std::string> const& options);
+  std::size_t chooseOneOption(std::vector<std::string> const& options,
+                                    sf::Color const& default_button_color,
+                                    sf::Color const& chosen_button_color,
+                                    sf::Color const& background_color,
+                                    std::string const& filepath);
 
   ~Window();
 };
+
 
 // x is the index, y is the value
 void graphPoints(std::vector<double> const& points);

@@ -17,11 +17,8 @@ int main()
 
 // OGGI:
 // - Relazione
-// - Colori Anthill, Obstacles, Sfondo, Bottoni, Logo
 // - Test
 // - Mappe 
 // - i for con algoritmi
 // - Pheromones (??)
 // - test iteratori (square)
-// 
-// 
