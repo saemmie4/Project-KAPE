@@ -9,6 +9,7 @@
 #include "ants.hpp"
 #include "drawing.hpp"
 #include "environment.hpp"
+#include <SFML/Graphics.hpp>
 #include <chrono>
 #include <filesystem>
 #include <string>
@@ -19,6 +20,8 @@ class Simulation
   // name of the folder containing the simulations
   inline static std::string const DEFAULT_SIMULATIONS_FOLDER_PATH_{
       "./assets/simulations"};
+  inline static std::string const DEFAULT_BACKGROUND_PATH_{
+      "./assets/background/background.png"};
   // name of the simulation to be loaded by default
   inline static std::string const DEFAULT_SIMULATION_NAME_{"default"};
   // as a default the time between simulation updates is 0.01s
@@ -26,6 +29,14 @@ class Simulation
   inline static long int const FRAMERATE{60}; // frames per second for drawing
   inline static double const PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_{
       SIMULATION_DELTA_T_ * 100};
+  inline static sf::Color const ANTHILL_COLOR_{166, 75, 42};
+  inline static sf::Color const BACKGROUND_COLOR_{185, 148, 112};
+  inline static sf::Color const OBSTACLES_COLOR_{111, 78, 55};
+  inline static sf::Color const FOOD_COLOR_{95, 111, 82};
+  inline static sf::Color const TO_FOOD_PHEROMONES_COLOR_{170, 86, 86};
+  inline static sf::Color const TO_ANTHILL_PHEROMONES_COLOR_{86, 113, 137};
+  inline static sf::Color const DEFAULT_BUTTON_COLOR_{155, 134, 189};
+  inline static sf::Color const CHOSEN_BUTTON_COLOR_{90, 99, 156};
   using clock = std::chrono::steady_clock;
 
   Obstacles obstacles_;

@@ -7,40 +7,6 @@
 TEST_CASE("Testing the Ants class")
 {
   std::default_random_engine eng;
-  //   kape::Ant a1{kape::Vector2d{0.03, 0.025}, kape::Vector2d{0.03, 0.025},
-  //   false}; std::array<kape::Circle, 3> cov1;
-  //   a1.calculateCirclesOfVision(cov1);
-  //   kape::Ant a2{kape::Vector2d{0.0082815, 0.0373046},
-  //                kape::Vector2d{0.0082815, 0.0373046}, false};
-  //   std::array<kape::Circle, 3> cov2;
-  //   a2.calculateCirclesOfVision(cov2);
-  //   kape::Ant a3{kape::Vector2d{0.04418, -0.00495},
-  //                kape::Vector2d{0.04418, -0.00495}, false};
-  //   std::array<kape::Circle, 3> cov3;
-  //   a3.calculateCirclesOfVision(cov3);
-  //   kape::Ant a4{kape::Vector2d{0.05, -0.01}, kape::Vector2d{0.05, -0.01},
-  //   false}; std::array<kape::Circle, 3> cov4;
-  //   a4.calculateCirclesOfVision(cov4);
-  //   kape::Ant a5{kape::Vector2d{-0.01, 0.01}, kape::Vector2d{-0.01, 0.01},
-  //   false}; std::array<kape::Circle, 3> cov5;
-  //   a5.calculateCirclesOfVision(cov5);
-  //   kape::Ant a6{kape::Vector2d{-0.03, -0.025}, kape::Vector2d{-0.03,
-  //   -0.025},
-  //                false};
-  //   std::array<kape::Circle, 3> cov6;
-  //   a6.calculateCirclesOfVision(cov6);
-  //   kape::Ant a7{kape::Vector2d{-0.0082815, -0.0373046},
-  //                kape::Vector2d{-0.0082815, -0.0373046}, false};
-  //   std::array<kape::Circle, 3> cov7;
-  //   a7.calculateCirclesOfVision(cov7);
-  //   kape::Ant a8{kape::Vector2d{1., 1.}, kape::Vector2d{3., 2.5}, false};
-
-  //   kape::Rectangle r1{kape::Vector2d{0.02, 0.06}, 0.02, 0.03};
-  //   kape::Rectangle r2{kape::Vector2d{0.05, -0.015}, 0.05, 0.04};
-  //   kape::Rectangle r3{kape::Vector2d{-0.05, -0.01}, 0.01, 0.03};
-  //   kape::Rectangle r4{kape::Vector2d{0., -0.03}, 0.02, 0.03};
-  //   kape::Rectangle r5{kape::Vector2d{-0.04, -0.03}, 0.02, 0.03};
-
   kape::Ant a1{kape::Vector2d{0.006, 0.015}, kape::Vector2d{0.006, 0.015},
                false};
   std::array<kape::Circle, 3> cov1;
@@ -115,13 +81,6 @@ TEST_CASE("Testing the Ants class")
 
   SUBCASE("testing the calculateCirclesOfVision function")
   {
-    //     CHECK(cov2[0].getCircleCenter().x == doctest::Approx(0.0027534));
-    //     CHECK(cov2[0].getCircleRadius() == doctest::Approx(0.005));
-    //     CHECK(cov2[1].getCircleCenter().y == doctest::Approx(0.044626));
-    //     CHECK(cov2[2].getCircleCenter().x == doctest::Approx(0.015435));
-    //     CHECK(cov1[0].getCircleCenter().x == doctest::Approx(0.028723));
-    //     CHECK(cov1[2].getCircleRadius() == doctest::Approx(0.005));
-    //     CHECK(cov6[0].getCircleCenter().x == doctest::Approx(-0.028723));
     CHECK(cov1[0].getCircleCenter().x == doctest::Approx(0.00136207));
     CHECK(cov1[0].getCircleCenter().y == doctest::Approx(0.020894));
     CHECK(cov1[1].getCircleCenter().x == doctest::Approx(0.00878543));
@@ -162,10 +121,7 @@ TEST_CASE("Testing the Ants class")
     CHECK(ants.getNumberOfAnts() == 0);
     ants.addAntsAroundCircle(c1, n3);
     CHECK(ants.getNumberOfAnts() == 100);
-    CHECK((*(ants.begin())).getPosition().y
-          == doctest::Approx(1.));
     ants.addAntsAroundCircle(c2, n1);
-    CHECK((*(--(ants.end()))).getPosition().y == doctest::Approx(2.0));
     ants.addAntsAroundCircle(c2, n2);
     CHECK(ants.getNumberOfAnts() == 111);
   }

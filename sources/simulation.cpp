@@ -121,6 +121,78 @@ Simulation::Simulation()
     , optimal_line_intercept_{}
 {}
 
+// gets only the name of the simulation folder starting from the path
+//  e.g.:
+//  "./assets/simulations/default/" -> "default"
+// must be a directory, else it throws a std::invalid_argument
+std::string extractSimulationName(
+    std::filesystem::directory_entry const& simulation_directory_path)
+{
+  if (!simulation_directory_path.is_directory()) {
+    throw std::invalid_argument{
+        "argument passed to extractSimulationFolderName() is not a directory"};
+  }
+
+  std::string simulation_name{simulation_directory_path.path().string()};
+  bool is_string_correctly_parsed{false};
+  while (!is_string_correctly_parsed) {
+    std::size_t last_slash_char{simulation_name.find_last_of('/')};
+    if (last_slash_char == simulation_name.npos) { // maybe using '\' (?)
+      last_slash_char = simulation_name.find_last_of('\\');
+    }
+
+    // we want to get the characters after the last '/' (or '\'), which should
+    // be the name of the simulation
+    if (last_slash_char != simulation_name.npos
+        && last_slash_char != simulation_name.size() - 1) {
+      simulation_name =
+          simulation_name.substr(last_slash_char + 1); // from there to the end
+      assert(!simulation_name.empty());
+      assert(simulation_name.find('/') == simulation_name.npos);
+      assert(simulation_name.find('\\') == simulation_name.npos);
+      is_string_correctly_parsed = true;
+    } else if (last_slash_char
+               == simulation_name.size()
+                      - 1) {      // slash at the end of the string?
+      simulation_name.pop_back(); // try removing and repeating the parsing
+    } else {
+      assert(!simulation_name.empty());
+      assert(simulation_name.find('/') == simulation_name.npos);
+      assert(simulation_name.find('\\') == simulation_name.npos);
+      is_string_correctly_parsed = true;
+    }
+  }
+
+  return simulation_name;
+}
+
+// throws std::runtime_error if the chosen number doesn't correspont to a valid
+// option
+std::size_t chooseOneOptionFromTerminal(std::vector<std::string> const& options)
+{
+  std::cout << "Please choose one the following simulations, entering the "
+               "corresponding number:\n";
+
+  int index{0};
+  for (auto const& simulation_name : options) {
+    std::cout << "\t[" << index << "] " << simulation_name << '\n';
+    ++index;
+  }
+  std::cout << "\nInput [0-" << options.size() - 1 << "]: ";
+
+  std::size_t chosen_simulation_index;
+  std::cin >> chosen_simulation_index;
+  if (chosen_simulation_index > options.size() - 1) {
+    log << "[ERROR]: from chooseOneOptionFromTerminal(std::vector<std::string> "
+           "const& options): "
+           "\n\t\t\tThe user's input was invalid.\n";
+    throw std::runtime_error{"The given number ["
+                             + std::to_string(chosen_simulation_index)
+                             + "] doesn't correspond to a valid simulation."};
+  }
+  return chosen_simulation_index;
+}
+
 bool Simulation::chooseAndLoadSimulation()
 {
   std::string simulations_folder_path_string{DEFAULT_SIMULATIONS_FOLDER_PATH_};
@@ -136,41 +208,17 @@ bool Simulation::chooseAndLoadSimulation()
     return false;
   }
 
+  // the vectors are separated to then pass available_simulations_names to
+  // another function
   std::vector<std::filesystem::directory_entry>
       available_simulations_directories;
   std::vector<std::string> available_simulations_names;
+
   for (auto const& sub_dir :
        std::filesystem::directory_iterator{simulations_folder}) {
     if (sub_dir.is_directory()) {
       available_simulations_directories.push_back(sub_dir);
-
-      available_simulations_names.push_back(sub_dir.path().string());
-      bool is_string_correctly_parsed{false};
-      while (!is_string_correctly_parsed) {
-        auto& str{available_simulations_names.back()};
-        std::size_t last_slash_char{str.find_last_of('/')};
-        if (last_slash_char == str.npos) { // maybe using '\' (?)
-          last_slash_char = str.find_last_of('\\');
-        }
-
-        // we want to get the characters after the last '/', which should be
-        // the name of the simulation
-        if (last_slash_char != str.npos && last_slash_char != str.size() - 1) {
-          str = str.substr(last_slash_char + 1); // from there to the end
-          assert(!str.empty());
-          assert(str.find('/') == str.npos);
-          assert(str.find('\\') == str.npos);
-          is_string_correctly_parsed = true;
-        } else if (last_slash_char
-                   == str.size() - 1) { // slash at the end of the string?
-          str.pop_back(); // try removing and repeating the parsing
-        } else {
-          assert(!str.empty());
-          assert(str.find('/') == str.npos);
-          assert(str.find('\\') == str.npos);
-          is_string_correctly_parsed = true;
-        }
-      }
+      available_simulations_names.push_back(extractSimulationName(sub_dir));
     }
   }
 
@@ -184,24 +232,18 @@ bool Simulation::chooseAndLoadSimulation()
 
   std::size_t chosen_simulation_index{0};
   if (window_.isOpen()) {
-    chosen_simulation_index =
-        window_.chooseOneOption(available_simulations_names);
+    chosen_simulation_index = window_.chooseOneOption(
+        available_simulations_names, DEFAULT_BUTTON_COLOR_,
+        CHOSEN_BUTTON_COLOR_, BACKGROUND_COLOR_, DEFAULT_BACKGROUND_PATH_);
   } else {
-    std::cout << "Please choose one the following simulations, entering the "
-                 "corresponding number:\n";
-    int index{0};
-    for (auto const& simulation_name : available_simulations_names) {
-      std::cout << "\t[" << index << "] " << simulation_name << '\n';
-    }
-    std::cout << "\nInput [0-" << available_simulations_directories.size() - 1
-              << "]: ";
-    std::cin >> chosen_simulation_index;
-    if (chosen_simulation_index
-        > available_simulations_directories.size() - 1) {
-      log << "[ERROR]: from Simulation::chooseAndLoadSimulation(): "
-             "\n\t\t\tThe user's input was invalid.\n";
-      std::cout << "Bruh.\nThe given number [" << chosen_simulation_index
-                << "] doesn't correspond to a valid simulation.\n";
+    try {
+      chosen_simulation_index =
+          chooseOneOptionFromTerminal(available_simulations_names);
+    } catch (std::runtime_error const&
+                 error) { // if the chosen index doesn't correspond to a valid
+                          // simulation
+      std::cout << error.what() << '\n';
+      ready_to_run_ = false;
       return false;
     }
   }
@@ -269,11 +311,12 @@ void Simulation::run()
     }
 
     if (timeToRender()) {
-      window_.clear(sf::Color(184, 139, 74));
+      window_.clear(BACKGROUND_COLOR_);
       window_.draw(ants_, is_debug_);
-      window_.draw(food_, to_anthill_ph_, to_food_ph_);
-      window_.draw(anthill_);
-      window_.draw(obstacles_, sf::Color::Yellow);
+      window_.draw(food_, to_anthill_ph_, to_food_ph_, FOOD_COLOR_,
+                   TO_ANTHILL_PHEROMONES_COLOR_, TO_FOOD_PHEROMONES_COLOR_);
+      window_.draw(anthill_, ANTHILL_COLOR_);
+      window_.draw(obstacles_, OBSTACLES_COLOR_);
       window_.display();
       window_.inputHandling();
     }

@@ -33,7 +33,6 @@ target_link_libraries(project-kape PRIVATE sfml-graphics)
 # se il testing e' abilitato...
 #   per disabilitare il testing, passare -DBUILD_TESTING=OFF a cmake durante la fase di configurazione
 if (BUILD_TESTING)
-
   # aggiungi l'eseguibile all.t
 add_executable(geometry_test.t geometry.t.cpp geometry.cpp)
 add_executable(environment_test.t geometry.cpp environment.t.cpp environment.cpp logger.cpp)
@@ -42,7 +41,7 @@ target_link_libraries(geometry_test.t PRIVATE sfml-graphics)
 target_link_libraries(environment_test.t PRIVATE sfml-graphics)
 target_link_libraries(ant_test.t PRIVATE sfml-graphics)
   # aggiungi l'eseguibile all.t alla lista dei test
-  add_test(NAME geometry_test.t COMMAND geometry_test.t)
-  add_test(NAME environment_test.t COMMAND environment_test.t)
-  add_test(NAME ant_test.t COMMAND ant_test.t)
+  add_test(NAME geometry_test COMMAND geometry_test.t)
+  add_test(NAME environment_test COMMAND environment_test.t)
+  add_test(NAME ant_test COMMAND ant_test.t)
 endif()

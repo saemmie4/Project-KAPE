@@ -90,7 +90,7 @@ class Ants
  private:
   std::vector<Ant> ants_vec_;
   std::default_random_engine random_engine_;
-  double time_since_last_frame_change;
+  double time_since_last_frame_change_;
 
   // may throw std::invalid_argument if direction is null
   void addAnt(Vector2d const& position, Vector2d const& direction,
@@ -101,11 +101,13 @@ class Ants
   inline static std::string const DEFAULT_FILEPATH_{"./assets/ants/ants.dat"};
 
   // NOTE: it's in "simulation" time, not real time
-  inline static double const ANIMATION_TIME_BETWEEN_FRAMES{0.03};
+  inline static double const ANIMATION_TIME_BETWEEN_FRAMES_{0.03};
 
   explicit Ants(unsigned int seed = 44444444u);
   size_t getNumberOfAnts() const;
   void addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants);
+
+  bool timeToChangeFrames(double delta_t);
   // may throw std::invalid_argument if to_anthill_ph isn't of type
   // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
   // Pheromones::Type::TO_FOOD

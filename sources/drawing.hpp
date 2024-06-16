@@ -51,8 +51,8 @@ class Window
   // display() call gets cleared with clear()
   std::vector<sf::Vertex> points_vector_;
 
-  void loadForDrawing(Food const& food);
-  void loadForDrawing(Pheromones const& pheromones);
+  void loadForDrawing(Food const& food, sf::Color const& food_color);
+  void loadForDrawing(Pheromones const& pheromones, sf::Color const& pheromones_color);
   void drawLoaded();
   // creates/recreates the window, making it fullscreen
   void createWindow();
@@ -95,20 +95,27 @@ class Window
             sf::Color const& rectangle_color);
   void draw(Ant const& ant, bool debug_mode = false);
   void draw(Ants const& ants, bool debug_mode = false);
-  void draw(Anthill const& anthill);
+  void draw(Anthill const& anthill, sf::Color const& color);
   void draw(Obstacles const& obstacles, sf::Color const& color);
-  void draw(Food const& food, Pheromones const& pheromone1,
-            Pheromones const& pheromone2);
+  void draw(Food const& food, Pheromones const& to_anthill_pheromones,
+            Pheromones const& to_food_pheromones, sf::Color const& food_color,
+            sf::Color const& to_anthill_pheromones_color,
+            sf::Color const& to_food_pheromones_color);
   void draw(std::vector<sf::Vertex> const& points);
   void display();
   void close();
 
   // may throw std::runtime_error if the window is not open when the function is
   // called
-  std::size_t chooseOneOption(std::vector<std::string> const& options);
+  std::size_t chooseOneOption(std::vector<std::string> const& options,
+                                    sf::Color const& default_button_color,
+                                    sf::Color const& chosen_button_color,
+                                    sf::Color const& background_color,
+                                    std::string const& filepath);
 
   ~Window();
 };
+
 
 // x is the index, y is the value
 void graphPoints(std::vector<double> const& points);

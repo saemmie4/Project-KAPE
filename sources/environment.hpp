@@ -3,12 +3,12 @@
 #include "geometry.hpp" //for Vector2d
 #include <SFML/Graphics.hpp>
 #include <bitset>
+#include <deque>
 #include <iterator>
 #include <list>
 #include <random>
 #include <stdexcept>
 #include <unordered_map>
-#include <deque>
 #include <vector>
 // TODO:
 //  - check if adding things to a vector can cause exceptions
@@ -59,7 +59,8 @@ class PheromoneParticle
 {
  private:
   // below this threshold the pheromone is considered to have evaporated
-  inline static double const MIN_PHEROMONE_INTENSITY{2.};
+  inline static double const MIN_PHEROMONE_INTENSITY_{0.02};
+  inline static double const DECREASE_PERCENTAGE_AMOUNT_{0.005};
 
   Vector2d position_;
   double intensity_;
@@ -73,7 +74,8 @@ class PheromoneParticle
 
   // may throw std::invalid_argument if decrease_percentage_amount isn't in [0,
   // 1)
-  void decreaseIntensity(double decrease_percentage_amount);
+  void decreaseIntensity(
+      double decrease_percentage_amount = DECREASE_PERCENTAGE_AMOUNT_);
   // returns true if the Pheromone's intensity is <= MIN_PHEROMONE_INTENSITY
   bool hasEvaporated() const;
 };
@@ -274,12 +276,14 @@ class Pheromones
   template<class PhToVertexPos>
   void friend renderInto(std::vector<sf::Vertex>& vertices,
                          Pheromones const& pheromones,
-                         PhToVertexPos pheromone_to_vertex_pos)
+                         PhToVertexPos pheromone_to_vertex_pos,
+                         sf::Color const& pheromone_color)
   {
-    sf::Color color{pheromones.getPheromonesType()
-                            == Pheromones::Type::TO_ANTHILL
-                        ? sf::Color::Blue
-                        : sf::Color::Red};
+    sf::Color color = pheromone_color;
+    // sf::Color color{pheromones.getPheromonesType()
+    //                         == Pheromones::Type::TO_ANTHILL
+    //                     ? sf::Color::Blue
+    //                     : sf::Color::Red};
 
     double const max_pheromone_intensity{pheromones.getMaxPheromoneIntensity()};
 
@@ -303,9 +307,9 @@ class Pheromones
       //   vertices.emplace_back(position, color);
       // }
       for (auto const& pheromone_particle : square.second) {
-        color.a = static_cast<sf::Uint8>((pheromone_particle.getIntensity()
-                                          / max_pheromone_intensity * 255.));
-                                          // color.a = 255; 
+        color.a =
+            static_cast<sf::Uint8>((pheromone_particle.getIntensity()
+                                    / max_pheromone_intensity * 255.));
         pheromone_to_vertex_pos(pheromone_particle, position);
         vertices.emplace_back(position, color);
       }

@@ -31,7 +31,6 @@ void Ant::calculateCirclesOfVision(
 // may throw std::invalid_argument if current_frame isn't in
 //     [0, ANIMATION_TOTAL_NUMBER_OF_FRAMES)
 // may throw std::invalid_argument if pheromone_reserve <= 0.
-// may throw std::invalid_argument if pheromone_reserve <= 0.
 Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
          bool has_food, double pheromone_reserve)
     // if norm(direction) == 0. we would be dividing by 0.
@@ -56,11 +55,6 @@ Ant::Ant(Vector2d const& position, Vector2d const& direction, int current_frame,
   if (current_frame_ < 0 || current_frame_ > ANIMATION_TOTAL_NUMBER_OF_FRAMES) {
     throw std::invalid_argument{"the current frame must be in [0, "
                                 "ANT::ANIMATION_TOTAL_NUMBER_OF_FRAMES)"};
-  }
-
-  if (pheromone_reserve_ <= 0.) {
-    throw std::invalid_argument{
-        "the ant's phermone reserve can't be negative or null"};
   }
 
   if (pheromone_reserve_ <= 0.) {
@@ -334,7 +328,7 @@ void Ants::addAnt(Ant const& ant)
 Ants::Ants(unsigned int seed)
     : ants_vec_{}
     , random_engine_{seed}
-    , time_since_last_frame_change{0.}
+    , time_since_last_frame_change_{0.}
 {}
 
 std::size_t Ants::getNumberOfAnts() const{
@@ -349,20 +343,28 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
   }
 
   ants_vec_.reserve(number_of_ants);
-  int counter{0};
   std::uniform_real_distribution dist(0., 2*PI);
   std::uniform_int_distribution starting_frame_generator{
       0, Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES - 1};
   std::generate_n(
       std::back_inserter(ants_vec_), number_of_ants,
-      [&circle, &counter, &starting_frame_generator, this, &dist]() {
+      [&circle, &starting_frame_generator, this, &dist]() {
         Vector2d facing_direction{
-            rotate(Vector2d{0., 1.}, counter * (dist(random_engine_)))};
-        ++counter;
+            rotate(Vector2d{0., 1.}, (dist(random_engine_)))};
         return Ant{circle.getCircleCenter()
                        + circle.getCircleRadius() * facing_direction,
                    facing_direction, starting_frame_generator(random_engine_)};
       });
+}
+
+bool Ants::timeToChangeFrames(double delta_t)
+{
+  time_since_last_frame_change_ += delta_t;
+  if (time_since_last_frame_change_ >= ANIMATION_TIME_BETWEEN_FRAMES_) {
+    time_since_last_frame_change_ -= ANIMATION_TIME_BETWEEN_FRAMES_;
+    return true;
+  }
+  return false;
 }
 
 // may throw std::invalid_argument if to_anthill_ph isn't of type
@@ -372,12 +374,7 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
 void Ants::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
                   Anthill& anthill, Obstacles const& obstacles, double delta_t)
 {
-  bool change_frame{false};
-  time_since_last_frame_change += delta_t;
-  if (time_since_last_frame_change >= ANIMATION_TIME_BETWEEN_FRAMES) {
-    time_since_last_frame_change -= ANIMATION_TIME_BETWEEN_FRAMES;
-    change_frame = true;
-  }
+  bool change_frame{timeToChangeFrames(delta_t)};
 
   for (auto& ant : ants_vec_) {
     ant.update(food, to_anthill_ph, to_food_ph, anthill, obstacles,
