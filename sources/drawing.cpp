@@ -75,22 +75,22 @@ float CoordinateConverter::worldToScreenRotation(double angle) const
 }
 
 // Window implementation---------------------------------------
-void Window::loadForDrawing(Food const& food)
+void Window::loadForDrawing(Food const& food, sf::Color const& food_color)
 {
   unsigned int window_width{window_.getSize().x};
   unsigned int window_height{window_.getSize().y};
 
   std::transform(
       food.begin(), food.end(), std::back_inserter(points_vector_),
-      [window_width, window_height, this](FoodParticle const& food_particle) {
+      [window_width, window_height, &food_color, this](FoodParticle const& food_particle) {
         sf::Vertex food_drawing{coord_conv_.worldToScreen(
             food_particle.getPosition(), window_width, window_height)};
-        food_drawing.color = sf::Color::Green;
+        food_drawing.color = food_color;
         return food_drawing;
       });
 }
 
-void Window::loadForDrawing(Pheromones const& pheromones)
+void Window::loadForDrawing(Pheromones const& pheromones, sf::Color const& pheromones_color)
 {
   unsigned int window_width{window_.getSize().x};
   unsigned int window_height{window_.getSize().y};
@@ -101,7 +101,7 @@ void Window::loadForDrawing(Pheromones const& pheromones)
           PheromoneParticle const& pheromone_particle, sf::Vector2f& position) {
         position = coord_conv_.worldToScreen(pheromone_particle.getPosition(),
                                              window_width, window_height);
-      });
+      }, pheromones_color);
 
   // std::transform(
   //     pheromones.begin(), pheromones.end(),
@@ -473,9 +473,9 @@ void Window::draw(Ants const& ants, bool debug_mode)
   }
 }
 
-void Window::draw(Anthill const& anthill)
+void Window::draw(Anthill const& anthill, sf::Color const& color)
 {
-  draw(Circle{anthill.getCenter(), anthill.getRadius()}, sf::Color::Yellow);
+  draw(Circle{anthill.getCenter(), anthill.getRadius()}, color);
 
   double circle_r{anthill.getRadius()};
   Rectangle text_box{anthill.getCenter()
@@ -486,7 +486,7 @@ void Window::draw(Anthill const& anthill)
   food_counter.setFillColor(sf::Color::White);
   food_counter.setFont(font_);
   food_counter.setString(std::to_string(anthill.getFoodCounter()));
-  draw(text_box, food_counter, sf::Color{0, 0, 0, 0});
+  draw(text_box, food_counter, color);
 }
 
 void Window::draw(Obstacles const& obstacles, sf::Color const& color)
@@ -496,12 +496,14 @@ void Window::draw(Obstacles const& obstacles, sf::Color const& color)
   }
 }
 
-void Window::draw(Food const& food, Pheromones const& pheromone1,
-                  Pheromones const& pheromone2)
+void Window::draw(Food const& food, Pheromones const& to_anthill_pheromones,
+          Pheromones const& to_food_pheromones, sf::Color const& food_color,
+          sf::Color const& to_anthill_pheromones_color,
+          sf::Color const& to_food_pheromones_color)
 {
-  loadForDrawing(food);
-  loadForDrawing(pheromone1);
-  loadForDrawing(pheromone2);
+  loadForDrawing(food, food_color);
+  loadForDrawing(to_anthill_pheromones, to_anthill_pheromones_color);
+  loadForDrawing(to_food_pheromones, to_food_pheromones_color);
 
   drawLoaded();
 }
@@ -538,10 +540,15 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
         "while the window is not open"};
   };
 
+  struct RectangleText{
+    sf::RectangleShape box;
+    sf::Text text;
+  };
+
   float window_width{static_cast<float>(window_.getSize().x)};
   float window_height{static_cast<float>(window_.getSize().y)};
   float button_spacing{window_height / static_cast<float>(options.size() + 1)};
-  std::vector<std::pair<sf::RectangleShape, sf::Text>> buttons;
+  std::vector<RectangleText> buttons;
 
   int rectangle_index{0};
   for (auto const& option : options) {
@@ -557,7 +564,7 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
     text.setCharacterSize(24);
     text.setFillColor(sf::Color::White);
 
-    buttons.push_back(std::make_pair(rect, text));
+    buttons.push_back(RectangleText{rect, text});
     ++rectangle_index;
   }
 
@@ -597,10 +604,11 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options)
       }
     }
 
+    
     clear(sf::Color::Black);
     std::size_t index{0};
     for (auto const& button : buttons) {
-      draw(button.first, button.second,
+      draw(button.box, button.text,
            index == chosen_option ? sf::Color::Green : sf::Color::Red);
       ++index;
     }
@@ -642,7 +650,7 @@ void graphPoints(std::vector<double> const& points)
     Rectangle x_axis_title_box{
         Vector2d{x_offset + 1.5 - 0.06, y_offset + 0.05 + 0.098}, 0.8, 0.4};
     Rectangle y_axis_title_box{
-        Vector2d{x_offset -0.745, y_offset + 1.5 + 0.23}, 0.8, 0.4};
+        Vector2d{x_offset - 0.745, y_offset + 1.5 + 0.23}, 0.8, 0.4};
     sf::Text x_axis_title;
     sf::Text y_axis_title;
     x_axis_title.setFont(window.getFont());

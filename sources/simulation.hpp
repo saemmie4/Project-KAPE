@@ -9,6 +9,7 @@
 #include "ants.hpp"
 #include "drawing.hpp"
 #include "environment.hpp"
+#include <SFML/Graphics.hpp>
 #include <chrono>
 #include <filesystem>
 #include <string>
@@ -26,6 +27,12 @@ class Simulation
   inline static long int const FRAMERATE{60}; // frames per second for drawing
   inline static double const PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_{
       SIMULATION_DELTA_T_ * 100};
+  inline static sf::Color const ANTHILL_COLOR_{247, 220, 185};
+  inline static sf::Color const BACKGROUND_COLOR_{222, 172, 128};
+  inline static sf::Color const OBSTACLES_COLOR_{111, 78, 55};
+  inline static sf::Color const FOOD_COLOR_{95, 111, 82};
+  inline static sf::Color const TO_FOOD_PHEROMONES_COLOR_{170, 86, 86};
+  inline static sf::Color const TO_ANTHILL_PHEROMONES_COLOR_{86, 113, 137};
   using clock = std::chrono::steady_clock;
 
   Obstacles obstacles_;

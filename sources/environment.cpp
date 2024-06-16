@@ -190,14 +190,14 @@ void PheromoneParticle::decreaseIntensity(double decrease_percentage_amount)
   intensity_ *= (1. - decrease_percentage_amount);
 
   // to avoid it going to 0 because of finite double precision
-  if (intensity_ < MIN_PHEROMONE_INTENSITY) {
-    intensity_ = MIN_PHEROMONE_INTENSITY;
+  if (intensity_ < MIN_PHEROMONE_INTENSITY_) {
+    intensity_ = MIN_PHEROMONE_INTENSITY_;
   }
 }
 
 bool PheromoneParticle::hasEvaporated() const
 {
-  return intensity_ <= MIN_PHEROMONE_INTENSITY;
+  return intensity_ <= MIN_PHEROMONE_INTENSITY_;
 }
 
 // Food Class implementation -----------------------------------

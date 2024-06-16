@@ -186,43 +186,43 @@ bool Simulation::chooseAndLoadSimulation()
   if (window_.isOpen()) {
     chosen_simulation_index =
         window_.chooseOneOption(available_simulations_names);
-  } else {
-    std::cout << "Please choose one the following simulations, entering the "
-                 "corresponding number:\n";
-    int index{0};
-    for (auto const& simulation_name : available_simulations_names) {
-      std::cout << "\t[" << index << "] " << simulation_name << '\n';
-    }
-    std::cout << "\nInput [0-" << available_simulations_directories.size() - 1
-              << "]: ";
-    std::cin >> chosen_simulation_index;
-    if (chosen_simulation_index
-        > available_simulations_directories.size() - 1) {
-      log << "[ERROR]: from Simulation::chooseAndLoadSimulation(): "
-             "\n\t\t\tThe user's input was invalid.\n";
-      std::cout << "Bruh.\nThe given number [" << chosen_simulation_index
-                << "] doesn't correspond to a valid simulation.\n";
-      return false;
-    }
-  }
-  assert(available_simulations_directories.size()
-         == available_simulations_names.size());
-  assert(chosen_simulation_index < available_simulations_directories.size());
+  } //else {
+  //   std::cout << "Please choose one the following simulations, entering the "
+  //                "corresponding number:\n";
+  //   int index{0};
+  //   for (auto const& simulation_name : available_simulations_names) {
+  //     std::cout << "\t[" << index << "] " << simulation_name << '\n';
+  //   }
+  //   std::cout << "\nInput [0-" << available_simulations_directories.size() - 1
+  //             << "]: ";
+  //   std::cin >> chosen_simulation_index;
+  //   if (chosen_simulation_index
+  //       > available_simulations_directories.size() - 1) {
+  //     log << "[ERROR]: from Simulation::chooseAndLoadSimulation(): "
+  //            "\n\t\t\tThe user's input was invalid.\n";
+  //     std::cout << "Bruh.\nThe given number [" << chosen_simulation_index
+  //               << "] doesn't correspond to a valid simulation.\n";
+  //     return false;
+  //   }
+  // }
+  // assert(available_simulations_directories.size()
+  //        == available_simulations_names.size());
+  // assert(chosen_simulation_index < available_simulations_directories.size());
 
-  if (loadSimulation(
-          available_simulations_directories.at(chosen_simulation_index))) {
-    ready_to_run_ = true;
-  } else {
-    kape::log << "[ERROR]:\tfrom Simulation::loadSimulation(std::string const& "
-                 "simulation_name, std::string const& simulations_folder_path):"
-                 "\n\t\t\tTried to load the simulation from \""
-              << available_simulations_directories.at(chosen_simulation_index)
-                     .path()
-                     .string()
-              << " but failed to do so.\n";
+  // if (loadSimulation(
+  //         available_simulations_directories.at(chosen_simulation_index))) {
+  //   ready_to_run_ = true;
+  // } else {
+  //   kape::log << "[ERROR]:\tfrom Simulation::loadSimulation(std::string const& "
+  //                "simulation_name, std::string const& simulations_folder_path):"
+  //                "\n\t\t\tTried to load the simulation from \""
+  //             << available_simulations_directories.at(chosen_simulation_index)
+  //                    .path()
+  //                    .string()
+  //             << " but failed to do so.\n";
 
-    ready_to_run_ = false;
-  }
+  //   ready_to_run_ = false;
+  // }
 
   return ready_to_run_;
 }
@@ -269,11 +269,12 @@ void Simulation::run()
     }
 
     if (timeToRender()) {
-      window_.clear(sf::Color(184, 139, 74));
+      window_.clear(BACKGROUND_COLOR_);
       window_.draw(ants_, is_debug_);
-      window_.draw(food_, to_anthill_ph_, to_food_ph_);
-      window_.draw(anthill_);
-      window_.draw(obstacles_, sf::Color::Yellow);
+      window_.draw(food_, to_anthill_ph_, to_food_ph_, FOOD_COLOR_,
+                   TO_ANTHILL_PHEROMONES_COLOR_, TO_FOOD_PHEROMONES_COLOR_);
+      window_.draw(anthill_, ANTHILL_COLOR_);
+      window_.draw(obstacles_, OBSTACLES_COLOR_);
       window_.display();
       window_.inputHandling();
     }

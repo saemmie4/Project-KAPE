@@ -10,7 +10,19 @@ int main()
     return 1;
   }
 
-  sim.run();
+  // sim.run();
 
   return 0;
 }
+
+// OGGI:
+// - Relazione
+// - Colori Anthill, Obstacles, Sfondo, Bottoni, Logo
+// - Test
+// - Mappe 
+// - i for con algoritmi
+// - Pheromones (??)
+// - test iteratori (square)
+// 
+// 
+// 
