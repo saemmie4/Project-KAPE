@@ -59,7 +59,7 @@ class PheromoneParticle
 {
  private:
   // below this threshold the pheromone is considered to have evaporated
-  inline static double const MIN_PHEROMONE_INTENSITY{0.02};
+  inline static double const MIN_PHEROMONE_INTENSITY{2.};
 
   Vector2d position_;
   double intensity_;
@@ -73,7 +73,7 @@ class PheromoneParticle
 
   // may throw std::invalid_argument if decrease_percentage_amount isn't in [0,
   // 1)
-  void decreaseIntensity(double decrease_percentage_amount = 0.005);
+  void decreaseIntensity(double decrease_percentage_amount);
   // returns true if the Pheromone's intensity is <= MIN_PHEROMONE_INTENSITY
   bool hasEvaporated() const;
 };
@@ -209,7 +209,8 @@ class Pheromones
  public:
   // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 1
   // intensity levels
-  inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
+  inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{0.5};
+  inline static double const DECREASE_PERCENTAGE_AMOUNT_{0.005};
 
  private:
   // has to be > than an ant's circle of vision diameter
@@ -304,6 +305,7 @@ class Pheromones
       for (auto const& pheromone_particle : square.second) {
         color.a = static_cast<sf::Uint8>((pheromone_particle.getIntensity()
                                           / max_pheromone_intensity * 255.));
+                                          // color.a = 255; 
         pheromone_to_vertex_pos(pheromone_particle, position);
         vertices.emplace_back(position, color);
       }

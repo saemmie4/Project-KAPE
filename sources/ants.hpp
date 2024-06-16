@@ -19,7 +19,7 @@ class Ant
 {
  private:
   // every PERIOD_BETWEEN_PHEROMONE_RELEASE_ the ant releases a pheromone
-  inline static double const PERIOD_BETWEEN_PHEROMONE_RELEASE_{.1};
+  inline static double const PERIOD_BETWEEN_PHEROMONE_RELEASE_{1.};
   inline static double const PERIOD_BETWEEN_PHEROMONE_SEARCH_{.25};
 
   Vector2d desired_direction_;
@@ -43,9 +43,9 @@ class Ant
   inline static double const CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
   inline static double const CIRCLE_OF_VISION_ANGLE{PI / 3.};
 
-  inline static double const MAX_PHEROMONE_RESERVE{2000.};
+  inline static double const MAX_PHEROMONE_RESERVE{500.};
   // the ant's reserve decreases by 2% every time the ant releases a pheromone
-  inline static double const PERCENTAGE_DECREASE_PHEROMONE_RELEASE{0.02};
+  inline static double const PERCENTAGE_DECREASE_PHEROMONE_RELEASE{0.005};
   inline static double const MIN_PHEROMONE_RESERVE_TO_RELEASE{1.};
 
   inline static int const ANIMATION_TOTAL_NUMBER_OF_FRAMES{4};

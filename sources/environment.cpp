@@ -741,7 +741,7 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
 
   for (auto& pheromone_square : pheromones_squares_) {
     for (auto& pheromone_particle : pheromone_square.second) {
-      pheromone_particle.decreaseIntensity();
+      pheromone_particle.decreaseIntensity(DECREASE_PERCENTAGE_AMOUNT_);
     }
   }
 

@@ -258,7 +258,8 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
       } else {
         to_anthill_ph.addPheromoneParticle(position_, pheromone_intensity);
       }
-      pheromone_reserve_ *= (1. - PERCENTAGE_DECREASE_PHEROMONE_RELEASE);
+      // pheromone_reserve_ *= (1. - PERCENTAGE_DECREASE_PHEROMONE_RELEASE);
+      pheromone_reserve_ -= pheromone_intensity;
     }
   }
 
