@@ -211,7 +211,7 @@ class Pheromones
  public:
   // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 1
   // intensity levels
-  inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{0.5};
+  inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
   inline static double const DECREASE_PERCENTAGE_AMOUNT_{0.005};
 
  private:
