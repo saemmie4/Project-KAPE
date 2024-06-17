@@ -71,11 +71,11 @@ TEST_CASE("Testing PheromoneParticle class")
   kape::PheromoneParticle p3{kape::Vector2d{-13.5, -24.6}, 68};
   kape::PheromoneParticle p4{kape::Vector2d{10.7, -3.5}, 54};
   kape::PheromoneParticle p5{kape::Vector2d{0., 0.}, 2};
-  kape::PheromoneParticle p6{kape::Vector2d{3690., 0.}, 0};
+  kape::PheromoneParticle p6{kape::Vector2d{3690., 0.}, 1};
   kape::PheromoneParticle p7{kape::Vector2d{0., 5062.}, 100};
   SUBCASE("Testing the exception in PheromoneParticle constructor")
   {
-    CHECK_THROWS(kape::PheromoneParticle{kape::Vector2d{6.7, 5.}, -1});
+    CHECK_THROWS(kape::PheromoneParticle{kape::Vector2d{6.7, 5.}, 0});
     CHECK_THROWS(kape::PheromoneParticle{kape::Vector2d{6.7, 5.}, -3592});
   }
   SUBCASE("Testing getPosition function")
@@ -102,41 +102,36 @@ TEST_CASE("Testing PheromoneParticle class")
     CHECK(p3.getIntensity() == 68);
     CHECK(p4.getIntensity() == 54);
     CHECK(p5.getIntensity() == 2);
-    CHECK(p6.getIntensity() == 0);
+    CHECK(p6.getIntensity() == 1);
     CHECK(p7.getIntensity() == 100);
   }
   SUBCASE("Testing decreaseIntensity function")
   {
-    p1.decreaseIntensity(5);
-    p2.decreaseIntensity(7);
-    p3.decreaseIntensity(68);
-    p4.decreaseIntensity(0);
-    p5.decreaseIntensity(1);
-    p6.decreaseIntensity(5);
-    CHECK(p1.getIntensity() == 9);
-    CHECK(p2.getIntensity() == 0);
-    CHECK(p3.getIntensity() == 0);
-    CHECK(p4.getIntensity() == 54);
-    CHECK(p5.getIntensity() == 1);
-    CHECK(p6.getIntensity() == 0);
+    p1.decreaseIntensity();
+    p2.decreaseIntensity(0.);
+    p3.decreaseIntensity(0.99);
+    p4.decreaseIntensity(0.001);
+    CHECK(p1.getIntensity() == 14 * (1 - 0.005));
+    CHECK(p2.getIntensity() == 7 * (1 - 0));
+    CHECK(p3.getIntensity() == 68 * (1 - 0.99));
+    CHECK(p4.getIntensity() == 54 * (1 - 0.001));
+    CHECK_THROWS(p5.decreaseIntensity(56));
+    CHECK_THROWS(p6.decreaseIntensity(1));
     CHECK_THROWS(p7.decreaseIntensity(-10));
   }
   SUBCASE("Testing hasEvaporated function")
   {
-    p1.decreaseIntensity(5);
-    p2.decreaseIntensity(7);
-    p3.decreaseIntensity(68);
-    p4.decreaseIntensity(0);
-    p5.decreaseIntensity(1);
-    p6.decreaseIntensity(5);
-    p6.decreaseIntensity(0);
+    p1.decreaseIntensity();
+    p2.decreaseIntensity(0.);
+    p3.decreaseIntensity(0.99);
+    p4.decreaseIntensity(0.001);
+    p5.decreaseIntensity(0.99);
+    p5.decreaseIntensity(0.99);
     CHECK(p1.hasEvaporated() == false);
-    CHECK(p2.hasEvaporated() == true);
-    CHECK(p3.hasEvaporated() == true);
+    CHECK(p2.hasEvaporated() == false);
+    CHECK(p3.hasEvaporated() == false);
     CHECK(p4.hasEvaporated() == false);
-    CHECK(p5.hasEvaporated() == false);
-    CHECK(p6.hasEvaporated() == true);
-    CHECK(p7.hasEvaporated() == false);
+    CHECK(p5.hasEvaporated() == true);
   }
 }
 
@@ -368,11 +363,20 @@ TEST_CASE("Testing Pheromones class")
         kape::Pheromones::PERIOD_BETWEEN_EVAPORATION_UPDATE_);
     CHECK(ph_anthill.getPheromonesIntensityInCircle(
               kape::Circle{kape::Vector2d{0., 0.}, 1.})
-          == 990);
-    CHECK(ph_anthill.getNumberOfPheromones() == 10);
+          == (1001 * (1 - 0.005)));
+    CHECK(ph_anthill.getNumberOfPheromones() == 11);
     CHECK(ph_food.getPheromonesIntensityInCircle(
               kape::Circle{kape::Vector2d{0., 0.}, 1.})
-          == 1485);
+          == (1501 * (1 - 0.005)));
+    CHECK(ph_food.getNumberOfPheromones() == 16);
+
+    for (int i{0}; i != 1000; ++i) {
+      ph_anthill.updateParticlesEvaporation(
+          kape::Pheromones::PERIOD_BETWEEN_EVAPORATION_UPDATE_ * i);
+      ph_food.updateParticlesEvaporation(
+          kape::Pheromones::PERIOD_BETWEEN_EVAPORATION_UPDATE_ * i);
+    }
+    CHECK(ph_anthill.getNumberOfPheromones() == 10);
     CHECK(ph_food.getNumberOfPheromones() == 15);
 
     CHECK_THROWS(ph_anthill.updateParticlesEvaporation(-0.1));
