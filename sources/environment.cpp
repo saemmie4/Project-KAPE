@@ -159,6 +159,12 @@ Vector2d const& FoodParticle::getPosition() const
 // }
 
 // PheromoneParticle class Implementation--------------------------
+double PheromoneParticle::getMinimumPheromoneIntensity()
+{
+  return MIN_PHEROMONE_INTENSITY_;
+}
+
+
 // may throw std::invalid_argument if intensity <= 0.
 PheromoneParticle::PheromoneParticle(Vector2d const& position, double intensity)
     : position_{position}
@@ -558,6 +564,12 @@ void Pheromones::fillWithNeighbouringPheromonesSquares(
   }
 }
 
+double Pheromones::getMinimumPheromoneIntensity()
+{
+  return PheromoneParticle::getMinimumPheromoneIntensity();
+}
+
+
 Pheromones::Pheromones(Type type, double ant_circle_of_vision_diameter,
                        unsigned int seed)
     : SQUARE_LENGTH_{2. * ant_circle_of_vision_diameter}
@@ -741,7 +753,7 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
 
   for (auto& pheromone_square : pheromones_squares_) {
     for (auto& pheromone_particle : pheromone_square.second) {
-      pheromone_particle.decreaseIntensity(DECREASE_PERCENTAGE_AMOUNT_);
+      pheromone_particle.decreaseIntensity();
     }
   }
 

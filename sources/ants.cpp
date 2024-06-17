@@ -208,12 +208,14 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     time_since_last_pheromone_search_ -= PERIOD_BETWEEN_PHEROMONE_SEARCH_;
     time_to_search_pheromones = true;
   }
-  // we  consider the ant as a bar long        position_ + CIRCLE_OF_VISION_DISTANCE * rotate(facing_dir, angle)); ANTS::ANT_LENGHT that rotates along its
-  // center; this rotation is considered a consequence from two forces, one at
-  // the top and on at the bottom of the ant, that cooperatively try to rotate
-  // its velocity_ vector to align it to the desired_direction_. To try and not
-  // overshoot the desired_direction the ants acts with a force that decreases
-  // with the alignment of the velocity_ and desired_direction_ vector
+  // we  consider the ant as a bar long        position_ +
+  // CIRCLE_OF_VISION_DISTANCE * rotate(facing_dir, angle)); ANTS::ANT_LENGHT
+  // that rotates along its center; this rotation is considered a consequence
+  // from two forces, one at the top and on at the bottom of the ant, that
+  // cooperatively try to rotate its velocity_ vector to align it to the
+  // desired_direction_. To try and not overshoot the desired_direction the ants
+  // acts with a force that decreases with the alignment of the velocity_ and
+  // desired_direction_ vector
   Vector2d current_direction{velocity_ / norm(velocity_)};
   double force_multiplier{current_direction
                           * desired_direction_}; // note: dot-product
@@ -242,11 +244,10 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   std::array<Circle, 3> circles_of_vision;
   calculateCirclesOfVision(circles_of_vision);
 
-  // release pheromones
   if (time_to_release_pheromone) {
-    if (pheromone_reserve_ > MIN_PHEROMONE_RESERVE_TO_RELEASE) {
-      double pheromone_intensity{pheromone_reserve_
-                                 * PERCENTAGE_DECREASE_PHEROMONE_RELEASE};
+    double pheromone_intensity{pheromone_reserve_
+                               * PERCENTAGE_DECREASE_PHEROMONE_RELEASE};
+    if (pheromone_intensity > Pheromones::getMinimumPheromoneIntensity()) {
       if (has_food_) {
         to_food_ph.addPheromoneParticle(position_, pheromone_intensity);
       } else {
@@ -331,7 +332,8 @@ Ants::Ants(unsigned int seed)
     , time_since_last_frame_change_{0.}
 {}
 
-std::size_t Ants::getNumberOfAnts() const{
+std::size_t Ants::getNumberOfAnts() const
+{
   return ants_vec_.size();
 }
 
@@ -343,7 +345,7 @@ void Ants::addAntsAroundCircle(Circle const& circle, std::size_t number_of_ants)
   }
 
   ants_vec_.reserve(number_of_ants);
-  std::uniform_real_distribution dist(0., 2*PI);
+  std::uniform_real_distribution dist(0., 2 * PI);
   std::uniform_int_distribution starting_frame_generator{
       0, Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES - 1};
   std::generate_n(

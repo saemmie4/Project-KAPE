@@ -57,6 +57,8 @@ class FoodParticle
 
 class PheromoneParticle
 {
+  // 0.02
+  // 0.005
  private:
   // below this threshold the pheromone is considered to have evaporated
   inline static double const MIN_PHEROMONE_INTENSITY_{0.02};
@@ -66,6 +68,7 @@ class PheromoneParticle
   double intensity_;
 
  public:
+  static double getMinimumPheromoneIntensity();
   // may throw std::invalid_argument if intensity <= 0.
   PheromoneParticle(Vector2d const& position, double intensity);
   // PheromoneParticle(PheromoneParticle const& pheromone_particle);
@@ -212,7 +215,6 @@ class Pheromones
   // every PERIOD_BETWEEN_EVAPORATION_UPDATE_ each pheromone particle loses 1
   // intensity levels
   inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
-  inline static double const DECREASE_PERCENTAGE_AMOUNT_{0.005};
 
  private:
   // has to be > than an ant's circle of vision diameter
@@ -253,7 +255,7 @@ class Pheromones
   };
 
   // Pheromone members------------------------
-
+  static double getMinimumPheromoneIntensity();
   // may throw if ant_circle_of_vision_diameter<=0.
   explicit Pheromones(Type type, double ant_circle_of_vision_diameter,
                       unsigned int seed = 31415u);
@@ -307,9 +309,8 @@ class Pheromones
       //   vertices.emplace_back(position, color);
       // }
       for (auto const& pheromone_particle : square.second) {
-        color.a =
-            static_cast<sf::Uint8>((pheromone_particle.getIntensity()
-                                    / max_pheromone_intensity * 255.));
+        color.a = static_cast<sf::Uint8>((pheromone_particle.getIntensity()
+                                          / max_pheromone_intensity * 255.));
         pheromone_to_vertex_pos(pheromone_particle, position);
         vertices.emplace_back(position, color);
       }
