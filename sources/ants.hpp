@@ -19,7 +19,7 @@ class Ant
 {
  private:
   // every PERIOD_BETWEEN_PHEROMONE_RELEASE_ the ant releases a pheromone
-  inline static double const PERIOD_BETWEEN_PHEROMONE_RELEASE_{1.};
+  inline static double const PERIOD_BETWEEN_PHEROMONE_RELEASE_{.1};
   inline static double const PERIOD_BETWEEN_PHEROMONE_SEARCH_{.25};
 
   Vector2d desired_direction_;
