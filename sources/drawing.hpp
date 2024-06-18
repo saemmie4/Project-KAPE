@@ -46,6 +46,7 @@ class Window
   // holds the points of Food and Pheromones to be drawn on the next
   // display() call gets cleared with clear()
   std::vector<sf::Vertex> points_vector_;
+  sf::String input_string_;
 
   void loadForDrawing(Food const& food, sf::Color const& food_color);
   void loadForDrawing(Pheromones const& pheromones,

@@ -174,9 +174,15 @@ Window::kapeRectangleToScreenSfRectangleShape(Rectangle const& rectangle) const
 }
 
 Window::Window(float meter_to_pixel)
+    : window_{}
+    , coord_conv_{meter_to_pixel}
+    , ants_animation_frames_{}
+    , font_{}
+    , is_fullscreen_{true}
+    , points_vector_{}
+    , input_string_{}
 {
   createWindow();
-  coord_conv_.setMeterToPixels(meter_to_pixel);
 
   if (!font_.loadFromFile(DEFAULT_FONT_FILEPATH)) {
     throw std::runtime_error{"From Window::Window(float meter_to_pixel): "
@@ -191,9 +197,15 @@ Window::Window(float meter_to_pixel)
 
 Window::Window(unsigned int window_width, unsigned int window_height,
                float meter_to_pixel)
+    : window_{}
+    , coord_conv_{meter_to_pixel}
+    , ants_animation_frames_{}
+    , font_{}
+    , is_fullscreen_{false}
+    , points_vector_{}
+    , input_string_{}
 {
   createWindow(window_width, window_height);
-  coord_conv_.setMeterToPixels(meter_to_pixel);
 
   if (!font_.loadFromFile(DEFAULT_FONT_FILEPATH)) {
     throw std::runtime_error{
@@ -228,6 +240,21 @@ bool Window::isOpen() const
 {
   return window_.isOpen();
 }
+void checkInput(sf::String& input_string)
+{
+  if (input_string == "kape") {
+    std::cout <<   "\n\n"
+                   " >>  !!Secret code \"kape\" detected!!  <<\n"
+                   "   ~ Saemmie, THE TRUE Kape and Lele \n"
+                   "     wish you'll be able to optimize \n"
+                   "     your wonderful lives as well as \n"
+                   "     our ants optimize their path <3 ~\n\n "
+                   "P.S.:\n"
+                   "Gebbaro you won't be forgotten :') \n\n\n";
+  } else if (input_string.getSize() > 4) {
+    input_string.clear();
+  }
+}
 
 void Window::inputHandling()
 {
@@ -259,7 +286,10 @@ void Window::inputHandling()
                                      * multiplier);
       }
     } break;
-
+    case sf::Event::TextEntered:
+      input_string_ += event.text.unicode;
+      checkInput(input_string_);
+      break;
     case sf::Event::KeyReleased:
       switch (event.key.code) {
       case sf::Keyboard::Escape:

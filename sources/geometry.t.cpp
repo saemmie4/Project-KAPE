@@ -143,6 +143,15 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(kape::rotate(v1, -(kape::PI) / 3.).x == doctest::Approx(4.830127));
     CHECK(kape::rotate(v1, -(kape::PI) / 3.).y == doctest::Approx(1.633975));
   }
+  SUBCASE("Testing the cross_product function")
+  {
+    // kape::Vector2d v1{1., 5.};
+    // kape::Vector2d v2{0., -5.};
+    CHECK(kape::cross_product(v1, v1) == doctest::Approx(0.));
+    CHECK(kape::cross_product(v2, v2) == doctest::Approx(0.));
+    CHECK(kape::cross_product(v1, v2) == doctest::Approx(-5.));
+    CHECK(kape::cross_product(v2, v1) == doctest::Approx(+5.));
+  }
 }
 
 TEST_CASE("Testing Circle class")

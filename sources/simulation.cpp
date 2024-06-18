@@ -279,7 +279,7 @@ bool Simulation::isReadyToRun() const
   return ready_to_run_;
 }
 
-void AverageDistances(Ants const& ants, double slope, double y_intercept,
+void averageDistances(Ants const& ants, double slope, double y_intercept,
                       std::vector<double>& average_distances)
 {
   double total_distance =
@@ -310,7 +310,7 @@ void Simulation::run()
     // only if it's a simulation where we know which is the optimal path
     if (calculate_ants_average_distances_) {
       if (timeToCalculateAverageDistances()) {
-        AverageDistances(ants_, optimal_line_slope_, optimal_line_intercept_,
+        averageDistances(ants_, optimal_line_slope_, optimal_line_intercept_,
                          average_ants_distance_from_line_);
       }
     }
