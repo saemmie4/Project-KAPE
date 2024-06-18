@@ -112,7 +112,7 @@ class Ants
 
   bool loadFromFile(Anthill const& anthill,
                     std::string const& filepath = DEFAULT_FILEPATH_);
-  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_);
+  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_) const;
 
   std::vector<Ant>::const_iterator begin() const;
   std::vector<Ant>::const_iterator end() const;

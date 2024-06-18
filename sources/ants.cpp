@@ -253,11 +253,11 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
     double pheromone_intensity{pheromone_reserve_
                                * PERCENTAGE_DECREASE_PHEROMONE_RELEASE};
     if (has_food_) {
-      if (pheromone_intensity > to_food_ph.getMinimumPheromoneIntensity()) {
+      if (pheromone_intensity > to_food_ph.getMinPheromoneIntensity()) {
         to_food_ph.addPheromoneParticle(position_, pheromone_intensity);
       }
     } else {
-      if (pheromone_intensity > to_anthill_ph.getMinimumPheromoneIntensity()) {
+      if (pheromone_intensity > to_anthill_ph.getMinPheromoneIntensity()) {
         to_anthill_ph.addPheromoneParticle(position_, pheromone_intensity);
       }
     }
@@ -424,7 +424,7 @@ bool Ants::loadFromFile(Anthill const& anthill, std::string const& filepath)
   return true;
 }
 
-bool Ants::saveToFile(std::string const& filepath)
+bool Ants::saveToFile(std::string const& filepath) const
 {
   std::ofstream file_out{filepath, std::ios::out | std::ios::trunc};
 

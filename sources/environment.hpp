@@ -2,20 +2,11 @@
 #define ENVIRONMENT_HPP
 #include "geometry.hpp" //for Vector2d
 #include <SFML/Graphics.hpp>
-#include <bitset>
 #include <deque>
-#include <iterator>
-#include <list>
 #include <random>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
-// TODO:
-//  - check if adding things to a vector can cause exceptions
-//  - Anthill::loadFromFile() should check if it intersects any obstacles
-//  - SquareCoordinate KeyToSquareCoordinate(std::bitset<32> const& key) const;
-//  - Vector2d SquareCoordinateToWorldPosition(SquareCoordinate const& coord)
-//  const;
 
 namespace kape {
 
@@ -25,7 +16,7 @@ class Obstacles
 
  public:
   inline static std::string const DEFAULT_FILEPATH_{
-      "./assets/obstacles/obstacles.dat"};
+      "./assets/simulations/map_1/obstacles/obstacles.dat"};
 
   explicit Obstacles();
   std::size_t getNumberOfObstacles() const;
@@ -35,7 +26,7 @@ class Obstacles
   bool anyObstaclesInCircle(Circle const& circle) const;
 
   bool loadFromFile(std::string const& filepath = DEFAULT_FILEPATH_);
-  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_);
+  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_) const;
 
   std::vector<Rectangle>::const_iterator begin() const;
   std::vector<Rectangle>::const_iterator end() const;
@@ -48,33 +39,25 @@ class FoodParticle
 
  public:
   explicit FoodParticle(Vector2d const& position);
-  // explicit FoodParticle(FoodParticle const& food_particle);
   Vector2d const& getPosition() const;
-
-  //
-  // FoodParticle& operator=(FoodParticle const& rhs);
 };
 
 class PheromoneParticle
 {
-  // 0.02
-  // 0.005
  private:
-
   Vector2d position_;
   double intensity_;
 
  public:
   // may throw std::invalid_argument if intensity <= 0.
   PheromoneParticle(Vector2d const& position, double intensity);
-  // PheromoneParticle(PheromoneParticle const& pheromone_particle);
   Vector2d const& getPosition() const;
   double getIntensity() const;
 
   // may throw std::invalid_argument if decrease_percentage_amount isn't in [0,
   // 1)
-  void decreaseIntensity(
-      double decrease_percentage_amount, double min_pheromone_intensity);
+  void decreaseIntensity(double decrease_percentage_amount,
+                         double min_pheromone_intensity);
   // returns true if the Pheromone's intensity is <= MIN_PHEROMONE_INTENSITY
   bool hasEvaporated(double min_pheromone_intensity) const;
 };
@@ -100,7 +83,6 @@ class Food
     bool removeOneFoodParticleInCircle(Circle const& circle);
     bool isThereFoodLeft() const;
 
-    // add auto?
     std::vector<FoodParticle>::const_iterator begin() const;
     std::vector<FoodParticle>::const_iterator end() const;
   };
@@ -108,11 +90,9 @@ class Food
   std::vector<CircleWithFood> circles_with_food_vec_;
   std::default_random_engine engine_;
 
-  // void addFoodParticle(Vector2d const& position);
-  // void addFoodParticle(FoodParticle const& food_particle);
-
  public:
-  inline static std::string const DEFAULT_FILEPATH_{"./assets/food/food.dat"};
+  inline static std::string const DEFAULT_FILEPATH_{
+      "./assets/simulations/map_1/food/food.dat"};
   explicit Food(unsigned int seed = 11u);
   std::size_t getNumberOfFoodParticles() const;
 
@@ -127,15 +107,19 @@ class Food
                             std::size_t number_of_food_particles,
                             Obstacles const& obstacles);
   bool isThereFoodLeft() const;
-  // returns true if there was food in the circle (therefore if has also been
-  // removed) returns false if there wasn't any food in the circle (therefore
-  // nothing has been removed)
+
+  // returns:
+  //  - true if there was food in the circle (therefore if has also been
+  //  removed)
+  //  - false if there wasn't any food in the circle (therefore
+  //  nothing has been removed)
+  //
   // iterators of class Food::Iterator are invalidated if true
   bool removeOneFoodParticleInCircle(Circle const& circle);
 
   bool loadFromFile(Obstacles const& obstacles,
                     std::string const& filepath = DEFAULT_FILEPATH_);
-  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_);
+  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_) const;
 
   class Iterator
   {
@@ -162,15 +146,13 @@ class Food
 };
 
 // for the pheromone
+// declared outside because it's needed for the hash function
 struct PheromonesSquareCoordinate
 {
   int x;
   int y;
   friend bool operator==(PheromonesSquareCoordinate const& lhs,
-                         PheromonesSquareCoordinate const& rhs)
-  {
-    return lhs.x == rhs.x && lhs.y == rhs.y;
-  }
+                         PheromonesSquareCoordinate const& rhs);
 };
 
 // closing temporarily for hash function
@@ -180,7 +162,7 @@ template<>
 struct std::hash<kape::PheromonesSquareCoordinate>
 {
   std::size_t
-  operator()(const kape::PheromonesSquareCoordinate& coordinate) const noexcept
+  operator()(kape::PheromonesSquareCoordinate const& coordinate) const noexcept
   {
     std::size_t hash_x = std::hash<int>{}(coordinate.x);
     std::size_t hash_y = std::hash<int>{}(coordinate.y);
@@ -218,11 +200,9 @@ class Pheromones
   inline static double const MIN_PHEROMONE_INTENSITY_OPTIMIZATION_{0.02};
   inline static double const DECREASE_PERCENTAGE_AMOUNT_OPTIMIZATION_{0.001};
 
-
  private:
   // has to be > than an ant's circle of vision diameter
   double const SQUARE_LENGTH_;
-  // std::vector<PheromoneParticle> pheromones_vec_;
   std::unordered_map<PheromonesSquareCoordinate, std::deque<PheromoneParticle>>
       pheromones_squares_;
   const Type type_;
@@ -231,7 +211,6 @@ class Pheromones
 
   double MIN_PHEROMONE_INTENSITY_;
   double DECREASE_PERCENTAGE_AMOUNT_;
-
 
   using map_const_it =
       std::unordered_map<PheromonesSquareCoordinate,
@@ -270,11 +249,12 @@ class Pheromones
   Iterator getRandomMaxPheromoneParticleInCircle(Circle const& circle);
   Pheromones::Type getPheromonesType() const;
   std::size_t getNumberOfPheromones() const;
-  double getMinimumPheromoneIntensity();
+  double getMinPheromoneIntensity() const;
   double getMaxPheromoneIntensity() const;
   // may throw std::invalid_argument if intensity is <= 0.
   void addPheromoneParticle(Vector2d const& position, double intensity);
   void addPheromoneParticle(PheromoneParticle const& particle);
+  bool timeToEvaporate(double delta_t);
   // may throw std::invalid_argument if delta_t<0.
   void updateParticlesEvaporation(double delta_t = 0.01);
 
@@ -291,40 +271,16 @@ class Pheromones
                          sf::Color const& pheromone_color)
   {
     sf::Color color = pheromone_color;
-    // sf::Color color{pheromones.getPheromonesType()
-    //                         == Pheromones::Type::TO_ANTHILL
-    //                     ? sf::Color::Blue
-    //                     : sf::Color::Red};
-
     double const max_pheromone_intensity{pheromones.getMaxPheromoneIntensity()};
 
     sf::Vector2f position;
     for (auto const& square : pheromones.pheromones_squares_) {
-      // if (!square.second.empty()) {
-      //   auto max_pheromone_particle{square.second.back()};
-      //       // *std::max_element(square.second.begin(), square.second.end(),
-      //       //                  [](PheromoneParticle const&
-      //       pheromone_particle_max,
-      //       //                     PheromoneParticle const&
-      //       pheromone_particle) {
-      //       //                    return pheromone_particle.getIntensity()
-      //       //                         >
-      //       pheromone_particle_max.getIntensity();
-      //       //                  })};
-      //   color.a =
-      //   static_cast<sf::Uint8>((max_pheromone_particle.getIntensity()
-      //                                     / max_pheromone_intensity * 255.));
-      //   pheromone_to_vertex_pos(max_pheromone_particle, position);
-      //   vertices.emplace_back(position, color);
-      // }
       for (auto const& pheromone_particle : square.second) {
         color.a = static_cast<sf::Uint8>((pheromone_particle.getIntensity()
                                           / max_pheromone_intensity * 255.));
         pheromone_to_vertex_pos(pheromone_particle, position);
         vertices.emplace_back(position, color);
       }
-      // std::transform(square.second.begin(), square.second.end(),
-      //                std::back_inserter(vertices), pheromone_to_vertex);
     }
   }
 
@@ -339,6 +295,8 @@ class Anthill
   int food_counter_;
 
  public:
+ inline static std::string const DEFAULT_FILEPATH_{
+      "./assets/simulations/map_1/anthill/anthill.dat"};
   // may throw std::invalid_argument if radius<=0 or food_counter < 0
   explicit Anthill(Vector2d center = Vector2d{0., 0.}, double radius = 1.,
                    int food_counter = 0);
@@ -352,10 +310,9 @@ class Anthill
   void addFood(int amount = 1);
 
   // if the function fails it leaves anthill as it was before the call
-  bool loadFromFile(Obstacles const& obstacles, std::string const& filepath);
-  bool saveToFile(std::string const& filepath);
+  bool loadFromFile(Obstacles const& obstacles, std::string const& filepath = DEFAULT_FILEPATH_);
+  bool saveToFile(std::string const& filepath = DEFAULT_FILEPATH_) const;
 };
-
 } // namespace kape
 
 #endif

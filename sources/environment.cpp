@@ -13,13 +13,9 @@
 #include <stdexcept> //invalid_argument
 #include <vector>
 
-// TODO:
-//  - find a way to use algorithms in removeOneFoodParticleInCircle()
-
 namespace kape {
 
 // implementation of class Obstacles-----------------------------------
-
 Obstacles::Obstacles()
 {}
 
@@ -95,6 +91,7 @@ bool Obstacles::loadFromFile(std::string const& filepath)
                  "filepath):\n\t\t\tthrown exception std::invalid_argument "
                  "with message: \n\t\t\t"
               << error.what() << '\n';
+    obstacles_vec_.clear();
   }
 
   std::string end_check;
@@ -110,7 +107,8 @@ bool Obstacles::loadFromFile(std::string const& filepath)
 
   return true;
 }
-bool Obstacles::saveToFile(std::string const& filepath)
+
+bool Obstacles::saveToFile(std::string const& filepath) const
 {
   std::ofstream file_out{filepath, std::ios::out | std::ios::trunc};
 
@@ -141,22 +139,10 @@ FoodParticle::FoodParticle(Vector2d const& position)
     : position_{position}
 {}
 
-// FoodParticle::FoodParticle(FoodParticle const& food_particle)
-//     : FoodParticle{food_particle.getPosition()}
-// {}
-
 Vector2d const& FoodParticle::getPosition() const
 {
   return position_;
 }
-
-// FoodParticle& FoodParticle::operator=(FoodParticle const& rhs)
-// {
-//   if (&rhs != this) {
-//     position_ = rhs.position_;
-//   }
-//   return *this;
-// }
 
 // PheromoneParticle class Implementation--------------------------
 // may throw std::invalid_argument if intensity <= 0.
@@ -204,8 +190,8 @@ bool PheromoneParticle::hasEvaporated(double min_pheromone_intensity) const
 // Food Class implementation -----------------------------------
 
 // Food::CircleWithFood class implementation--------------------
-// may throw std::invalid_argument if number_of_food_particles < 0 or if the
-// circle intersects with any of the obstacles
+// may throw std::invalid_argument if the circle intersects with any of the
+// obstacles
 Food::CircleWithFood::CircleWithFood(Circle const& circle,
                                      std::size_t number_of_food_particles,
                                      Obstacles const& obstacles,
@@ -285,7 +271,6 @@ std::vector<FoodParticle>::const_iterator Food::CircleWithFood::end() const
 }
 
 // actual Food class implementation-------------------------------------------
-
 Food::Food(unsigned int seed)
     : circles_with_food_vec_{}
     , engine_{seed}
@@ -299,15 +284,6 @@ std::size_t Food::getNumberOfFoodParticles() const
         return sum + circle_with_food.getNumberOfFoodParticles();
       });
 }
-// void Food::addFoodParticle(Vector2d const& position)
-// {
-//   food_vec_.push_back(FoodParticle{position});
-// }
-
-// void Food::addFoodParticle(FoodParticle const& food_particle)
-// {
-//   food_vec_.push_back(food_particle);
-// }
 
 // returns:
 //  - true if it generated the food_particles (0 if number_of_particles==0 ->
@@ -320,6 +296,11 @@ bool Food::generateFoodInCircle(Circle const& circle,
                                 std::size_t number_of_food_particles,
                                 Obstacles const& obstacles)
 {
+  // nothing to do...
+  if (number_of_food_particles == 0) {
+    return true;
+  }
+
   // if the circle intersects any obstacles
   if (std::any_of(obstacles.begin(), obstacles.end(),
                   [&circle](Rectangle const& rectangle) {
@@ -328,17 +309,11 @@ bool Food::generateFoodInCircle(Circle const& circle,
     return false;
   }
 
-  // nothing to do...
-  if (number_of_food_particles == 0) {
-    return true;
-  }
-
   // generating a new circle_with_food.
   // no need for try catch because we already checked that number of particles
   // is > 0 and that the circle doesn't intersect any obstacle
-  circles_with_food_vec_.push_back(
-      CircleWithFood{circle, number_of_food_particles, obstacles, engine_});
-
+  circles_with_food_vec_.emplace_back(circle, number_of_food_particles,
+                                      obstacles, engine_);
   return true;
 }
 
@@ -350,8 +325,8 @@ bool Food::isThereFoodLeft() const
 // iterators of class Food::Iterator are invalidated if true
 bool Food::removeOneFoodParticleInCircle(Circle const& circle)
 {
-  auto circles_with_food_it{circles_with_food_vec_.begin()};
-  for (; circles_with_food_it != circles_with_food_vec_.end();
+  for (auto circles_with_food_it{circles_with_food_vec_.begin()};
+       circles_with_food_it != circles_with_food_vec_.end();
        ++circles_with_food_it) {
     if (!doShapesIntersect(circle, circles_with_food_it->getCircle())) {
       continue;
@@ -412,6 +387,7 @@ bool Food::loadFromFile(Obstacles const& obstacles, std::string const& filepath)
                  "filepath):\n\t\t\tthrown exception std::invalid_argument "
                  "with message: \n\t\t\t"
               << error.what() << '\n';
+    circles_with_food_vec_.clear();
   }
 
   std::string end_check;
@@ -428,7 +404,7 @@ bool Food::loadFromFile(Obstacles const& obstacles, std::string const& filepath)
   return true;
 }
 
-bool Food::saveToFile(std::string const& filepath)
+bool Food::saveToFile(std::string const& filepath) const
 {
   std::ofstream file_out{filepath, std::ios::out | std::ios::trunc};
 
@@ -519,14 +495,21 @@ Food::Iterator Food::end() const
                         circles_with_food_vec_.end() - 1};
 }
 
+// PheromoneSquareCoordinate struct implementation ---------------------------
+bool operator==(PheromonesSquareCoordinate const& lhs,
+                PheromonesSquareCoordinate const& rhs)
+{
+  return lhs.x == rhs.x && lhs.y == rhs.y;
+}
+
 // Pheromones class implementation ------------------------------
 
 PheromonesSquareCoordinate
 Pheromones::positionToPheromonesSquareCoordinate(Vector2d const& position) const
 {
   PheromonesSquareCoordinate coord;
-  coord.x = static_cast<int16_t>(std::ceil(position.x / SQUARE_LENGTH_)) - 1;
-  coord.y = static_cast<int16_t>(std::ceil(position.y / SQUARE_LENGTH_));
+  coord.x = static_cast<int>(std::ceil(position.x / SQUARE_LENGTH_)) - 1;
+  coord.y = static_cast<int>(std::ceil(position.y / SQUARE_LENGTH_));
   return coord;
 }
 
@@ -557,11 +540,6 @@ void Pheromones::fillWithNeighbouringPheromonesSquares(
       }
     }
   }
-}
-
-double Pheromones::getMinimumPheromoneIntensity()
-{
-  return MIN_PHEROMONE_INTENSITY_;
 }
 
 Pheromones::Pheromones(Type type, double ant_circle_of_vision_diameter,
@@ -665,7 +643,7 @@ Pheromones::getRandomMaxPheromoneParticleInCircle(Circle const& circle)
   double probability_of_returning_early{0.001};
   std::uniform_real_distribution<double> distr(0., 1.);
 
-  // i am extreamly sorry for this monstruosity
+  // we are extremely sorry for this monstruosity
   // basically we search the pheromone with the highest intensity, but, each
   // time we find a pheromone inside the circle, there's a
   // probability_of_returning_early and returning the max found so far
@@ -713,6 +691,11 @@ std::size_t Pheromones::getNumberOfPheromones() const
                          });
 }
 
+double Pheromones::getMinPheromoneIntensity() const
+{
+  return MIN_PHEROMONE_INTENSITY_;
+}
+
 double Pheromones::getMaxPheromoneIntensity() const
 {
   return Ant::MAX_PHEROMONE_RESERVE
@@ -735,41 +718,44 @@ void Pheromones::addPheromoneParticle(PheromoneParticle const& particle)
   pheromones_squares_[square_coord].push_back(particle);
 }
 
+bool Pheromones::timeToEvaporate(double delta_t)
+{
+  time_since_last_evaporation_ += delta_t;
+  if (time_since_last_evaporation_ < PERIOD_BETWEEN_EVAPORATION_UPDATE_) {
+    return false;
+  }
+  time_since_last_evaporation_ -= PERIOD_BETWEEN_EVAPORATION_UPDATE_;
+  return true;
+}
+
 // may throw std::invalid_argument if delta_t<0.
 void Pheromones::updateParticlesEvaporation(double delta_t)
 {
   if (delta_t < 0.) {
     throw std::invalid_argument{"delta_t can't be negative"};
   }
-
-  time_since_last_evaporation_ += delta_t;
-  if (time_since_last_evaporation_ < PERIOD_BETWEEN_EVAPORATION_UPDATE_) {
+  if (!timeToEvaporate(delta_t)) {
     return;
   }
-  time_since_last_evaporation_ -= PERIOD_BETWEEN_EVAPORATION_UPDATE_;
-
   for (auto& pheromone_square : pheromones_squares_) {
     for (auto& pheromone_particle : pheromone_square.second) {
-      pheromone_particle.decreaseIntensity(DECREASE_PERCENTAGE_AMOUNT_, MIN_PHEROMONE_INTENSITY_);
+      pheromone_particle.decreaseIntensity(DECREASE_PERCENTAGE_AMOUNT_,
+                                           MIN_PHEROMONE_INTENSITY_);
     }
   }
 
   // remove phermones that have evaporated from the pheromones squares
   for (auto& pheromone_square : pheromones_squares_) {
     pheromone_square.second.erase(
-        std::remove_if(pheromone_square.second.begin(),
-                       pheromone_square.second.end(),
-                       [](PheromoneParticle const& particle) {
-                         return particle.hasEvaporated(MIN_PHEROMONE_INTENSITY_MAP_);
-                       }),
+        std::remove_if(
+            pheromone_square.second.begin(), pheromone_square.second.end(),
+            [](PheromoneParticle const& particle) {
+              return particle.hasEvaporated(MIN_PHEROMONE_INTENSITY_MAP_);
+            }),
         pheromone_square.second.end());
-    // pheromone_square.second.remove_if([](PheromoneParticle const& particle)
-    // {
-    //   return particle.hasEvaporated();
-    // });
   }
 
-  // remove empty pheromones squares (it's a remove_if)
+  // remove empty pheromones squares (it's a erase_if)
   for (auto pheromone_square{pheromones_squares_.begin()};
        pheromone_square != pheromones_squares_.end();) {
     if (pheromone_square->second.empty()) {
@@ -782,10 +768,13 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
 
 void Pheromones::optimizePath(bool optimize_path)
 {
-  MIN_PHEROMONE_INTENSITY_ = optimize_path ? MIN_PHEROMONE_INTENSITY_OPTIMIZATION_ : MIN_PHEROMONE_INTENSITY_MAP_;
-  DECREASE_PERCENTAGE_AMOUNT_ = optimize_path ? DECREASE_PERCENTAGE_AMOUNT_OPTIMIZATION_ : DECREASE_PERCENTAGE_AMOUNT_MAP_;
+  MIN_PHEROMONE_INTENSITY_    = optimize_path
+                                  ? MIN_PHEROMONE_INTENSITY_OPTIMIZATION_
+                                  : MIN_PHEROMONE_INTENSITY_MAP_;
+  DECREASE_PERCENTAGE_AMOUNT_ = optimize_path
+                                  ? DECREASE_PERCENTAGE_AMOUNT_OPTIMIZATION_
+                                  : DECREASE_PERCENTAGE_AMOUNT_MAP_;
 }
-
 
 Pheromones::Iterator::Iterator(square_const_it const& pheromone_particle_it,
                                map_const_it const& pheromones_square_it,
@@ -966,7 +955,7 @@ bool Anthill::loadFromFile(Obstacles const& obstacles,
   return true;
 }
 
-bool Anthill::saveToFile(std::string const& filepath)
+bool Anthill::saveToFile(std::string const& filepath) const
 {
   std::ofstream file_out{filepath, std::ios::out | std::ios::trunc};
 
