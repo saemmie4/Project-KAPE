@@ -6,14 +6,7 @@
 #include <array>
 #include <random>
 
-// TODO:
-//  - calculateAngleToAvoidObstacles, calculateAngleFromPheromones and
-//    calculateRandomTurning temporarily made public to run tests, should be
-//    private
-
 namespace kape {
-
-double constexpr E = 2.71828182845904523536;
 
 class Ant
 {
@@ -32,17 +25,14 @@ class Ant
   int current_frame_;
 
  public:
-  void calculateCirclesOfVision(std::array<Circle, 3>& circles_of_vision) const;
-
-  inline static double const ANT_LENGTH{0.005};    // 0.5 cm
-  inline static double const ANT_MASS{5.e-6};      // 5 milligrams
-  inline static double const ANT_SPEED{0.025};      // 5 cm/s
-  inline static double const ANT_FORCE_MAX{3e-6}; // 0.00005 N
+  inline static double const ANT_LENGTH{0.005};   // 0.5 cm
+  inline static double const ANT_MASS{5.e-6};     // 5 milligrams
+  inline static double const ANT_SPEED{0.025};    // 2.5 cm/s
+  inline static double const ANT_FORCE_MAX{3e-6}; // 0.000003 N
 
   inline static double const CIRCLE_OF_VISION_RADIUS{ANT_LENGTH / 1.3};
   inline static double const CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
   inline static double const CIRCLE_OF_VISION_ANGLE{PI / 3.};
-
 
   inline static double const MAX_PHEROMONE_RESERVE{2000.};
   // the ant's reserve decreases by 2% every time the ant releases a pheromone
@@ -50,8 +40,9 @@ class Ant
 
   inline static int const ANIMATION_TOTAL_NUMBER_OF_FRAMES{4};
 
+  void calculateCirclesOfVision(std::array<Circle, 3>& circles_of_vision) const;
   double calculateAngleToAvoidObstacles(
-      std::array<Circle, 3> const& cov, Obstacles obs,
+      std::array<Circle, 3> const& cov, Obstacles const& obs,
       std::default_random_engine& random_engine) const;
 
   void applyPheromonesInfluence(std::array<Circle, 3> const& cov,
@@ -63,7 +54,6 @@ class Ant
   // may throw std::invalid_argument if current_frame isn't in
   //     [0, ANIMATION_TOTAL_NUMBER_OF_FRAMES)
   // may throw std::invalid_argument if pheromone_reserve <= 0.
-  // may throw std::invalid_argument if pheromone_reserve <= 0.
   explicit Ant(Vector2d const& position, Vector2d const& direction,
                int current_frame, bool has_food = false,
                double pheromone_reserve = MAX_PHEROMONE_RESERVE);
@@ -74,6 +64,9 @@ class Ant
   // if velocity == {0.,0.} instead of the angle it returns 0.
   double getFacingAngle() const;
   bool hasFood() const;
+  bool timeToReleasePheromone(double delta_t);
+  bool timeToSearchPheromone(double delta_t);
+  void updatePositionAndVelocity(double delta_t);
   // may throw std::invalid_argument if to_anthill_ph isn't of type
   // Pheromones::Type::TO_ANTHILL or if to_food_ph isn't of type
   // Pheromones::Type::TO_FOOD
@@ -85,6 +78,7 @@ class Ant
   int getCurrentFrame() const;
   void goToNextFrame();
 };
+
 class Ants
 {
  private:
@@ -98,7 +92,7 @@ class Ants
   void addAnt(Ant const& ant);
 
  public:
-  inline static std::string const DEFAULT_FILEPATH_{"./assets/ants/ants.dat"};
+  inline static std::string const DEFAULT_FILEPATH_{"./assets/simulations/map_1/ants/ants.dat"};
 
   // NOTE: it's in "simulation" time, not real time
   inline static double const ANIMATION_TIME_BETWEEN_FRAMES_{0.03};

@@ -7,12 +7,9 @@
 #include <string>
 #include <vector>
 
-// TODO
-//  - find a solution for worldToScreen having to make a static_cast
-//  double->float
-
 namespace kape {
-// right now we'll assume that the origin of the map lies at the center of the
+
+// we'll assume that the origin of the map lies at the center of the
 // screen, and that +x = right, +y = up
 class CoordinateConverter
 {
@@ -36,7 +33,6 @@ class CoordinateConverter
   float worldToScreenRotation(double angle) const;
 };
 
-// name to be changed
 class Window
 {
  private:
