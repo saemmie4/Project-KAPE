@@ -105,34 +105,38 @@ TEST_CASE("Testing PheromoneParticle class")
     CHECK(p6.getIntensity() == 1);
     CHECK(p7.getIntensity() == 100);
   }
-  // SUBCASE("Testing decreaseIntensity function")
-  // {
-  //   p1.decreaseIntensity();
-  //   p2.decreaseIntensity(0.);
-  //   p3.decreaseIntensity(0.99);
-  //   p4.decreaseIntensity(0.001);
-  //   CHECK(p1.getIntensity() == 14 * (1 - 0.005));
-  //   CHECK(p2.getIntensity() == 7 * (1 - 0));
-  //   CHECK(p3.getIntensity() == 68 * (1 - 0.99));
-  //   CHECK(p4.getIntensity() == 54 * (1 - 0.001));
-  //   CHECK_THROWS(p5.decreaseIntensity(56));
-  //   CHECK_THROWS(p6.decreaseIntensity(1));
-  //   CHECK_THROWS(p7.decreaseIntensity(-10));
-  // }
-  // SUBCASE("Testing hasEvaporated function")
-  // {
-  //   p1.decreaseIntensity();
-  //   p2.decreaseIntensity(0.);
-  //   p3.decreaseIntensity(0.99);
-  //   p4.decreaseIntensity(0.001);
-  //   p5.decreaseIntensity(0.99);
-  //   p5.decreaseIntensity(0.99);
-  //   CHECK(p1.hasEvaporated() == false);
-  //   CHECK(p2.hasEvaporated() == false);
-  //   CHECK(p3.hasEvaporated() == false);
-  //   CHECK(p4.hasEvaporated() == false);
-  //   CHECK(p5.hasEvaporated() == true);
-  // }
+  SUBCASE("Testing decreaseIntensity function")
+  {
+    double min_pheromone_intensity{.5};
+    double decrease_percentage_amount{0.01};
+    p1.decreaseIntensity(decrease_percentage_amount, min_pheromone_intensity);
+    p2.decreaseIntensity(0., min_pheromone_intensity);
+    p3.decreaseIntensity(0.99, min_pheromone_intensity);
+    p4.decreaseIntensity(0.001, min_pheromone_intensity);
+    CHECK(p1.getIntensity() == 14 * (1 - decrease_percentage_amount));
+    CHECK(p2.getIntensity() == 7 * (1 - 0));
+    CHECK(p3.getIntensity() == 68 * (1 - 0.99));
+    CHECK(p4.getIntensity() == 54 * (1 - 0.001));
+    CHECK_THROWS(p5.decreaseIntensity(56, min_pheromone_intensity));
+    CHECK_THROWS(p6.decreaseIntensity(1, min_pheromone_intensity));
+    CHECK_THROWS(p7.decreaseIntensity(-10, min_pheromone_intensity));
+  }
+  SUBCASE("Testing hasEvaporated function")
+  {
+    double min_pheromone_intensity{.5};
+    double decrease_percentage_amount{0.01};
+    p1.decreaseIntensity(decrease_percentage_amount, min_pheromone_intensity);
+    p2.decreaseIntensity(0., min_pheromone_intensity);
+    p3.decreaseIntensity(0.99, min_pheromone_intensity);
+    p4.decreaseIntensity(0.001, min_pheromone_intensity);
+    p5.decreaseIntensity(0.99, min_pheromone_intensity);
+    p5.decreaseIntensity(0.99, min_pheromone_intensity);
+    CHECK(p1.hasEvaporated(min_pheromone_intensity) == false);
+    CHECK(p2.hasEvaporated(min_pheromone_intensity) == false);
+    CHECK(p3.hasEvaporated(min_pheromone_intensity) == false);
+    CHECK(p4.hasEvaporated(min_pheromone_intensity) == false);
+    CHECK(p5.hasEvaporated(min_pheromone_intensity) == true);
+  }
 }
 
 TEST_CASE("Testing Food class")
@@ -283,6 +287,8 @@ TEST_CASE("Testing Pheromones class")
   // it's not used
   kape::Pheromones ph_anthill(kape::Pheromones::Type::TO_ANTHILL, 1.);
   kape::Pheromones ph_food(kape::Pheromones::Type::TO_FOOD, 1.);
+  ph_anthill.optimizePath(false);
+  ph_food.optimizePath(false);
   SUBCASE("Testing getPheromonesType function")
   {
     CHECK(ph_anthill.getPheromonesType() == kape::Pheromones::Type::TO_ANTHILL);
@@ -360,14 +366,14 @@ TEST_CASE("Testing Pheromones class")
         kape::Pheromones::PERIOD_BETWEEN_EVAPORATION_UPDATE_);
     CHECK(ph_anthill.getPheromonesIntensityInCircle(
               kape::Circle{kape::Vector2d{0., 0.}, 1.})
-          == (1001 * (1 - 0.005)));
+          == (1001 * (1 - 0.01)));
     CHECK(ph_anthill.getNumberOfPheromones() == 11);
     CHECK(ph_food.getPheromonesIntensityInCircle(
               kape::Circle{kape::Vector2d{0., 0.}, 1.})
-          == (1501 * (1 - 0.005)));
+          == (1501 * (1 - 0.01)));
     CHECK(ph_food.getNumberOfPheromones() == 16);
 
-    for (int i{0}; i != 1000; ++i) {
+    for (int i{0}; i != 100; ++i) {
       ph_anthill.updateParticlesEvaporation(
           kape::Pheromones::PERIOD_BETWEEN_EVAPORATION_UPDATE_ * i);
       ph_food.updateParticlesEvaporation(
