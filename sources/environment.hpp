@@ -60,15 +60,11 @@ class PheromoneParticle
   // 0.02
   // 0.005
  private:
-  // below this threshold the pheromone is considered to have evaporated
-  inline static double const MIN_PHEROMONE_INTENSITY_{0.02};
-  inline static double const DECREASE_PERCENTAGE_AMOUNT_{0.005};
 
   Vector2d position_;
   double intensity_;
 
  public:
-  static double getMinimumPheromoneIntensity();
   // may throw std::invalid_argument if intensity <= 0.
   PheromoneParticle(Vector2d const& position, double intensity);
   // PheromoneParticle(PheromoneParticle const& pheromone_particle);
@@ -78,9 +74,9 @@ class PheromoneParticle
   // may throw std::invalid_argument if decrease_percentage_amount isn't in [0,
   // 1)
   void decreaseIntensity(
-      double decrease_percentage_amount = DECREASE_PERCENTAGE_AMOUNT_);
+      double decrease_percentage_amount, double min_pheromone_intensity);
   // returns true if the Pheromone's intensity is <= MIN_PHEROMONE_INTENSITY
-  bool hasEvaporated() const;
+  bool hasEvaporated(double min_pheromone_intensity) const;
 };
 
 class Food
@@ -216,6 +212,13 @@ class Pheromones
   // intensity levels
   inline static double const PERIOD_BETWEEN_EVAPORATION_UPDATE_{1.};
 
+  // below this threshold the pheromone is considered to have evaporated
+  inline static double const MIN_PHEROMONE_INTENSITY_MAP_{.5};
+  inline static double const DECREASE_PERCENTAGE_AMOUNT_MAP_{0.01};
+  inline static double const MIN_PHEROMONE_INTENSITY_OPTIMIZATION_{0.02};
+  inline static double const DECREASE_PERCENTAGE_AMOUNT_OPTIMIZATION_{0.001};
+
+
  private:
   // has to be > than an ant's circle of vision diameter
   double const SQUARE_LENGTH_;
@@ -225,6 +228,10 @@ class Pheromones
   const Type type_;
   std::default_random_engine random_engine_;
   double time_since_last_evaporation_;
+
+  double MIN_PHEROMONE_INTENSITY_;
+  double DECREASE_PERCENTAGE_AMOUNT_;
+
 
   using map_const_it =
       std::unordered_map<PheromonesSquareCoordinate,
@@ -255,7 +262,6 @@ class Pheromones
   };
 
   // Pheromone members------------------------
-  static double getMinimumPheromoneIntensity();
   // may throw if ant_circle_of_vision_diameter<=0.
   explicit Pheromones(Type type, double ant_circle_of_vision_diameter,
                       unsigned int seed = 31415u);
@@ -264,12 +270,15 @@ class Pheromones
   Iterator getRandomMaxPheromoneParticleInCircle(Circle const& circle);
   Pheromones::Type getPheromonesType() const;
   std::size_t getNumberOfPheromones() const;
+  double getMinimumPheromoneIntensity();
   double getMaxPheromoneIntensity() const;
   // may throw std::invalid_argument if intensity is <= 0.
   void addPheromoneParticle(Vector2d const& position, double intensity);
   void addPheromoneParticle(PheromoneParticle const& particle);
   // may throw std::invalid_argument if delta_t<0.
   void updateParticlesEvaporation(double delta_t = 0.01);
+
+  void optimizePath(bool optimize_path);
 
   // renders the pheromones into the supplied std::vector<sf::Vertex>
   // pheromone_to_vertex_pos must be callable as a void function that takes a

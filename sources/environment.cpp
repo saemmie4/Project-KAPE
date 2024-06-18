@@ -6,12 +6,12 @@
 #include <cassert>
 #include <cmath> //for std::ceil and something else
 #include <cstring>
+#include <deque>
 #include <fstream>
 #include <numeric> //for accumulate
 #include <random>
 #include <stdexcept> //invalid_argument
 #include <vector>
-#include <deque>
 
 // TODO:
 //  - find a way to use algorithms in removeOneFoodParticleInCircle()
@@ -159,12 +159,6 @@ Vector2d const& FoodParticle::getPosition() const
 // }
 
 // PheromoneParticle class Implementation--------------------------
-double PheromoneParticle::getMinimumPheromoneIntensity()
-{
-  return MIN_PHEROMONE_INTENSITY_;
-}
-
-
 // may throw std::invalid_argument if intensity <= 0.
 PheromoneParticle::PheromoneParticle(Vector2d const& position, double intensity)
     : position_{position}
@@ -186,7 +180,8 @@ double PheromoneParticle::getIntensity() const
 }
 
 // may throw std::invalid_argument if decrease_percentage_amount isn't in [0, 1)
-void PheromoneParticle::decreaseIntensity(double decrease_percentage_amount)
+void PheromoneParticle::decreaseIntensity(double decrease_percentage_amount,
+                                          double min_pheromone_intensity)
 {
   if (decrease_percentage_amount < 0. || decrease_percentage_amount >= 1.) {
     throw std::invalid_argument{
@@ -196,14 +191,14 @@ void PheromoneParticle::decreaseIntensity(double decrease_percentage_amount)
   intensity_ *= (1. - decrease_percentage_amount);
 
   // to avoid it going to 0 because of finite double precision
-  if (intensity_ < MIN_PHEROMONE_INTENSITY_) {
-    intensity_ = MIN_PHEROMONE_INTENSITY_;
+  if (intensity_ < min_pheromone_intensity) {
+    intensity_ = min_pheromone_intensity;
   }
 }
 
-bool PheromoneParticle::hasEvaporated() const
+bool PheromoneParticle::hasEvaporated(double min_pheromone_intensity) const
 {
-  return intensity_ <= MIN_PHEROMONE_INTENSITY_;
+  return intensity_ <= min_pheromone_intensity;
 }
 
 // Food Class implementation -----------------------------------
@@ -566,9 +561,8 @@ void Pheromones::fillWithNeighbouringPheromonesSquares(
 
 double Pheromones::getMinimumPheromoneIntensity()
 {
-  return PheromoneParticle::getMinimumPheromoneIntensity();
+  return MIN_PHEROMONE_INTENSITY_;
 }
-
 
 Pheromones::Pheromones(Type type, double ant_circle_of_vision_diameter,
                        unsigned int seed)
@@ -577,6 +571,9 @@ Pheromones::Pheromones(Type type, double ant_circle_of_vision_diameter,
     , type_{type}
     , random_engine_{seed}
     , time_since_last_evaporation_{0.}
+    , MIN_PHEROMONE_INTENSITY_{MIN_PHEROMONE_INTENSITY_MAP_}
+    , DECREASE_PERCENTAGE_AMOUNT_{DECREASE_PERCENTAGE_AMOUNT_MAP_}
+
 {
   if (SQUARE_LENGTH_ <= 0.) {
     throw std::invalid_argument{"the ant's circle of vision diameter, passed "
@@ -753,7 +750,7 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
 
   for (auto& pheromone_square : pheromones_squares_) {
     for (auto& pheromone_particle : pheromone_square.second) {
-      pheromone_particle.decreaseIntensity();
+      pheromone_particle.decreaseIntensity(DECREASE_PERCENTAGE_AMOUNT_, MIN_PHEROMONE_INTENSITY_);
     }
   }
 
@@ -763,7 +760,7 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
         std::remove_if(pheromone_square.second.begin(),
                        pheromone_square.second.end(),
                        [](PheromoneParticle const& particle) {
-                         return particle.hasEvaporated();
+                         return particle.hasEvaporated(MIN_PHEROMONE_INTENSITY_MAP_);
                        }),
         pheromone_square.second.end());
     // pheromone_square.second.remove_if([](PheromoneParticle const& particle)
@@ -782,6 +779,13 @@ void Pheromones::updateParticlesEvaporation(double delta_t)
     }
   }
 }
+
+void Pheromones::optimizePath(bool optimize_path)
+{
+  MIN_PHEROMONE_INTENSITY_ = optimize_path ? MIN_PHEROMONE_INTENSITY_OPTIMIZATION_ : MIN_PHEROMONE_INTENSITY_MAP_;
+  DECREASE_PERCENTAGE_AMOUNT_ = optimize_path ? DECREASE_PERCENTAGE_AMOUNT_OPTIMIZATION_ : DECREASE_PERCENTAGE_AMOUNT_MAP_;
+}
+
 
 Pheromones::Iterator::Iterator(square_const_it const& pheromone_particle_it,
                                map_const_it const& pheromones_square_it,

@@ -247,15 +247,17 @@ void Ant::update(Food& food, Pheromones& to_anthill_ph, Pheromones& to_food_ph,
   if (time_to_release_pheromone) {
     double pheromone_intensity{pheromone_reserve_
                                * PERCENTAGE_DECREASE_PHEROMONE_RELEASE};
-    if (pheromone_intensity > Pheromones::getMinimumPheromoneIntensity()) {
-      if (has_food_) {
+    if (has_food_) {
+      if (pheromone_intensity > to_food_ph.getMinimumPheromoneIntensity()) {
         to_food_ph.addPheromoneParticle(position_, pheromone_intensity);
-      } else {
+      }
+    } else {
+      if (pheromone_intensity > to_anthill_ph.getMinimumPheromoneIntensity()) {
         to_anthill_ph.addPheromoneParticle(position_, pheromone_intensity);
       }
-      // pheromone_reserve_ *= (1. - PERCENTAGE_DECREASE_PHEROMONE_RELEASE);
-      pheromone_reserve_ -= pheromone_intensity;
     }
+    // pheromone_reserve_ *= (1. - PERCENTAGE_DECREASE_PHEROMONE_RELEASE);
+    pheromone_reserve_ -= pheromone_intensity;
   }
 
   // avoid obstacles
