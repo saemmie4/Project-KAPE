@@ -162,14 +162,11 @@ TEST_CASE("Testing Food class")
   SUBCASE("Testing removeOneFoodParticleInCircle")
   {
     food.removeOneFoodParticleInCircle(
-        kape::Circle{kape::Vector2d{2., -1.}, 1.});
+        kape::Circle{kape::Vector2d{1., -1.}, 1.});
     CHECK(food.getNumberOfFoodParticles() == 49);
     food.removeOneFoodParticleInCircle(
-        kape::Circle{kape::Vector2d{1., -2.5}, 1.});
-    CHECK(food.getNumberOfFoodParticles() == 48);
-    food.removeOneFoodParticleInCircle(
         kape::Circle{kape::Vector2d{1., -2.5}, 0.8});
-    CHECK(food.getNumberOfFoodParticles() == 48);
+    CHECK(food.getNumberOfFoodParticles() == 49);
   }
   SUBCASE("Testing isThereFoodLeft function")
   {

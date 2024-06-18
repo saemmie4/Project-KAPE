@@ -62,7 +62,7 @@ class PheromoneParticle
  private:
   // below this threshold the pheromone is considered to have evaporated
   inline static double const MIN_PHEROMONE_INTENSITY_{0.02};
-  inline static double const DECREASE_PERCENTAGE_AMOUNT_{0.005};
+  inline static double const DECREASE_PERCENTAGE_AMOUNT_{0.001}; 
 
   Vector2d position_;
   double intensity_;

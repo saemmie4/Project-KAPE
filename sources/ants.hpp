@@ -37,7 +37,7 @@ class Ant
   inline static double const ANT_LENGTH{0.005};    // 0.5 cm
   inline static double const ANT_MASS{5.e-6};      // 5 milligrams
   inline static double const ANT_SPEED{0.025};      // 5 cm/s
-  inline static double const ANT_FORCE_MAX{2e-6}; // 0.00005 N
+  inline static double const ANT_FORCE_MAX{3e-6}; // 0.00005 N
 
   inline static double const CIRCLE_OF_VISION_RADIUS{ANT_LENGTH / 1.3};
   inline static double const CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
