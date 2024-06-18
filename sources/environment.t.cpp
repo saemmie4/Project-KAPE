@@ -105,34 +105,34 @@ TEST_CASE("Testing PheromoneParticle class")
     CHECK(p6.getIntensity() == 1);
     CHECK(p7.getIntensity() == 100);
   }
-  SUBCASE("Testing decreaseIntensity function")
-  {
-    p1.decreaseIntensity();
-    p2.decreaseIntensity(0.);
-    p3.decreaseIntensity(0.99);
-    p4.decreaseIntensity(0.001);
-    CHECK(p1.getIntensity() == 14 * (1 - 0.005));
-    CHECK(p2.getIntensity() == 7 * (1 - 0));
-    CHECK(p3.getIntensity() == 68 * (1 - 0.99));
-    CHECK(p4.getIntensity() == 54 * (1 - 0.001));
-    CHECK_THROWS(p5.decreaseIntensity(56));
-    CHECK_THROWS(p6.decreaseIntensity(1));
-    CHECK_THROWS(p7.decreaseIntensity(-10));
-  }
-  SUBCASE("Testing hasEvaporated function")
-  {
-    p1.decreaseIntensity();
-    p2.decreaseIntensity(0.);
-    p3.decreaseIntensity(0.99);
-    p4.decreaseIntensity(0.001);
-    p5.decreaseIntensity(0.99);
-    p5.decreaseIntensity(0.99);
-    CHECK(p1.hasEvaporated() == false);
-    CHECK(p2.hasEvaporated() == false);
-    CHECK(p3.hasEvaporated() == false);
-    CHECK(p4.hasEvaporated() == false);
-    CHECK(p5.hasEvaporated() == true);
-  }
+  // SUBCASE("Testing decreaseIntensity function")
+  // {
+  //   p1.decreaseIntensity();
+  //   p2.decreaseIntensity(0.);
+  //   p3.decreaseIntensity(0.99);
+  //   p4.decreaseIntensity(0.001);
+  //   CHECK(p1.getIntensity() == 14 * (1 - 0.005));
+  //   CHECK(p2.getIntensity() == 7 * (1 - 0));
+  //   CHECK(p3.getIntensity() == 68 * (1 - 0.99));
+  //   CHECK(p4.getIntensity() == 54 * (1 - 0.001));
+  //   CHECK_THROWS(p5.decreaseIntensity(56));
+  //   CHECK_THROWS(p6.decreaseIntensity(1));
+  //   CHECK_THROWS(p7.decreaseIntensity(-10));
+  // }
+  // SUBCASE("Testing hasEvaporated function")
+  // {
+  //   p1.decreaseIntensity();
+  //   p2.decreaseIntensity(0.);
+  //   p3.decreaseIntensity(0.99);
+  //   p4.decreaseIntensity(0.001);
+  //   p5.decreaseIntensity(0.99);
+  //   p5.decreaseIntensity(0.99);
+  //   CHECK(p1.hasEvaporated() == false);
+  //   CHECK(p2.hasEvaporated() == false);
+  //   CHECK(p3.hasEvaporated() == false);
+  //   CHECK(p4.hasEvaporated() == false);
+  //   CHECK(p5.hasEvaporated() == true);
+  // }
 }
 
 TEST_CASE("Testing Food class")

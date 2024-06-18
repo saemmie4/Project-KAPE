@@ -43,6 +43,7 @@ class Ant
   inline static double const CIRCLE_OF_VISION_DISTANCE{1.5 * ANT_LENGTH};
   inline static double const CIRCLE_OF_VISION_ANGLE{PI / 3.};
 
+
   inline static double const MAX_PHEROMONE_RESERVE{2000.};
   // the ant's reserve decreases by 2% every time the ant releases a pheromone
   inline static double const PERCENTAGE_DECREASE_PHEROMONE_RELEASE{0.02};

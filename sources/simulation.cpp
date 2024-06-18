@@ -61,7 +61,8 @@ bool Simulation::loadSimulation(
   // loadFromFile will fail on their own
   std::string simulation_path{simulation_folder_path.path().string() + '/'};
 
-  return obstacles_.loadFromFile(simulation_path + "obstacles/obstacles.dat")
+  bool correctly_loaded{
+      obstacles_.loadFromFile(simulation_path + "obstacles/obstacles.dat")
       && anthill_.loadFromFile(obstacles_,
                                simulation_path + "anthill/anthill.dat")
       && food_.loadFromFile(obstacles_, simulation_path + "food/food.dat")
@@ -69,7 +70,14 @@ bool Simulation::loadSimulation(
       && window_.loadAntAnimationFrames(
           simulation_path + "ants/",
           kape::Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES)
-      && loadConfigFromFile(simulation_path + "config.txt");
+      && loadConfigFromFile(simulation_path + "config.txt")};
+    
+  if(correctly_loaded){
+    to_anthill_ph_.optimizePath(calculate_ants_average_distances_);
+    to_food_ph_.optimizePath(calculate_ants_average_distances_);
+  }
+
+  return correctly_loaded;
 }
 
 bool Simulation::timeToRender()
@@ -239,9 +247,9 @@ bool Simulation::chooseAndLoadSimulation()
     try {
       chosen_simulation_index =
           chooseOneOptionFromTerminal(available_simulations_names);
-    } catch (std::runtime_error const&
-                 error) { // if the chosen index doesn't correspond to a valid
-                          // simulation
+    } catch (
+        std::runtime_error const& error) { // if the chosen index doesn't
+                                           // correspond to a valid simulation
       std::cout << error.what() << '\n';
       ready_to_run_ = false;
       return false;
