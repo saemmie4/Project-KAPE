@@ -20,7 +20,7 @@ class CoordinateConverter
   // may throw std::invalid_argument if meter_to_pixels <= 0
   CoordinateConverter(float meter_to_pixels = 1000.f);
   float getMeterToPixels() const;
-  // may throw std::invalid_argument if pixel_to_meter <= 0
+  // may throw std::invalid_argument if meter_to_pixels <= 0
   void setMeterToPixels(float meter_to_pixels);
   double pixelsToMeters(float distance_in_pixels) const;
   float metersToPixels(double distance_in_meters) const;
@@ -48,7 +48,8 @@ class Window
   std::vector<sf::Vertex> points_vector_;
 
   void loadForDrawing(Food const& food, sf::Color const& food_color);
-  void loadForDrawing(Pheromones const& pheromones, sf::Color const& pheromones_color);
+  void loadForDrawing(Pheromones const& pheromones,
+                      sf::Color const& pheromones_color);
   void drawLoaded();
   // creates/recreates the window, making it fullscreen
   void createWindow();
@@ -77,8 +78,9 @@ class Window
   bool isOpen() const;
   void inputHandling();
   // Note: the first frame, if frames_naming_convention is left as is, would be
-  // Ant_frame_0.png won't do anything if it fails to load from the path may
-  // throw std::invalid argument if "[X]" isn't part of frames_naming_convention
+  // Ant_frame_0.png.
+  // The function won't do anything if it fails to load from the path
+  // may throw std::invalid argument if "[X]" isn't in frames_naming_convention
   bool loadAntAnimationFrames(
       std::string const& animation_frames_filepath,
       std::size_t number_of_animation_frames,
@@ -87,7 +89,7 @@ class Window
   void draw(Circle const& circle, sf::Color const& color,
             std::size_t point_count = 30U);
   void draw(Rectangle const& rectangle, sf::Color const& color);
-  void draw(Rectangle const& rectangle, sf::Text text,
+  void draw(Rectangle const& rectangle, sf::Text const& text,
             sf::Color const& rectangle_color);
   void draw(Ant const& ant, bool debug_mode = false);
   void draw(Ants const& ants, bool debug_mode = false);
@@ -104,14 +106,13 @@ class Window
   // may throw std::runtime_error if the window is not open when the function is
   // called
   std::size_t chooseOneOption(std::vector<std::string> const& options,
-                                    sf::Color const& default_button_color,
-                                    sf::Color const& chosen_button_color,
-                                    sf::Color const& background_color,
-                                    std::string const& filepath);
+                              sf::Color const& default_button_color,
+                              sf::Color const& chosen_button_color,
+                              sf::Color const& background_color,
+                              std::string const& filepath);
 
   ~Window();
 };
-
 
 // x is the index, y is the value
 void graphPoints(std::vector<double> const& points);

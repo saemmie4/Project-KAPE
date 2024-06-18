@@ -7,12 +7,9 @@
 #include <cmath> //for std::round
 #include <iostream>
 #include <stdexcept> //for std::invalid_argument, std::runtime_error
-// TODO
-//  - the implementation of the Window constructor is a bit bad
-//  - loadAntAnimationFrames uses a for loop which is kinda bad
-//  - draw buttons glitches if text is too long
 
 namespace kape {
+// may throw std::invalid_argument if meter_to_pixels <= 0
 CoordinateConverter::CoordinateConverter(float meter_to_pixels)
     : meter_to_pixels_{meter_to_pixels}
 {
@@ -26,7 +23,7 @@ float CoordinateConverter::getMeterToPixels() const
 {
   return meter_to_pixels_;
 }
-
+// may throw std::invalid_argument if meter_to_pixels <= 0
 void CoordinateConverter::setMeterToPixels(float meter_to_pixels)
 {
   if (meter_to_pixels <= 0) {
@@ -52,18 +49,18 @@ CoordinateConverter::worldToScreen(Vector2d const& world_position,
                                    unsigned int window_width,
                                    unsigned int window_height) const
 {
-  sf::Vector2f res{static_cast<float>(world_position.x),
-                   static_cast<float>(world_position.y)};
-  res *= meter_to_pixels_; // scale to pixels
-  res.y *= -1.0f;          // invert y axis
+  sf::Vector2f result{static_cast<float>(world_position.x),
+                      static_cast<float>(world_position.y)};
+  result *= meter_to_pixels_; // scale to pixels
+  result.y *= -1.0f;          // invert y axis
 
   // Translation of the origin
   // sum vector from top left (screen origin) to middle of the screen (world
   // origin)
-  res += sf::Vector2f{static_cast<float>(window_width) / 2.f,
-                      static_cast<float>(window_height) / 2.f};
+  result += sf::Vector2f{static_cast<float>(window_width) / 2.f,
+                         static_cast<float>(window_height) / 2.f};
 
-  return res;
+  return result;
 }
 
 // note: angle is in radians, the returned angle is in degrees
@@ -105,26 +102,13 @@ void Window::loadForDrawing(Pheromones const& pheromones,
                                              window_width, window_height);
       },
       pheromones_color);
-
-  // std::transform(
-  //     pheromones.begin(), pheromones.end(),
-  //     std::back_inserter(points_vector_), [window_width, window_height,
-  //     &color, max_pheromone_intensity,
-  //      this](PheromoneParticle const& pheromone_particle) {
-  //       sf::Vertex pheromone_drawing{coord_conv_.worldToScreen(
-  //           pheromone_particle.getPosition(), window_width, window_height)};
-  //       color.a = static_cast<sf::Uint8>(
-  //           (pheromone_particle.getIntensity() / max_pheromone_intensity *
-  //           255.));
-  //       pheromone_drawing.color = color;
-  //       return pheromone_drawing;
-  //     });
 }
 
 void Window::drawLoaded()
 {
   draw(points_vector_);
 }
+
 void Window::createWindow()
 {
   if (isOpen()) {
@@ -167,16 +151,10 @@ void Window::draw(sf::RectangleShape const& rectangle, sf::Text text,
       rectangle_drawing.getPosition().x + rectangle_drawing.getSize().x / 2.f,
       rectangle_drawing.getPosition().y + rectangle_drawing.getSize().y / 2.f);
 
-  // std::size_t num_char{text.getString().getSize()};
-  // size_t * size_t or size_t * uint becomes a float on its own, the static
-  // cast is to avoid the warning
   if (text.getGlobalBounds().width > 0.9f * rectangle_drawing.getSize().x) {
     text.setScale(
         0.9f * rectangle_drawing.getSize().x / text.getGlobalBounds().width,
         0.9f * rectangle_drawing.getSize().x / text.getGlobalBounds().width);
-    // text.setCharacterSize(static_cast<unsigned int>(
-    //     static_cast<size_t>(rectangle_drawing.getSize().x) * 9 / 10
-    //     / text.getString().getSize()));
   }
 
   window_.draw(text);
@@ -201,14 +179,13 @@ Window::Window(float meter_to_pixel)
   coord_conv_.setMeterToPixels(meter_to_pixel);
 
   if (!font_.loadFromFile(DEFAULT_FONT_FILEPATH)) {
-    throw std::runtime_error{"From Window::Window(float meter_to_pixel) "
+    throw std::runtime_error{"From Window::Window(float meter_to_pixel): "
                              "could not find the font at \""
                              + DEFAULT_FONT_FILEPATH + "\""};
   }
   if (!window_.isOpen()) {
-    throw std::runtime_error{
-        "[ERROR]: from Window::Window(float meter_to_pixel):"
-        "\n\t\t\tFailed to open the window "};
+    throw std::runtime_error{"From Window::Window(float meter_to_pixel):"
+                             "Failed to open the window "};
   }
 }
 
@@ -219,15 +196,17 @@ Window::Window(unsigned int window_width, unsigned int window_height,
   coord_conv_.setMeterToPixels(meter_to_pixel);
 
   if (!font_.loadFromFile(DEFAULT_FONT_FILEPATH)) {
-    throw std::runtime_error{"From Window::Window(float meter_to_pixel) "
-                             "could not find the font at \""
-                             + DEFAULT_FONT_FILEPATH + "\""};
+    throw std::runtime_error{
+        "From Window::Window(unsigned int window_width, unsigned int "
+        "window_height, float meter_to_pixel):"
+        "could not find the font at \""
+        + DEFAULT_FONT_FILEPATH + "\""};
   }
   if (!window_.isOpen()) {
     throw std::runtime_error{
-        "[ERROR]: from Window::Window(unsigned int window_width, unsigned int "
+        "From Window::Window(unsigned int window_width, unsigned int "
         "window_height, float meter_to_pixel):"
-        "\n\t\t\tFailed to open the window "};
+        "Failed to open the window "};
   }
 }
 sf::Font const& Window::getFont() const
@@ -310,8 +289,9 @@ void Window::inputHandling()
 }
 
 // Note: the first frame, if frames_naming_convention is left as is, would be
-// Ant_frame_0.png won't do anything if it fails to load from the path may
-// throw std::invalid argument if "[X]" isn't part of frames_naming_convention
+// Ant_frame_0.png.
+// The function won't do anything if it fails to load from the path
+// may throw std::invalid argument if "[X]" isn't in frames_naming_convention
 bool Window::loadAntAnimationFrames(
     std::string const& animation_frames_filepath,
     std::size_t number_of_animation_frames,
@@ -329,9 +309,7 @@ bool Window::loadAntAnimationFrames(
   std::string frame_name_prefix =
       frames_naming_convention.substr(0, subtitute_position);
   std::string frame_name_suffix = frames_naming_convention.substr(
-      subtitute_position + string_to_be_substituted.size(),
-      frames_naming_convention.size()
-          - (subtitute_position + string_to_be_substituted.size()));
+      subtitute_position + string_to_be_substituted.size());
 
   ants_animation_frames_.reserve(number_of_animation_frames);
 
@@ -358,6 +336,7 @@ bool Window::loadAntAnimationFrames(
 
   return true;
 }
+
 void Window::clear(sf::Color const& color)
 {
   if (isOpen()) {
@@ -391,15 +370,12 @@ void Window::draw(Rectangle const& rectangle, sf::Color const& color)
   rectangle_drawing.setFillColor(color);
   window_.draw(rectangle_drawing);
 }
-void Window::draw(Rectangle const& rectangle, sf::Text text,
+void Window::draw(Rectangle const& rectangle, sf::Text const& text,
                   sf::Color const& rectangle_color)
 {
   draw(kapeRectangleToScreenSfRectangleShape(rectangle), text, rectangle_color);
 }
 
-// to be perfected, it's just to see something on the screen right now
-// may throw std::runtime_error if it tries to draw a frame that hasn't been
-// previously loaded
 void Window::draw(Ant const& ant, bool debug_mode)
 {
   if (!isOpen()) {
@@ -543,10 +519,13 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options,
 {
   if (!isOpen()) {
     throw std::runtime_error{
-        "called Window::chooseOneOption(std::vector<std::string> const& "
-        "options) "
-        "while the window is not open"};
+        "called Window::chooseOneOption(...) while the window is not open"};
   };
+
+  if (options.empty()) {
+    throw std::runtime_error{
+        "called Window::chooseOneOption(...) while options is empty"};
+  }
 
   sf::Texture background_texture;
   sf::Sprite background_sprite;
@@ -564,15 +543,14 @@ std::size_t Window::chooseOneOption(std::vector<std::string> const& options,
     loaded_background_correctly = true;
   }
 
+  float window_width{static_cast<float>(window_.getSize().x)};
+  float window_height{static_cast<float>(window_.getSize().y)};
+  float button_spacing{window_height / static_cast<float>(options.size() + 1)};
   struct RectangleText
   {
     sf::RectangleShape box;
     sf::Text text;
   };
-
-  float window_width{static_cast<float>(window_.getSize().x)};
-  float window_height{static_cast<float>(window_.getSize().y)};
-  float button_spacing{window_height / static_cast<float>(options.size() + 1)};
   std::vector<RectangleText> buttons;
 
   int rectangle_index{0};
@@ -672,7 +650,6 @@ void graphPoints(std::vector<double> const& points)
     double x_offset = -1.;
     double y_offset = -1.;
 
-    std::vector<Circle> points_drawing;
     Rectangle x_axis{Vector2d{x_offset, y_offset}, 1.5, 0.01};
     Rectangle y_axis{Vector2d{x_offset - 0.01, 1.5 + y_offset}, 0.01, 1.51};
 
@@ -691,6 +668,7 @@ void graphPoints(std::vector<double> const& points)
     y_axis_title.setCharacterSize(400);
     y_axis_title.setFillColor(sf::Color::Black);
 
+    std::vector<Circle> points_drawing;
     double x{0.};
     for (auto y : points) {
       points_drawing.emplace_back(
@@ -720,9 +698,10 @@ void graphPoints(std::vector<double> const& points)
         << "[INFO]: Failed to open the window to display the results of the "
            "optimization.\n\t\t\tIn lack of a better option, the points will "
            "be saved in ./log/log.txt\n";
+    log << "\nResults of the optimization:"; 
     int index{0};
     for (auto point : points) {
-      std::cout << "(" << index << ", " << point << ")\n";
+      log << "(" << index << ", " << point << ")\n";
       ++index;
     }
     return;
