@@ -1,8 +1,6 @@
 #ifndef GEOMETRY_HPP
 #define GEOMETRY_HPP
 
-// TODO:
-
 namespace kape {
 
 double constexpr PI{3.1415926535897932};

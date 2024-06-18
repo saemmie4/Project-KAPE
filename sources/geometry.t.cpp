@@ -3,32 +3,20 @@
 #include "doctest.h"
 #include <numbers>
 
-// TODO:
-//  - tests for doShapesIntersect(Circle const& circle, Vector2d const& point);
-//  - tests for doShapesIntersect(Rectangle const& rectangle, Vector2d const&
-//   point);
-//  - tests for doShapesIntersect(Circle const& circle, Rectangle const&
-//   rectangle);
-//
-//  NEW:
-//  - tests for doShapesInstersec(Circle const& circle1, Circle const& circle2)
-//  -solve that operator/ makes tests fail because it (correctly) crashes the
-//  program with the assert to check if the denominator is 0
-
 TEST_CASE("Testing the Vector2d class")
 {
   kape::Vector2d v1{1., 5.};
   kape::Vector2d v2{0., -5.};
   SUBCASE("testing norm function")
   {
-    CHECK(norm(v1) == doctest::Approx(5.0990195));
-    CHECK(norm(v2) == doctest::Approx(5.0));
+    CHECK(kape::norm(v1) == doctest::Approx(5.0990195));
+    CHECK(kape::norm(v2) == doctest::Approx(5.0));
   }
 
   SUBCASE("testing norm2 function")
   {
-    CHECK(norm2(v1) == doctest::Approx(26.0));
-    CHECK(norm2(v2) == doctest::Approx(25.0));
+    CHECK(kape::norm2(v1) == doctest::Approx(26.0));
+    CHECK(kape::norm2(v2) == doctest::Approx(25.0));
   }
 
   SUBCASE("testing operator +")
@@ -152,8 +140,8 @@ TEST_CASE("Testing the Vector2d class")
     CHECK(kape::rotate(v1, 0.).y == doctest::Approx(5.));
     CHECK(kape::rotate(v1, kape::PI / 3.).x
           == doctest::Approx(rotate(v1, 7 * kape::PI / 3.).x));
-    CHECK(rotate(v1, -(kape::PI) / 3.).x == doctest::Approx(4.830127));
-    CHECK(rotate(v1, -(kape::PI) / 3.).y == doctest::Approx(1.633975));
+    CHECK(kape::rotate(v1, -(kape::PI) / 3.).x == doctest::Approx(4.830127));
+    CHECK(kape::rotate(v1, -(kape::PI) / 3.).y == doctest::Approx(1.633975));
   }
 }
 
@@ -203,14 +191,16 @@ TEST_CASE("Testing doShapesIntersect function")
   kape::Rectangle r3{kape::Vector2d{3., 6.}, 3., 4.};
   kape::Circle c4{kape::Vector2d{1., 0.}, std::sqrt(2.) * 2.};
   kape::Circle c5{kape::Vector2d{0., 1}, 0.5};
-  CHECK(doShapesIntersect(c2, v1) == true);
-  CHECK(doShapesIntersect(c3, v1) == false);
-  CHECK(doShapesIntersect(r2, v2) == true);
-  CHECK(doShapesIntersect(c1, v4) == true);
-  CHECK(doShapesIntersect(c3, r2) == true);
-  CHECK(doShapesIntersect(c1, r3) == false);
-  CHECK(doShapesIntersect(c4, r3) == true);
-  CHECK(doShapesIntersect(c3, v3) == true);
-  CHECK(doShapesIntersect(c5, r1) == true);
-  CHECK(doShapesIntersect(c1, r1) == true);
+  CHECK(kape::doShapesIntersect(c2, v1) == true);
+  CHECK(kape::doShapesIntersect(c3, v1) == false);
+  CHECK(kape::doShapesIntersect(r2, v2) == true);
+  CHECK(kape::doShapesIntersect(c1, v4) == true);
+  CHECK(kape::doShapesIntersect(c3, r2) == true);
+  CHECK(kape::doShapesIntersect(c1, r3) == false);
+  CHECK(kape::doShapesIntersect(c4, r3) == true);
+  CHECK(kape::doShapesIntersect(c3, v3) == true);
+  CHECK(kape::doShapesIntersect(c5, r1) == true);
+  CHECK(kape::doShapesIntersect(c1, r1) == true);
+  CHECK(kape::doShapesIntersect(c2, c3) == true);
+  CHECK(kape::doShapesIntersect(c3, c5) == false);
 }

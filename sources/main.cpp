@@ -14,11 +14,3 @@ int main()
 
   return 0;
 }
-
-// OGGI:
-// - Relazione
-// - Test
-// - Mappe 
-// - i for con algoritmi
-// - Pheromones (??)
-// - test iteratori (square)

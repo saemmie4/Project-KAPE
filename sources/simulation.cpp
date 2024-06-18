@@ -8,8 +8,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-// TODO:
-//  - actually let the user choose a simulation
 
 namespace kape {
 
@@ -27,8 +25,8 @@ bool Simulation::loadConfigFromFile(std::string const& filepath)
 
   bool is_debug;
   bool calculate_ants_average_distances;
-  double optimal_line_slope;
-  double optimal_line_intercept;
+  double optimal_line_slope{0.};
+  double optimal_line_intercept{0.};
 
   file_in >> is_debug >> calculate_ants_average_distances;
   if (calculate_ants_average_distances) {
@@ -71,8 +69,8 @@ bool Simulation::loadSimulation(
           simulation_path + "ants/",
           kape::Ant::ANIMATION_TOTAL_NUMBER_OF_FRAMES)
       && loadConfigFromFile(simulation_path + "config.txt")};
-    
-  if(correctly_loaded){
+
+  if (correctly_loaded) {
     to_anthill_ph_.optimizePath(calculate_ants_average_distances_);
     to_food_ph_.optimizePath(calculate_ants_average_distances_);
   }
@@ -105,7 +103,6 @@ bool Simulation::timeToCalculateAverageDistances()
         PERIOD_BETWEEN_PATH_OPTIMIZATION_CHECK_;
     return true;
   }
-
   return false;
 }
 
@@ -277,7 +274,7 @@ bool Simulation::chooseAndLoadSimulation()
   return ready_to_run_;
 }
 
-bool Simulation::isReadyToRun()
+bool Simulation::isReadyToRun() const
 {
   return ready_to_run_;
 }
@@ -334,5 +331,4 @@ void Simulation::run()
     graphPoints(average_ants_distance_from_line_);
   }
 }
-
 } // namespace kape

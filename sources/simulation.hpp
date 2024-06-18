@@ -1,11 +1,5 @@
 #ifndef SIMULATION_HPP
 #define SIMULATION_HPP
-
-// TODO:
-//  -constructor
-//  -deconstructor
-//  -run()
-
 #include "ants.hpp"
 #include "drawing.hpp"
 #include "environment.hpp"
@@ -13,7 +7,9 @@
 #include <chrono>
 #include <filesystem>
 #include <string>
+
 namespace kape {
+
 class Simulation
 {
  private:
@@ -23,7 +19,7 @@ class Simulation
   inline static std::string const DEFAULT_BACKGROUND_PATH_{
       "./assets/background/background.png"};
   // name of the simulation to be loaded by default
-  inline static std::string const DEFAULT_SIMULATION_NAME_{"default"};
+  inline static std::string const DEFAULT_SIMULATION_NAME_{"map_1"};
   // as a default the time between simulation updates is 0.01s
   inline static double const SIMULATION_DELTA_T_{0.01};
   inline static long int const FRAMERATE{60}; // frames per second for drawing
@@ -58,8 +54,9 @@ class Simulation
   double optimal_line_intercept_;
 
   bool loadConfigFromFile(std::string const& filepath);
-  // returns true if all the objects have been loaded properly, false if at
-  // least one failed
+  // returns:
+  // - true if all the objects have been loaded properly
+  // - false if at least one failed
   bool loadSimulation(
       std::filesystem::directory_entry const& simulation_folder_path);
 
@@ -73,7 +70,7 @@ class Simulation
   //    - false if it failed to load the simulation and is therefore unable to
   //      run
   bool chooseAndLoadSimulation();
-  bool isReadyToRun();
+  bool isReadyToRun() const;
   void run();
 };
 } // namespace kape

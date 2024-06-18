@@ -1,10 +1,8 @@
 #include "geometry.hpp"
-#include <cassert>   //per assert
-#include <cmath>     //for std::sqrt
-#include <stdexcept> //for std::domain_error
+#include <cassert>   // for assert
+#include <cmath>     // for std::sqrt
+#include <stdexcept> // for std::domain_error
 
-// TODO:
-// - rectangle implementation
 namespace kape {
 
 Vector2d::Vector2d(double x_input, double y_input)
@@ -28,6 +26,7 @@ Vector2d& Vector2d::operator*=(double rhs)
   *this = *this * rhs;
   return *this;
 }
+
 // may throw a std::domain_error if rhs==0 (division by 0)
 Vector2d& Vector2d::operator/=(double rhs)
 {
@@ -40,6 +39,7 @@ double operator*(Vector2d const& lhs, Vector2d const& rhs)
 {
   return lhs.x * rhs.x + lhs.y * rhs.y;
 }
+
 // scalar*vector
 Vector2d operator*(double lhs, Vector2d const& rhs)
 {
@@ -59,7 +59,6 @@ Vector2d operator/(Vector2d const& lhs, double rhs)
   if (rhs == 0.) {
     throw std::domain_error{"the denominator can't be 0"};
   }
-
   return (1. / rhs) * lhs;
 }
 
@@ -109,7 +108,7 @@ double angle(Vector2d const& vec)
   }
 
   // computes the angle in [-pi, +pi]
-  return atan2(vec.y, vec.x);
+  return std::atan2(vec.y, vec.x);
 }
 
 // all vectors are in 2d, so the result will be the z component of vec1 X vec2
@@ -125,7 +124,6 @@ double cross_product(Vector2d const& vec1, Vector2d const& vec2)
 }
 
 // Circle implementation----------------------------------
-
 // may throw std::invalid_argument if radius <= 0
 Circle::Circle(Vector2d const& center, double radius)
     : center_{center}
@@ -166,7 +164,6 @@ bool Circle::isInside(Vector2d const& position) const
 }
 
 // Rectangle Implementation-----------------------------------
-
 // may throw std::invalid_argument if width or height <= 0
 Rectangle::Rectangle(Vector2d const& top_left_corner, double width,
                      double height)
@@ -204,8 +201,9 @@ bool doShapesIntersect(Circle const& circle, Vector2d const& point)
       <= circle.getCircleRadius() * circle.getCircleRadius();
 }
 
-// true: point x is between left and right edge
-// false: else
+// returns:
+//  - true if point x is between left and right edge
+//  - false otherwise
 bool isPointBetweenLeftAndRightEdge(Rectangle const& rectangle,
                                     Vector2d const& point)
 {
@@ -215,8 +213,9 @@ bool isPointBetweenLeftAndRightEdge(Rectangle const& rectangle,
   return (std::abs(point.x - tlc.x - w / 2.) <= w / 2.);
 }
 
-// true: point y is between top and bottom edge
-// false: else
+// returns:
+// - true if point y is between top and bottom edge
+// - false otherwise
 bool isPointBetweenTopAndBottomEdge(Rectangle const& rectangle,
                                     Vector2d const& point)
 {
@@ -317,5 +316,4 @@ bool doShapesIntersect(Circle const& circle1, Circle const& circle2)
   return norm2(distance_vector)
       <= max_distance_to_intersect * max_distance_to_intersect;
 }
-
 } // namespace kape

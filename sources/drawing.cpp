@@ -698,7 +698,7 @@ void graphPoints(std::vector<double> const& points)
         << "[INFO]: Failed to open the window to display the results of the "
            "optimization.\n\t\t\tIn lack of a better option, the points will "
            "be saved in ./log/log.txt\n";
-    log << "\nResults of the optimization:"; 
+    log << "\nResults of the optimization:";
     int index{0};
     for (auto point : points) {
       log << "(" << index << ", " << point << ")\n";

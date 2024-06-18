@@ -92,7 +92,8 @@ class Ants
   void addAnt(Ant const& ant);
 
  public:
-  inline static std::string const DEFAULT_FILEPATH_{"./assets/simulations/map_1/ants/ants.dat"};
+  inline static std::string const DEFAULT_FILEPATH_{
+      "./assets/simulations/map_1/ants/ants.dat"};
 
   // NOTE: it's in "simulation" time, not real time
   inline static double const ANIMATION_TIME_BETWEEN_FRAMES_{0.03};
